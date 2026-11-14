@@ -88,6 +88,9 @@ New tokens include `--on-primary`, `--on-danger/-success/-warning/-info`,
 - `scripts/qa/capture-shell.mjs` — **new** size × language × theme screenshot matrix
 - `scripts/qa/capture-routes.mjs` — **new** authenticated walk: trial + Owner setup via IPC, then
   every route captured (see §3)
+- `scripts/qa/interact-routes.mjs` — **new** interaction pass: opens each create dialog, submits it
+  empty, checks validation feedback and Escape dismissal, and exercises the shell controls
+- `src/hooks/use-escape-key.ts` — **new** shared Escape-to-dismiss hook, wired into all 7 dialogs
 - `scripts/qa/vite.qa.config.mjs` — **new** QA-only renderer server (unpackaged Electron loads :5173)
 - `scripts/run-main-tests.mjs` — cross-platform fix (see Known issues)
 - `.gitignore` — new
@@ -155,6 +158,7 @@ Captures: `qa-screenshots/routes/1366x768/en/dark/<route>.png`, plus a 7-route m
 | Electron render smoke | n/a | **0 console errors, 0 page errors** |
 | Visual matrix (shell) | n/a | **24 captures**, 0 renderer errors |
 | Visual matrix (routes) | n/a | **116 captures**, 30 routes + 7-route RTL/size sweep, **0 renderer errors, 0 empty renders** |
+| Interaction pass | n/a | 6 dialogs opened / submitted empty / dismissed by Escape, shell controls verified, **0 renderer errors** |
 
 No regression was introduced: the two failing IPC assertions and the two failing verify
 scripts failed identically before any UI change (they do not touch renderer code).
@@ -209,8 +213,12 @@ fully legible on every page checked.
 
 Stated plainly so nothing is over-claimed:
 
-- Interaction coverage on the authenticated pages: modals, create/edit wizards, validation
-  messages and empty/error states were rendered but not clicked through end to end.
+- Full happy-path interaction: forms were opened and submitted **empty** to verify validation,
+  but not filled and saved; editing, deletion and delete-confirmation were not exercised, and the
+  Invoices/Certificates create dialogs could not be opened by the harness (see `AUDIT_LOG.md` F32).
+- Two interaction findings are reported rather than fixed (`AUDIT_LOG.md` F30, F31): native
+  `alert()` validation in Orders with hardcoded English, and Certificates' headings/filters that
+  use the English category literals as both data and label.
 - Hand-redesign of each of the 11 modules and 19 settings subpages (they inherit the design
   system and were verified to render, but their layouts were not re-composed).
 - A full 18-combination size/language/theme sweep for every one of the 30 routes (done for 7

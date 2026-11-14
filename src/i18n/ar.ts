@@ -10,6 +10,7 @@ const ar: TranslationDictionary = {
     toDate: "إلى تاريخ",
     add: "إضافة",
     edit: "تعديل",
+    new: "جديد",
     delete: "حذف",
     save: "حفظ",
     cancel: "إلغاء",
@@ -232,6 +233,7 @@ const ar: TranslationDictionary = {
     priceInvalid: "يجب أن يكون السعر رقمًا غير سالب.",
     stockInvalid: "يجب أن يكون المخزون رقمًا غير سالب.",
     saveFailed: "تعذر حفظ هذا المنتج. يرجى المحاولة مرة أخرى.",
+    nameRequired: "أدخل اسم المنتج قبل الحفظ.",
     deleteFailed: "تعذر حذف هذا المنتج. يرجى المحاولة مرة أخرى."
   },
 
@@ -251,6 +253,7 @@ const ar: TranslationDictionary = {
     noCustomersFound: "لم يتم العثور على عملاء.",
     confirmDelete: "هل تريد حذف هذا العميل؟",
     saveFailed: "تعذر حفظ بيانات هذا العميل. يرجى المحاولة مرة أخرى.",
+    nameRequired: "أدخل اسم العميل قبل الحفظ.",
     deleteFailed: "تعذر حذف هذا العميل. يرجى المحاولة مرة أخرى."
   },
 

@@ -12,6 +12,8 @@ import {
     ShieldCheck
 } from "lucide-react";
 
+import { useEscapeKey } from "@/hooks/use-escape-key";
+
 
 
 // Transaction is declared globally in src/types/electron.d.ts
@@ -151,6 +153,8 @@ export default function AccountingPage(){
 
     const [showModal,setShowModal] =
         useState(false);
+
+    useEscapeKey(showModal, () => setShowModal(false));
 
 
 

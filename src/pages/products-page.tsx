@@ -7,6 +7,8 @@ import {
   ArrowLeft
 } from "lucide-react";
 
+import { useEscapeKey } from "@/hooks/use-escape-key";
+
 
 import {
   useEffect,
@@ -77,6 +79,11 @@ export default function ProductsPage(): JSX.Element {
 
   const [showModal,setShowModal] =
     useState(false);
+
+useEscapeKey(showModal, () => setShowModal(false));
+
+  const [formError,setFormError] =
+    useState<string | null>(null);
 
 
 
@@ -290,6 +297,7 @@ export default function ProductsPage(): JSX.Element {
 
 
 
+    setFormError(null);
     setShowModal(true);
 
 
@@ -321,6 +329,7 @@ export default function ProductsPage(): JSX.Element {
 
 
 
+    setFormError(null);
     setShowModal(true);
 
 
@@ -335,9 +344,16 @@ export default function ProductsPage(): JSX.Element {
   async function saveProduct(){
 
 
-    if(!form.name)
+    // Was a bare `return`: pressing Save with an empty name did nothing at all.
+    if(!form.name.trim()){
+
+      setFormError(t("products.nameRequired"));
 
       return;
+
+    }
+
+    setFormError(null);
 
 
     const priceValue = Number(form.price);
@@ -1293,6 +1309,12 @@ export default function ProductsPage(): JSX.Element {
               </div>
 
             </div>
+
+            {formError && (
+
+              <p className="form-error" role="alert">{formError}</p>
+
+            )}
 
             <button
 

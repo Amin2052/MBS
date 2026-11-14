@@ -8,6 +8,7 @@ const en = {
     toDate: "To Date",
     add: "Add",
     edit: "Edit",
+    new: "New",
     delete: "Delete",
     save: "Save",
     cancel: "Cancel",
@@ -233,6 +234,7 @@ const en = {
     priceInvalid: "Price must be a non-negative number.",
     stockInvalid: "Stock must be a non-negative number.",
     saveFailed: "Could not save this product. Please try again.",
+    nameRequired: "Enter the product name before saving.",
     deleteFailed: "Could not delete this product. Please try again."
   },
 
@@ -252,6 +254,7 @@ const en = {
     noCustomersFound: "No customers found.",
     confirmDelete: "Delete this customer?",
     saveFailed: "Could not save this customer. Please try again.",
+    nameRequired: "Enter the customer name before saving.",
     deleteFailed: "Could not delete this customer. Please try again."
   },
 

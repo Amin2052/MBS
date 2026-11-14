@@ -12,6 +12,8 @@ import {
   X
 } from "lucide-react";
 
+import { useEscapeKey } from "@/hooks/use-escape-key";
+
 import { getCompanySettings } from "@/services/company-settings-service";
 import { formatDateShort } from "@/utils/date-format";
 import type { CompanySettings } from "@/types/company-settings";
@@ -225,6 +227,8 @@ export default function CertificatesPage(): JSX.Element {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
+
+  useEscapeKey(showModal, () => setShowModal(false));
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<CertificateForm>(emptyForm("Employee"));
 

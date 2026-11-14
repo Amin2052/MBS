@@ -7,6 +7,8 @@ import {
   CheckCircle
 } from "lucide-react";
 
+import { useEscapeKey } from "@/hooks/use-escape-key";
+
 import {
   useEffect,
   useMemo,
@@ -355,6 +357,8 @@ export default function OrdersPage(): JSX.Element {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+
+  useEscapeKey(showModal, closeModal);
   const [editId, setEditId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 

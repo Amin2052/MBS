@@ -8,6 +8,8 @@ import {
   Eye
 } from "lucide-react";
 
+import { useEscapeKey } from "@/hooks/use-escape-key";
+
 
 import {
   useEffect,
@@ -284,6 +286,8 @@ export default function InvoicesPage(): JSX.Element {
 
   const [showModal,setShowModal] =
     useState(false);
+
+  useEscapeKey(showModal, () => setShowModal(false));
 
 
 

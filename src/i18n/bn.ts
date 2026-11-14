@@ -10,6 +10,7 @@ const bn: TranslationDictionary = {
     toDate: "শেষ তারিখ",
     add: "যোগ করুন",
     edit: "সম্পাদনা",
+    new: "নতুন",
     delete: "মুছুন",
     save: "সংরক্ষণ",
     cancel: "বাতিল",
@@ -232,6 +233,7 @@ const bn: TranslationDictionary = {
     priceInvalid: "মূল্য একটি ঋণাত্মক নয় এমন সংখ্যা হতে হবে।",
     stockInvalid: "স্টক একটি ঋণাত্মক নয় এমন সংখ্যা হতে হবে।",
     saveFailed: "এই পণ্য সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
+    nameRequired: "সংরক্ষণের আগে পণ্যের নাম লিখুন।",
     deleteFailed: "এই পণ্য মুছে ফেলা যায়নি। আবার চেষ্টা করুন।"
   },
 
@@ -251,6 +253,7 @@ const bn: TranslationDictionary = {
     noCustomersFound: "কোনো গ্রাহক পাওয়া যায়নি।",
     confirmDelete: "এই গ্রাহককে মুছে ফেলবেন?",
     saveFailed: "এই গ্রাহক সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
+    nameRequired: "সংরক্ষণের আগে গ্রাহকের নাম লিখুন।",
     deleteFailed: "এই গ্রাহক মুছে ফেলা যায়নি। আবার চেষ্টা করুন।"
   },
 

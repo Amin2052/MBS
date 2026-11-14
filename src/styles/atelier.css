@@ -668,3 +668,20 @@
     color: #000000 !important;
   }
 }
+
+/* ---------- Inline form validation ----------
+
+   Used where a dialog previously rejected a submit silently. Announces itself
+   to assistive tech (role="alert" on the element) and never shifts the layout
+   of the fields above it. */
+
+.form-error {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}

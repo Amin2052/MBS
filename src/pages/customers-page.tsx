@@ -7,6 +7,8 @@ import {
   ArrowLeft
 } from "lucide-react";
 
+import { useEscapeKey } from "@/hooks/use-escape-key";
+
 import {
   useEffect,
   useMemo,
@@ -56,6 +58,11 @@ useState("");
 
 const [showModal,setShowModal] =
 useState(false);
+
+useEscapeKey(showModal, () => setShowModal(false));
+
+const [formError,setFormError] =
+useState<string | null>(null);
 
 
 
@@ -233,6 +240,7 @@ address:""
 });
 
 
+setFormError(null);
 setShowModal(true);
 
 
@@ -264,6 +272,7 @@ address:customer.address
 });
 
 
+setFormError(null);
 setShowModal(true);
 
 
@@ -279,9 +288,17 @@ setShowModal(true);
 async function saveCustomer(){
 
 
-if(!form.name)
+// Previously this was a bare `return`, so pressing Save with an empty Name
+// produced no visible reaction at all. Tell the user what is missing.
+if(!form.name.trim()){
 
-return;
+  setFormError(t("customers.nameRequired"));
+
+  return;
+
+}
+
+setFormError(null);
 
 
 
@@ -927,20 +944,23 @@ address:e.target.value
 
 />
 
+	{formError && (
 
+	  <p className="form-error" role="alert">{formError}</p>
 
+	)}
 
-<button
+	<button
 
-className="save-customer"
+	className="save-customer"
 
-onClick={saveCustomer}
+	onClick={saveCustomer}
 
->
+	>
 
-{t("customers.saveCustomer")}
+	{t("customers.saveCustomer")}
 
-</button>
+	</button>
 
 
 

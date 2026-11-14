@@ -11,6 +11,8 @@ import {
   RefreshCw
 } from "lucide-react";
 
+import { useEscapeKey } from "@/hooks/use-escape-key";
+
 import { formatDateShort } from "@/utils/date-format";
 import { formatDuration } from "@/utils/duration";
 import { formatNumber } from "@/utils/format-number";
@@ -332,6 +334,8 @@ export default function EmployeesPage(): JSX.Element {
   const [isPickingPhoto, setIsPickingPhoto] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
+
+  useEscapeKey(showModal, () => setShowModal(false));
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<EmployeeForm>(emptyForm());
 
@@ -1033,7 +1037,7 @@ export default function EmployeesPage(): JSX.Element {
         <div className="employee-modal-overlay">
           <div className="employee-modal" onClick={(e) => e.stopPropagation()}>
 
-            <h2>{editId ? "Edit" : "New"} Employee</h2>
+            <h2>{editId ? t("common.edit") : t("common.new")} {t("employees.employee")}</h2>
 
             <div className="employee-photo-section">
 
