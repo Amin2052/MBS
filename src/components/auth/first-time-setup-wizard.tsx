@@ -76,21 +76,21 @@ export default function FirstTimeSetupWizard(): JSX.Element {
           <polygon points="110,50 170,80 170,140 110,170 50,140 50,80" stroke="url(#mbs-gg1-setup)" strokeWidth="1" />
           <defs>
             <linearGradient id="mbs-gg1-setup" x1="0" y1="0" x2="220" y2="220">
-              <stop stopColor="#7aa6ff" />
-              <stop offset="1" stopColor="#2f6fed" stopOpacity="0.2" />
+              <stop />
+              <stop offset="1" stopOpacity="0.2" />
             </linearGradient>
           </defs>
         </svg>
       </div>
       <div className="mbs-geo mbs-g2">
         <svg viewBox="0 0 140 140" fill="none">
-          <circle cx="70" cy="70" r="68" stroke="#7aa6ff" strokeWidth="1" />
-          <circle cx="70" cy="70" r="42" stroke="#7aa6ff" strokeWidth="1" />
+          <circle cx="70" cy="70" r="68" stroke="var(--bronze)" strokeWidth="1" />
+          <circle cx="70" cy="70" r="42" stroke="var(--bronze)" strokeWidth="1" />
         </svg>
       </div>
       <div className="mbs-geo mbs-g3">
         <svg viewBox="0 0 90 90" fill="none">
-          <rect x="5" y="5" width="80" height="80" rx="16" stroke="#7aa6ff" strokeWidth="1" />
+          <rect x="5" y="5" width="80" height="80" rx="16" stroke="var(--bronze)" strokeWidth="1" />
         </svg>
       </div>
 

@@ -202,7 +202,14 @@ const bn: TranslationDictionary = {
     after: "পরে",
     loadingTopProducts: "শীর্ষ পণ্য লোড হচ্ছে...",
     loadingOrders: "অর্ডার লোড হচ্ছে...",
-    loadingSalesTrend: "বিক্রয় প্রবণতা লোড হচ্ছে..."
+    loadingSalesTrend: "বিক্রয় প্রবণতা লোড হচ্ছে...",
+    quickAddCustomer: "গ্রাহক যোগ করুন",
+    quickAddProduct: "পণ্য যোগ করুন",
+    quickCreateOrder: "অর্ডার তৈরি করুন",
+    quickViewInvoices: "চালান দেখুন",
+    checkingStock: "স্টক যাচাই চলছে…",
+    lowStockItems: "পণ্যের স্টক কম",
+    allStockHealthy: "সব পণ্যের স্টক পর্যাপ্ত"
   },
 
   products: {

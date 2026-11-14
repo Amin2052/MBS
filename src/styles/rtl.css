@@ -124,3 +124,32 @@
   right: 0;
   border-radius: var(--radius-xs) 0 0 var(--radius-xs);
 }
+
+/* ---------- Bidi isolation for machine-readable values ----------
+
+   In an RTL paragraph, neutral characters at the edges of a value are
+   relocated: a leading "+" in a phone number renders at the visual left
+   ("8801711001008+"), and a trailing "." in "Delta Engineering Ltd."
+   jumps to the front. `unicode-bidi: plaintext` is the CSS equivalent of
+   dir="auto" -- each value keeps its own direction, decided by its first
+   strong character, so Latin/numeric values stay LTR and Arabic values
+   stay RTL without any per-cell markup. */
+
+[dir="rtl"] td,
+[dir="rtl"] th,
+[dir="rtl"] .cell-truncate,
+[dir="rtl"] [class*="-row"] span:not(.amount-cell),
+[dir="rtl"] [class*="table-head"] span,
+[dir="rtl"] [class*="-cell"],
+[dir="rtl"] .customer-info span,
+[dir="rtl"] .customer-details-card span {
+  unicode-bidi: plaintext;
+}
+
+/* Currency strings are already formatted by Intl for the active locale, which
+   places the symbol correctly for RTL. Forcing plaintext on them would flip the
+   symbol to the LTR side, so amount cells keep normal bidi resolution and stay
+   consistent with the KPI cards. */
+[dir="rtl"] .amount-cell {
+  unicode-bidi: normal;
+}

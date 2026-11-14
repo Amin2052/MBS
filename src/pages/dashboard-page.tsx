@@ -237,6 +237,11 @@ export default function DashboardPage(): JSX.Element {
 
   const topSellingProducts: TopProduct[] = useMemo(() => {
     const totals = orders.reduce((acc: Record<string, TopProduct>, order) => {
+      // Orders whose product row was removed have no product_name. They used
+      // to collapse into a single row with an `undefined` name, which also made
+      // React's list key undefined. They cannot be represented in this widget.
+      if (!order.product_name) return acc;
+
       if (!acc[order.product_name]) {
         acc[order.product_name] = { name: order.product_name, quantity: 0 };
       }
@@ -337,10 +342,10 @@ export default function DashboardPage(): JSX.Element {
           </div>
           <p className={lowStockProducts.length > 0 ? "warning" : "success"}>
             {isLoading
-              ? "Checking stock levels..."
+              ? t("dashboard.checkingStock")
               : lowStockProducts.length > 0
-                ? `${formatNumber(lowStockProducts.length)} low stock items`
-                : "All stock levels healthy"}
+                ? `${formatNumber(lowStockProducts.length)} ${t("dashboard.lowStockItems")}`
+                : t("dashboard.allStockHealthy")}
           </p>
         </div>
       </div>
@@ -356,28 +361,28 @@ export default function DashboardPage(): JSX.Element {
             <span className="qa-icon purple">
               <UserPlus size={18} />
             </span>
-            Add Customer
+            {t("dashboard.quickAddCustomer")}
           </button>
 
           <button onClick={() => navigate("/products?action=add")}>
             <span className="qa-icon orange">
               <Package size={18} />
             </span>
-            Add Product
+            {t("dashboard.quickAddProduct")}
           </button>
 
           <button onClick={() => navigate("/orders?action=add")}>
             <span className="qa-icon green">
               <Plus size={18} />
             </span>
-            Create Order
+            {t("dashboard.quickCreateOrder")}
           </button>
 
           <button onClick={() => navigate("/invoices")}>
             <span className="qa-icon blue">
               <FileText size={18} />
             </span>
-            View Invoices
+            {t("dashboard.quickViewInvoices")}
           </button>
         </div>
       </div>
@@ -400,7 +405,7 @@ export default function DashboardPage(): JSX.Element {
             )}
 
             {topSellingProducts.map((product, index) => (
-              <div className="top-product-row" key={product.name}>
+              <div className="top-product-row" key={`${product.name}-${index}`}>
                 <span className="rank-badge">{index + 1}</span>
                 <strong>{product.name}</strong>
                 <span>{formatNumber(product.quantity)} sold</span>
@@ -550,7 +555,7 @@ export default function DashboardPage(): JSX.Element {
             )}
 
             {topSellingProducts.map((product, index) => (
-              <div className="top-product-row" key={product.name}>
+              <div className="top-product-row" key={`${product.name}-${index}`}>
                 <span className="rank-badge">{index + 1}</span>
                 <strong>{product.name}</strong>
                 <span>{formatNumber(product.quantity)} sold</span>

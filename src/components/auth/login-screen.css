@@ -47,6 +47,14 @@
 }
 
 /* abstract geometric module marks */
+/* Decorative geometry (brand plate + auth + licence screens share these).
+   Strokes carry stroke="var(--bronze)" inline, which Chromium resolves.
+   Gradient stops are styled HERE instead, because stop-color="var(...)" in a
+   presentation attribute is computed as black (verified in Chromium), which
+   rendered the hexagon near-black on the graphite background. */
+.mbs-login .mbs-geo stop:first-child{stop-color:var(--bronze);}
+.mbs-login .mbs-geo stop:last-child{stop-color:var(--primary);}
+
 .mbs-login .mbs-geo{position:absolute; z-index:1; opacity:0.22;}
 .mbs-login .mbs-geo svg{display:block;}
 

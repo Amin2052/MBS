@@ -220,8 +220,8 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
           <polygon points="110,50 170,80 170,140 110,170 50,140 50,80" stroke="url(#mbs-gg1-lic)" strokeWidth="1" />
           <defs>
             <linearGradient id="mbs-gg1-lic" x1="0" y1="0" x2="220" y2="220">
-              <stop stopColor="var(--bronze)" />
-              <stop offset="1" stopColor="var(--primary)" stopOpacity="0.2" />
+              <stop />
+              <stop offset="1" stopOpacity="0.2" />
             </linearGradient>
           </defs>
         </svg>

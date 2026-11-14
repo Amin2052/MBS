@@ -47,7 +47,6 @@ export default function StatusBar(): JSX.Element {
 
   const [dbState, setDbState] = useState<"loading" | "connected" | "unavailable">("loading");
   const [dbSize, setDbSize] = useState<number | null>(null);
-  const [appVersion, setAppVersion] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator === "undefined" ? true : navigator.onLine
   );
@@ -71,14 +70,6 @@ export default function StatusBar(): JSX.Element {
         if (!isMounted) return;
         console.error("Status bar database check failed:", error);
         setDbState("unavailable");
-      });
-
-    window.mooral.app.getInfo()
-      .then((info) => {
-        if (isMounted) setAppVersion(info.appVersion);
-      })
-      .catch(() => {
-        // Version is decoration; leave it blank rather than guessing.
       });
 
     return () => {
@@ -151,10 +142,6 @@ export default function StatusBar(): JSX.Element {
           <span className="statusbar-item statusbar-item--muted" title={t("shell.signedInAs")}>
             {t("shell.signedInAs")} {identity}
           </span>
-        )}
-
-        {appVersion && (
-          <span className="statusbar-item statusbar-item--muted">v{appVersion}</span>
         )}
 
       </div>

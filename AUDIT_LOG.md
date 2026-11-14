@@ -113,6 +113,15 @@ says otherwise.
 | F15 | `verify:release` and `verify:online` fail on a missing `server/` directory (this checkout ships cloud code under `cloudflare/`). Pre-existing. | High (release pipeline) | **Open — needs owner decision** | `scripts/verify-release.mjs`, `scripts/verify-online-architecture.mjs` |
 | F16 | `electron/main/main.ts` sets `backgroundColor: "#ffffff"`, producing a white flash before the dark renderer paints. | Medium | **Open — needs owner decision** (protected file) | `electron/main/main.ts` |
 | F17 | 95 CSS class selectors match no TSX (legacy rules). | Low | **Reported, not deleted** — deletion is unsafe because several families are built dynamically (`status-${x}`, `contract-status-*`); removing them would silently break styling. Listed by `css-audit.mjs`. | various `.css` |
+| F18 | React console warning on the dashboard: "Each child in a list should have a unique key prop". Orders whose product row had been removed carried no `product_name`, so the widget rendered a row with `name: undefined` — a real `undefined` list key plus a blank "0 sold" row. | Low | Fixed (found by the authenticated route walk) | `dashboard-page.tsx` |
+| F19 | The setup, login and both password/username recovery screens still hardcoded the old blue `#7aa6ff`/`#2f6fed` in their decorative SVGs (20 occurrences across 4 files); the earlier licence-gate fix had not covered them. | Medium | Fixed | 5 auth/licence TSX files |
+| F20 | `stopColor="var(--primary)"` inside an SVG `<linearGradient>` computes to **black** in Chromium — `var()` does not resolve for `stop-color` in a presentation attribute (verified directly, not assumed), so the decorative hexagon painted near-black instead of gold. | Medium | Fixed — gradient stops are now styled from CSS, strokes keep `var()` (which does resolve) | `login-screen.css` |
+| F21 | Settings tiles used the legacy `--purple` token, which is violet in the light palette but bronze in the dark one, so the Settings grid turned violet in Atelier Daylight. | Medium | Fixed — light `--purple` moved onto the bronze ramp | `themes.css` |
+| F22 | KPI cards and quick-action chips each carried a different accent (blue / green / purple / orange), contradicting the single-accent palette and making four cards read as four unrelated modules. | Medium | Fixed — one gold accent, status still carried by caption text | `dashboard.css` |
+| F23 | **Arabic bidi corruption of machine-readable values**: `+8801711001008` rendered as `8801711001008+`, `28 Oct 2026` as `Oct 2026 28`, and `Delta Engineering Ltd.` as `.Delta Engineering Ltd`. Neutral characters at the edges of a value get relocated by the RTL paragraph. | High | Fixed — `unicode-bidi: plaintext` (the CSS form of `dir="auto"`) on table/row/cell values; currency cells deliberately excluded because `Intl` already places the symbol correctly | `rtl.css` |
+| F24 | Dashboard quick actions ("Add Customer", "Add Product", "Create Order", "View Invoices") and the stock caption were hardcoded English in every locale. | Medium | Fixed — 7 keys × 3 locales | `dashboard-page.tsx`, `i18n/*` |
+| F25 | The status bar repeated the app version that the sidebar footer already shows. | Low | Fixed | `status-bar.tsx` |
+| F26 | `database:getInfo` is owner/administrator-only, but the status bar called it for every role — an Employee would have seen a false red "Unavailable" dot. | Medium | Fixed — the indicator is only rendered for roles allowed to read it | `status-bar.tsx` |
 
 Non-findings worth recording:
 - **0 undefined CSS variables** and **0 theme gaps** across all 16k CSS lines (the token layer is complete).
@@ -133,8 +142,17 @@ Non-findings worth recording:
 | `scripts/qa/css-audit.mjs` | 0 errors (0 undefined vars, 0 theme gaps, 0 hardcoded colours) |
 | `scripts/qa/smoke-electron.mjs` | App boots, renders, **0 console errors, 0 page errors** |
 | `scripts/qa/capture-shell.mjs` | 24 screenshots: 4 window sizes × 3 languages × 2 themes, 0 renderer errors |
+| `scripts/qa/capture-routes.mjs` | Authenticated walk: trial activated and Owner created through the real IPC handlers, then **all 30 routes** captured at 1366×768/en/dark plus a 7-route × 2-sizes × 3-languages × 2-themes matrix — **0 renderer errors, 0 empty renders** |
 
-Captures are in `qa-screenshots/<WxH>/<lang>/<theme>/shell.png`.
+Captures are in `qa-screenshots/<WxH>/<lang>/<theme>/shell.png` and
+`qa-screenshots/routes/<WxH>/<lang>/<theme>/<route>.png`.
+
+> **QA side effect to be aware of:** activating the trial writes an anti-reset
+> anchor to `~/.mbs_sys_cache` (deliberately outside the user profile, so that
+> deleting app data cannot restart a trial). Running `capture-routes.mjs`
+> therefore consumes the 7-day trial of the machine it runs on. The anchor it
+> created during this pass was moved aside to `*.qa-trialspent-*`, leaving the
+> machine with no active trial; delete `~/.mbs_sys_cache` to be certain.
 
 ---
 
@@ -142,16 +160,19 @@ Captures are in `qa-screenshots/<WxH>/<lang>/<theme>/shell.png`.
 
 These parts of the brief were **not** executed and must not be reported as complete:
 
-1. **Route-by-route authenticated walk.** The workspace is behind licence activation and
-   account setup; captures cover the reachable first screen only.
+1. ~~Route-by-route authenticated walk~~ — **now done** (`capture-routes.mjs`): every route
+   was reached and captured. What remains uncovered is *interaction* on those pages, not
+   rendering: modals, wizards, validation and empty/error states were not clicked through.
 2. **Hand-redesign of all 11 modules and 19 settings subpages.** They inherit the new tokens
-   automatically, but their individual layouts were not re-authored page by page.
+   automatically and were verified to render, but their individual layouts were not
+   re-authored page by page.
 3. **Stress test** (50k customers / 200k orders / 1M ledger rows, long-task measurement).
 4. **Load test** (1,000 parallel reads, 200 parallel invoice creations).
 5. **Penetration test** beyond the existing `entry-ipc-security` suite (injection, path
    traversal, XSS/XLSX-formula, brute-force, secret grep).
 6. **Human-error clicking test** (double submits, empty/oversized input, focus traps, offline flips).
-7. **Per-page 4-size screenshots in all 18 combinations for every route.**
+7. **Per-page 4-size screenshots in all 18 combinations for every route.** Done for 30 routes at
+   the canonical size and for 7 key routes across 2 sizes × 3 languages × 2 themes; the full
+   18-combination sweep for every one of the 30 routes was not run.
 
-The reusable tooling for 1 and 7 now exists (`scripts/qa/capture-shell.mjs`), so extending it
-to authenticated routes is a matter of scripting the activation/login flow.
+The tooling for 1 and 7 now exists and is verified (`scripts/qa/capture-routes.mjs`).

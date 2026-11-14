@@ -86,6 +86,8 @@ New tokens include `--on-primary`, `--on-danger/-success/-warning/-info`,
 - `scripts/qa/codemod-on-primary.mjs` — **new** block-aware contrast codemod (idempotent, reviewable)
 - `scripts/qa/smoke-electron.mjs` — **new** real-app render smoke test
 - `scripts/qa/capture-shell.mjs` — **new** size × language × theme screenshot matrix
+- `scripts/qa/capture-routes.mjs` — **new** authenticated walk: trial + Owner setup via IPC, then
+  every route captured (see §3)
 - `scripts/qa/vite.qa.config.mjs` — **new** QA-only renderer server (unpackaged Electron loads :5173)
 - `scripts/run-main-tests.mjs` — cross-platform fix (see Known issues)
 - `.gitignore` — new
@@ -116,6 +118,12 @@ New tokens include `--on-primary`, `--on-danger/-success/-warning/-info`,
 "Token-inherited" means the page picks up Graphite Atelier automatically and was checked for
 hardcoded colours; it was **not** individually re-composed. See *Not done*.
 
+Every route above was **reached and captured** with the real app, real database and real IPC
+(`scripts/qa/capture-routes.mjs`): the script activates the trial and creates an Owner account
+through the app's own handlers, then walks the router. Zero renderer errors across all 30.
+Captures: `qa-screenshots/routes/1366x768/en/dark/<route>.png`, plus a 7-route matrix across
+2 window sizes × English/Bangla/Arabic × dark/light.
+
 ---
 
 ## 4. Preserved functionality
@@ -145,7 +153,8 @@ hardcoded colours; it was **not** individually re-composed. See *Not done*.
 | `npm run verify:online` | FAIL (missing `server/`) | **FAIL — pre-existing** |
 | CSS audit | n/a | **0 errors** (0 undefined vars, 0 theme gaps, 0 hardcoded colours) |
 | Electron render smoke | n/a | **0 console errors, 0 page errors** |
-| Visual matrix | n/a | **24 captures**, 0 renderer errors |
+| Visual matrix (shell) | n/a | **24 captures**, 0 renderer errors |
+| Visual matrix (routes) | n/a | **116 captures**, 30 routes + 7-route RTL/size sweep, **0 renderer errors, 0 empty renders** |
 
 No regression was introduced: the two failing IPC assertions and the two failing verify
 scripts failed identically before any UI change (they do not touch renderer code).
@@ -154,9 +163,11 @@ scripts failed identically before any UI change (they do not touch renderer code
 `qa-screenshots/{1920x1080,1600x900,1366x768,1280x720}/{en,bn,ar}/{dark,light}/shell.png`
 plus `qa-screenshots/smoke/first-screen.png`.
 
-Verified visually: correct layout at all four sizes with no overflow; Bangla conjuncts render
-cleanly at 1280×720; Arabic mirrors correctly (rail/card sides, chevrons, alignment) with
-correct bidi punctuation; light mode fully legible.
+Verified visually on the authenticated screens: correct layout at all sizes with no overflow;
+Bangla conjuncts render cleanly at 1280×720 and the dashboard is fully translated; Arabic
+mirrors correctly (rail side, card order, toolbar alignment) and machine-readable values keep
+their own direction (`+8801711001008`, `28 Oct 2026`, `Delta Engineering Ltd.`); light mode
+fully legible on every page checked.
 
 ---
 
@@ -198,10 +209,12 @@ correct bidi punctuation; light mode fully legible.
 
 Stated plainly so nothing is over-claimed:
 
-- Authenticated route-by-route walk with per-page screenshots (blocked by licence + account
-  setup; tooling is ready in `scripts/qa/capture-shell.mjs`).
+- Interaction coverage on the authenticated pages: modals, create/edit wizards, validation
+  messages and empty/error states were rendered but not clicked through end to end.
 - Hand-redesign of each of the 11 modules and 19 settings subpages (they inherit the design
-  system, but their layouts were not re-composed).
+  system and were verified to render, but their layouts were not re-composed).
+- A full 18-combination size/language/theme sweep for every one of the 30 routes (done for 7
+  key routes; all 30 were captured at the canonical 1366×768/en/dark).
 - Stress test with large datasets, load test of IPC, penetration test beyond the existing IPC
   suite, and the human-error clicking test described in Part 3.3–3.6.
 
@@ -225,8 +238,13 @@ npm run test:main        # main-process suite (now works on Windows)
 npm run test:e2e
 node scripts/qa/css-audit.mjs
 node scripts/qa/smoke-electron.mjs
-node scripts/qa/capture-shell.mjs [--sizes=1366x768,1280x720]
+node scripts/qa/capture-shell.mjs  [--sizes=1366x768,1280x720]
+node scripts/qa/capture-routes.mjs [--full-only | --matrix-only] [--sizes=1366x768]
 ```
+
+> `capture-routes.mjs` activates the 7-day trial to reach the workspace, and the trial's
+> anti-reset anchor is written to `~/.mbs_sys_cache` (outside the profile by design). It prints
+> a warning when that happens — run it on a disposable machine or remove that directory after.
 
 > `smoke-electron.mjs` and `capture-shell.mjs` need a renderer server on :5173 because an
 > unpackaged Electron run loads the dev URL. Start one first:

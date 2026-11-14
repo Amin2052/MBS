@@ -203,7 +203,14 @@ const en = {
     after: "After",
     loadingTopProducts: "Loading top products...",
     loadingOrders: "Loading orders...",
-    loadingSalesTrend: "Loading sales trend..."
+    loadingSalesTrend: "Loading sales trend...",
+    quickAddCustomer: "Add Customer",
+    quickAddProduct: "Add Product",
+    quickCreateOrder: "Create Order",
+    quickViewInvoices: "View Invoices",
+    checkingStock: "Checking stock levels…",
+    lowStockItems: "low stock items",
+    allStockHealthy: "All stock levels healthy"
   },
 
   products: {

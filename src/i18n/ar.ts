@@ -202,7 +202,14 @@ const ar: TranslationDictionary = {
     after: "بعد",
     loadingTopProducts: "جارٍ تحميل أفضل المنتجات...",
     loadingOrders: "جارٍ تحميل الطلبات...",
-    loadingSalesTrend: "جارٍ تحميل اتجاه المبيعات..."
+    loadingSalesTrend: "جارٍ تحميل اتجاه المبيعات...",
+    quickAddCustomer: "إضافة عميل",
+    quickAddProduct: "إضافة منتج",
+    quickCreateOrder: "إنشاء طلب",
+    quickViewInvoices: "عرض الفواتير",
+    checkingStock: "جارٍ التحقق من المخزون…",
+    lowStockItems: "منتجات بمخزون منخفض",
+    allStockHealthy: "جميع مستويات المخزون جيدة"
   },
 
   products: {

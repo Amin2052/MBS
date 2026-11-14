@@ -339,9 +339,12 @@
   --on-warning: #fffdf5;
   --on-info: #f6fafc;
 
-  --purple: #6f5a8a;
-  --purple-dark: #5b4872;
-  --purple-soft: #ede8f4;
+  /* Same reasoning as the dark palette: legacy --purple consumers (settings
+     tiles, KPI chips) must stay inside the single gold/bronze accent ramp, so
+     the light palette uses a darker bronze instead of violet. */
+  --purple: #8a6b4f;
+  --purple-dark: #6f553f;
+  --purple-soft: rgba(138, 107, 79, 0.12);
 
   --shadow-sm: 0 1px 2px rgba(35, 33, 28, 0.07);
   --shadow: 0 10px 26px rgba(35, 33, 28, 0.08), 0 1px 3px rgba(35, 33, 28, 0.06);

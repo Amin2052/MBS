@@ -85,10 +85,11 @@
     background:var(--border-strong);
 }
 
-.stat-card:has(.icon-box.blue)::before{ background:var(--primary); }
-.stat-card:has(.icon-box.green)::before{ background:var(--success); }
-.stat-card:has(.icon-box.purple)::before{ background:var(--purple); }
-.stat-card:has(.icon-box.orange)::before{ background:var(--warning); }
+/* Graphite Atelier: one accent for the whole KPI row. The old per-module
+   tints (blue/green/purple/orange) made four cards read as four unrelated
+   products; the palette is single-accent by design, so every rail is gold and
+   status continues to be carried by the caption text instead. */
+.stat-card::before{ background:var(--primary); }
 
 
 
@@ -1429,4 +1430,22 @@ is untouched by any of this -- these are new, separate classes.
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
     flex-shrink: 0;
+}
+
+/* Same single-accent rule for the KPI icon chips: the legacy .blue/.green/
+   .purple/.orange fills are neutralised inside KPI cards only, so those
+   classes keep working everywhere else. */
+.stat-card .icon-box,
+.stat-card .icon-box.blue,
+.stat-card .icon-box.green,
+.stat-card .icon-box.purple,
+.stat-card .icon-box.orange,
+.quick-actions .qa-icon,
+.quick-actions .qa-icon.blue,
+.quick-actions .qa-icon.green,
+.quick-actions .qa-icon.purple,
+.quick-actions .qa-icon.orange{
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: color-mix(in srgb, var(--primary) 24%, transparent);
 }
