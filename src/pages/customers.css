@@ -1,0 +1,715 @@
+.customers-page{
+    width:100%;
+}
+
+
+
+/* HEADER */
+
+.customers-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:25px;
+
+}
+
+
+.customers-header h1{
+
+    font-size:32px;
+
+    font-weight:700;
+
+    color:var(--foreground);
+
+}
+
+
+
+.customers-header p{
+
+    margin-top:6px;
+
+    color:var(--muted);
+
+}
+
+
+
+
+/* BUTTON */
+
+
+.add-customer{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:8px;
+
+    background:var(--primary);
+
+    color:white;
+
+    border:none;
+
+    padding:12px 20px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+
+
+.add-customer:hover{
+
+    background:var(--primary-dark);
+
+    transform:translateY(-2px);
+
+}
+
+
+
+
+
+.customer-detail-actions{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+
+
+
+
+
+/* SEARCH */
+
+
+.customer-toolbar{
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:16px;
+
+    margin-bottom:20px;
+
+}
+
+
+
+
+/* Search box base styling now lives in the shared global class
+   (src/styles/search.css). Only the page-specific width is kept here. */
+.customer-toolbar .search-box {
+
+    width:250px;
+
+}
+
+
+
+
+
+
+/* CUSTOMER CARDS */
+
+
+.customer-cards{
+
+
+    display:grid;
+
+
+    grid-template-columns:
+
+
+    repeat(auto-fill,minmax(330px,1fr));
+
+
+    gap:20px;
+
+
+}
+
+
+
+
+
+.customer-card{
+
+
+    background:var(--surface);
+
+
+    border:1px solid var(--border);
+
+
+    border-radius:18px;
+
+
+    padding:22px;
+
+
+    box-shadow:var(--shadow);
+
+
+    transition:.25s;
+
+
+}
+
+
+
+
+.customer-card:hover{
+
+
+    transform:translateY(-3px);
+
+
+    background:var(--surface-hover);
+
+
+}
+
+
+
+
+
+
+
+.customer-card-top{
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:flex-start;
+
+
+    margin-bottom:20px;
+
+
+}
+
+
+
+.customer-card-top h2{
+
+
+    font-size:20px;
+
+
+    font-weight:700;
+
+
+    color:var(--foreground);
+
+
+    margin:0;
+
+
+}
+
+
+
+.customer-card-top p{
+
+
+    margin-top:5px;
+
+
+    color:var(--muted);
+
+
+    font-size:14px;
+
+
+}
+
+
+
+
+
+
+
+
+/* INFO */
+
+
+.customer-info{
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    gap:14px;
+
+
+}
+
+
+
+
+.customer-info div{
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    gap:5px;
+
+
+}
+
+
+
+.customer-info label{
+
+
+    font-size:13px;
+
+
+    color:var(--muted);
+
+
+    font-weight:600;
+
+
+}
+
+
+
+
+.customer-info span{
+
+
+    color:var(--foreground);
+
+
+    word-break:break-word;
+
+
+    overflow-wrap:anywhere;
+
+
+}
+
+
+
+
+
+
+
+
+/* ACTION BUTTON */
+
+
+.customer-actions{
+
+
+    display:flex;
+
+
+    gap:8px;
+
+
+}
+
+
+
+
+
+.customer-actions button{
+
+
+    width:34px;
+
+
+    height:34px;
+
+
+    border:none;
+
+
+    border-radius:8px;
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    justify-content:center;
+
+
+    cursor:pointer;
+
+
+    background:var(--background);
+
+
+    color:var(--foreground);
+
+
+    transition:.2s;
+
+
+}
+
+
+
+.customer-actions button:hover{
+
+
+    background:var(--primary);
+
+
+    color:white;
+
+
+}
+
+
+
+
+
+
+
+/* DETAIL PAGE */
+
+
+.customer-details-card{
+
+
+    background:var(--surface);
+
+
+    border:1px solid var(--border);
+
+
+    border-radius:18px;
+
+
+    overflow:hidden;
+
+
+    box-shadow:var(--shadow);
+
+
+}
+
+
+
+.customer-details-card div{
+
+
+    display:grid;
+
+
+    grid-template-columns:180px 1fr;
+
+
+    padding:18px 22px;
+
+
+    border-bottom:1px solid var(--border);
+
+
+}
+
+
+
+
+.customer-details-card div:last-child{
+
+
+    border-bottom:none;
+
+
+}
+
+
+
+.customer-details-card strong{
+
+
+    color:var(--muted);
+
+
+}
+
+
+
+.customer-details-card span{
+
+
+    color:var(--foreground);
+
+
+    word-break:break-word;
+
+
+}
+
+
+
+
+
+
+
+/* MODAL */
+
+
+.modal-overlay{
+
+
+    position:fixed;
+
+
+    inset:0;
+
+
+    background:rgba(15,23,42,.45);
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    align-items:center;
+
+
+    z-index:999;
+
+
+}
+
+
+
+
+
+
+.customer-modal{
+
+
+    width:450px;
+
+
+    background:var(--surface);
+
+
+    border:1px solid var(--border);
+
+
+    border-radius:20px;
+
+
+    padding:28px;
+
+
+    box-shadow:var(--shadow);
+
+
+}
+
+
+
+
+
+
+.modal-header{
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:center;
+
+
+    margin-bottom:20px;
+
+
+}
+
+
+
+
+.modal-header h2{
+
+
+    font-size:22px;
+
+
+    font-weight:700;
+
+
+}
+
+
+
+
+.modal-header button{
+
+
+    border:none;
+
+
+    background:none;
+
+
+    cursor:pointer;
+
+
+    color:var(--muted);
+
+
+}
+
+
+
+
+
+
+
+.customer-modal input{
+
+
+    width:100%;
+
+
+    padding:13px 15px;
+
+
+    margin-bottom:15px;
+
+
+    border-radius:12px;
+
+
+    border:1px solid var(--border);
+
+
+    background:var(--background);
+
+
+    color:var(--foreground);
+
+
+    outline:none;
+
+
+}
+
+
+
+
+
+.customer-modal input:focus{
+
+
+    border-color:var(--primary);
+
+
+    box-shadow:0 0 0 3px var(--primary-soft);
+}
+
+
+
+
+
+
+.save-customer{
+
+
+    width:100%;
+
+
+    padding:13px;
+
+
+    border:none;
+
+
+    border-radius:12px;
+
+
+    background:var(--primary);
+
+
+    color:white;
+
+
+    font-weight:600;
+
+
+    cursor:pointer;
+
+
+}
+
+
+
+
+.save-customer:hover{
+
+
+    background:var(--primary-dark);
+
+
+}
+
+
+.empty-customers{
+
+
+    grid-column:1 / -1;
+
+
+    padding:40px;
+
+
+    text-align:center;
+
+
+    color:var(--muted);
+
+
+}

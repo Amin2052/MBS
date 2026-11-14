@@ -1,0 +1,123 @@
+/* ==========================================================
+   RTL SUPPORT
+
+   The base stylesheets are written LTR-first using physical
+   properties (left/right, border-right, etc). Rather than
+   rewrite every existing stylesheet, this file overrides the
+   handful of physical (non-logical) properties that actually
+   break under `dir="rtl"`. Flexbox and grid layouts already
+   flip automatically via the browser's writing-mode handling,
+   so most of the app requires no changes at all.
+   ========================================================== */
+
+[dir="rtl"] body {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    "Noto Sans Arabic",
+    Tahoma,
+    Arial,
+    sans-serif;
+}
+
+/* ---------- Layout shell ---------- */
+
+[dir="rtl"] .sidebar {
+  border-right: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[dir="rtl"] .sidebar-link-active {
+  background: linear-gradient(270deg, #2563eb, #3b82f6);
+}
+
+/* ---------- Topbar ---------- */
+
+[dir="rtl"] .topbar-search .search-results {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .profile-btn div {
+  text-align: right;
+}
+
+[dir="rtl"] .profile-dropdown {
+  right: auto;
+  left: 0;
+}
+
+/* ---------- Login screen ----------
+   PHASE 10 UI AUDIT FIX: the password-visibility toggle and its input
+   padding used hardcoded physical `right`/`padding-right`, so under
+   dir="rtl" the toggle icon sat on the same side where RTL password-dot
+   rendering starts -- a direct visual overlap. The "Forgot username /
+   Forgot password" links were similarly pinned with a physical
+   text-align:right / align-items:flex-end, which doesn't mirror for
+   RTL. Mirrored here the same way every other physical-property override
+   in this file is handled. */
+
+[dir="rtl"] .mbs-login .mbs-field-input-row .mbs-field-input {
+  padding-right: 1rem;
+  padding-left: 2.6rem;
+}
+
+[dir="rtl"] .mbs-login .mbs-visibility-toggle {
+  right: auto;
+  left: 0.75rem;
+}
+
+[dir="rtl"] .mbs-login .mbs-forgot {
+  text-align: left;
+}
+
+[dir="rtl"] .mbs-login .mbs-forgot-stack {
+  align-items: flex-start;
+}
+
+/* ---------- Invoices module ---------- */
+
+[dir="rtl"] .invoices-header {
+  text-align: right;
+}
+
+[dir="rtl"] .invoice-item-row,
+[dir="rtl"] .invoice-items-head {
+  direction: rtl;
+}
+
+[dir="rtl"] .invoice-item-row .item-total {
+  text-align: left;
+}
+
+[dir="rtl"] .totals-summary div,
+[dir="rtl"] .invoice-view-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .add-item,
+[dir="rtl"] .save-invoice,
+[dir="rtl"] .add-invoice {
+  direction: rtl;
+}
+
+/* ---------- Generic form controls ---------- */
+
+[dir="rtl"] input,
+[dir="rtl"] select,
+[dir="rtl"] textarea {
+  text-align: right;
+}
+
+[dir="rtl"] input[type="number"],
+[dir="rtl"] input[type="date"] {
+  text-align: left;
+}
+
+/* ---------- Dashboard ---------- */
+
+[dir="rtl"] .stat-card::before {
+  left: auto;
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}

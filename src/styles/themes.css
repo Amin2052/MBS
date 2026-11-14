@@ -1,0 +1,173 @@
+:root[data-theme="light"] {
+  /* Tells the browser which palette its own native controls (date/time
+     picker icon, <select> dropdown list, checkboxes, scrollbars, etc.)
+     should render in. Without this, Chromium defaults every native
+     control to a light appearance regardless of --theme, which is why
+     things like the date-field calendar icon were rendering as a
+     near-black glyph that disappeared against a dark input background
+     in Dark Mode. This only affects browser-drawn chrome, not any of
+     MBS's own --variable-based colors below. */
+  color-scheme: light;
+
+  /* Premium light-ERP palette: soft cool-gray/blue page background,
+     slightly-contrasting sidebar, clean white cards, visible-but-subtle
+     borders, navy typography. Replaces the previous near-white, low-
+     contrast set (kept as comments where useful for reference). */
+  --background: #f4f7fb;
+  --background-strong: #eaf0f8;
+  --surface: #ffffff;
+  --surface-hover: #f3f6fb;
+  --surface-alt: #fafcfe;
+
+  --sidebar: #eef2f8;
+  --sidebar-border: rgba(30, 58, 95, 0.1);
+  --sidebar-fg: #33415c;
+  --sidebar-fg-muted: #647089;
+  --sidebar-active-bg: rgba(37, 99, 235, 0.12);
+  --sidebar-active-fg: #1d4ed8;
+  --sidebar-hover-bg: rgba(37, 99, 235, 0.07);
+  --sidebar-hover-fg: #1e40af;
+
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-soft: #e3ecfd;
+
+  --foreground: #172033;
+  --foreground-strong: #0f172a;
+  --muted: #5b6a85;
+  --muted-light: #8b96ab;
+
+  --border: #d7e0ee;
+  --border-strong: #c1cee2;
+
+  --success: #16a34a;
+  --success-dark: #15803d;
+  --success-soft: #dcfce7;
+
+  --warning: #d97706;
+  --warning-dark: #b45309;
+  --warning-soft: #fef3c7;
+
+  --danger: #dc2626;
+  --danger-dark: #b91c1c;
+  --danger-soft: #fee2e2;
+
+  --purple: #7c3aed;
+  --purple-dark: #6d28d9;
+  --purple-soft: #ede9fe;
+
+  --shadow-sm: 0 1px 2px rgba(23, 32, 51, 0.06);
+  --shadow: 0 4px 16px rgba(23, 32, 51, 0.08), 0 1px 3px rgba(23, 32, 51, 0.06);
+  --shadow-lg: 0 12px 32px rgba(23, 32, 51, 0.12), 0 2px 6px rgba(23, 32, 51, 0.06);
+
+  --radius: 14px;
+
+  /* Requirement 7 — app-shell background wash adapted from the Generator
+     project's visual reference (Generator/src/styles/app.css .gen-shell /
+     .gen-nav / .gen-main). Uses the same light, mostly-transparent overlay
+     ratio as the Generator shell so the technical/blueprint background is
+     actually visible behind translucent surfaces, instead of being hidden
+     behind a near-opaque wash. Page-level content (cards, tables, forms)
+     keeps its own opaque --surface background for readability. */
+  --app-background-image: linear-gradient(rgba(244, 247, 251, 0.68), rgba(244, 247, 251, 0.68)), url("/license-background.png");
+  /* Was rgba(..., 0.93) -- the .app-main panel sits on top of the
+     background image and covers almost the entire viewport (everything
+     right of the 220px sidebar), so a 93%-opaque wash on top of the
+     .app-layout gradient's own 86%-opaque wash left only ~7% of the
+     image visible, i.e. effectively invisible -- while Dark Mode's
+     equivalent wash was only 58% opaque, so its image read through
+     clearly. Lowered to the same order of transparency as Dark Mode
+     so the image is visible in Light Mode too. Page content itself is
+     unaffected: cards/tables/modals sit on their own fully-opaque
+     --surface backgrounds, not directly on this wash. */
+  --app-main-surface: rgba(244, 247, 251, 0.25);
+}
+
+:root[data-theme="dark"] {
+  /* See the light-mode color-scheme comment above -- same fix, dark
+     variant, so native controls (date picker icon, select list,
+     scrollbars, checkboxes) render correctly against dark surfaces. */
+  color-scheme: dark;
+
+  --background: #0f172a;
+  --background-strong: #0b1322;
+  --surface: #1e293b;
+  --surface-hover: #273549;
+  --surface-alt: #24324a;
+
+  --sidebar: rgba(2, 6, 23, 0.58);
+  --sidebar-border: rgba(148, 163, 184, 0.18);
+  --sidebar-fg: #cbd5e1;
+  --sidebar-fg-muted: #94a3b8;
+  --sidebar-active-bg: rgba(59, 130, 246, 0.22);
+  --sidebar-active-fg: #93c5fd;
+  --sidebar-hover-bg: rgba(59, 130, 246, 0.14);
+  --sidebar-hover-fg: #bfdbfe;
+
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-soft: rgba(59, 130, 246, 0.18);
+
+  --foreground: #f8fafc;
+  --foreground-strong: #ffffff;
+  --muted: #94a3b8;
+  --muted-light: #64748b;
+
+  --border: #334155;
+  --border-strong: #46586f;
+
+  --success: #22c55e;
+  --success-dark: #16a34a;
+  --success-soft: rgba(34, 197, 94, 0.18);
+
+  --warning: #f59e0b;
+  --warning-dark: #d97706;
+  --warning-soft: rgba(245, 158, 11, 0.18);
+
+  --danger: #ef4444;
+  --danger-dark: #dc2626;
+  --danger-soft: rgba(239, 68, 68, 0.18);
+
+  --purple: #8b5cf6;
+  --purple-dark: #7c3aed;
+  --purple-soft: rgba(139, 92, 246, 0.18);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+
+  --radius: 14px;
+
+  /* Dark-mode counterpart of the Generator-style background wash above:
+     same low-opacity overlay approach, tuned to the dark palette so the
+     blueprint background stays visible instead of near-opaque. */
+  --app-background-image: linear-gradient(rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.55)), url("/license-background.png");
+  --app-main-surface: rgba(15, 23, 42, 0.58);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

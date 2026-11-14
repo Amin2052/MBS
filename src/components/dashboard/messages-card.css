@@ -1,0 +1,490 @@
+/* Dashboard Messages card -- same visual language as the Notifications
+   widget it replaces (dashboard.css: .notification-row-main / .notifications-list
+   / .notifications-reset-btn etc.), reused here under new class names
+   since this widget adds tabs, a compose button, and unread styling
+   that the Notifications widget didn't need. */
+
+.dashboard-box-messages{
+
+    display:flex;
+    flex-direction:column;
+
+}
+
+.messages-unread-pill{
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    min-width:20px;
+    height:20px;
+    padding:0 6px;
+    margin-left:8px;
+
+    border-radius:999px;
+
+    background:var(--danger);
+    color:#fff;
+
+    font-size:11px;
+    font-weight:700;
+
+}
+
+.messages-new-btn{
+
+    display:flex;
+    align-items:center;
+    gap:6px;
+
+    padding:6px 12px;
+
+    border:none;
+    border-radius:8px;
+
+    background:var(--primary);
+    color:#fff;
+
+    font-size:12px;
+    font-weight:600;
+
+    cursor:pointer;
+    white-space:nowrap;
+
+}
+
+.messages-new-btn:hover{
+
+    opacity:.9;
+
+}
+
+.messages-tabs{
+
+    display:flex;
+    gap:8px;
+    margin-bottom:10px;
+
+}
+
+.messages-tab-btn{
+
+    display:flex;
+    align-items:center;
+    gap:6px;
+
+    padding:6px 12px;
+
+    border:1px solid var(--border);
+    border-radius:8px;
+
+    background:var(--surface);
+    color:var(--muted);
+
+    font-size:12px;
+    font-weight:600;
+
+    cursor:pointer;
+    transition:.15s;
+
+}
+
+.messages-tab-btn.active{
+
+    background:var(--primary-soft);
+    border-color:var(--primary);
+    color:var(--primary);
+
+}
+
+.messages-search{
+
+    margin-bottom:10px;
+
+}
+
+.messages-list{
+
+    height:220px;
+    overflow-y:auto;
+
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+
+}
+
+.messages-list::-webkit-scrollbar{
+
+    display:none;
+
+}
+
+.message-row{
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+}
+
+/* Read message: normal/general styling, same background as a
+   Notification row. */
+.message-row-main{
+
+    flex:1;
+    min-width:0;
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    padding:10px 12px;
+
+    border:none;
+    border-radius:10px;
+
+    background:var(--background);
+    color:var(--foreground);
+
+    font-size:13px;
+    text-align:left;
+
+    cursor:pointer;
+    transition:.2s;
+
+}
+
+.message-row-main:hover{
+
+    background:var(--primary-soft);
+
+}
+
+.message-row-main svg{
+
+    color:var(--primary);
+    flex-shrink:0;
+
+}
+
+/* Unread message: clearly different highlight -- left accent bar +
+   tinted background + bold subject, vs. the plain gray of a read row. */
+.message-row-unread .message-row-main{
+
+    background:var(--primary-soft);
+    border-left:3px solid var(--primary);
+    padding-left:9px;
+
+}
+
+.message-row-unread .message-row-subject{
+
+    font-weight:700;
+    color:var(--foreground);
+
+}
+
+.message-row-subject{
+
+    flex:1;
+    min-width:0;
+
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+
+    direction:ltr;
+    text-align:left;
+
+}
+
+.message-row-from{
+
+    flex-shrink:0;
+
+    font-size:11px;
+    color:var(--muted-light);
+
+    max-width:90px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+
+}
+
+.message-icon-btn{
+
+    width:30px;
+    height:30px;
+    flex-shrink:0;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border:none;
+    border-radius:8px;
+
+    background:var(--surface-hover);
+    color:var(--danger);
+
+    cursor:pointer;
+    transition:.2s;
+
+}
+
+.message-icon-btn:hover{
+
+    background:var(--danger-soft);
+
+}
+
+
+
+/* =====================================
+MESSAGE POPUP / COMPOSE MODAL
+===================================== */
+
+.message-modal-overlay{
+
+    position:fixed;
+    inset:0;
+    z-index:1000;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:rgba(15,23,42,.45);
+
+}
+
+.message-modal{
+
+    width:480px;
+    max-width:92vw;
+    max-height:86vh;
+
+    overflow-y:auto;
+
+    padding:24px;
+
+    border-radius:16px;
+
+    background:var(--surface);
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+
+}
+
+.message-modal-header{
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    margin-bottom:14px;
+
+}
+
+.message-modal-header h3{
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    margin:0;
+
+    font-size:16px;
+    font-weight:700;
+    color:var(--foreground);
+
+    direction:ltr;
+    text-align:left;
+
+}
+
+.message-modal-meta{
+
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+
+    margin-bottom:14px;
+    padding:12px;
+
+    border-radius:10px;
+    background:var(--background);
+
+    font-size:13px;
+
+}
+
+.message-modal-meta div{
+
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+
+}
+
+.message-modal-meta span{
+
+    color:var(--muted);
+
+}
+
+.message-modal-meta strong{
+
+    color:var(--foreground);
+    font-weight:600;
+
+    direction:ltr;
+
+}
+
+.message-modal-body{
+
+    margin-bottom:16px;
+    padding:14px;
+
+    border:1px solid var(--border);
+    border-radius:10px;
+
+    background:var(--surface);
+    color:var(--foreground);
+
+    font-size:14px;
+    line-height:1.6;
+    white-space:pre-wrap;
+    word-break:break-word;
+
+    direction:ltr;
+    text-align:left;
+
+}
+
+.message-modal .form-group{
+
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+
+    margin-bottom:14px;
+
+}
+
+.message-modal .form-group label{
+
+    font-size:13px;
+    font-weight:600;
+    color:var(--foreground);
+
+}
+
+.message-modal .form-group input,
+.message-modal .form-group select,
+.message-modal .form-group textarea{
+
+    width:100%;
+    box-sizing:border-box;
+
+    padding:10px 12px;
+
+    border:1px solid var(--border-strong);
+    border-radius:8px;
+
+    background:var(--surface);
+    color:var(--foreground);
+
+    font-size:14px;
+    font-family:inherit;
+
+    direction:ltr !important;
+    text-align:left !important;
+
+}
+
+.message-modal .form-group textarea{
+
+    resize:vertical;
+
+}
+
+.message-modal .form-group input:focus,
+.message-modal .form-group select:focus,
+.message-modal .form-group textarea:focus{
+
+    outline:none;
+    border-color:var(--purple);
+
+    box-shadow:0 0 0 3px var(--purple-soft);
+}
+
+.message-modal-actions{
+
+    display:flex;
+    gap:12px;
+
+}
+
+.message-modal-actions .save-btn{
+
+    flex:1;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+
+    padding:10px 22px;
+
+    border:none;
+    border-radius:8px;
+
+    background:var(--primary);
+    color:#fff;
+
+    font-size:14px;
+    font-weight:600;
+
+    cursor:pointer;
+
+}
+
+.message-modal-actions .save-btn:disabled{
+
+    opacity:.6;
+    cursor:not-allowed;
+
+}
+
+.message-modal-actions .cancel-btn{
+
+    padding:10px 22px;
+
+    border:1px solid var(--border-strong);
+    border-radius:8px;
+
+    background:var(--surface-hover);
+    color:var(--foreground);
+
+    font-size:14px;
+    font-weight:600;
+
+    cursor:pointer;
+
+}
+
+.message-modal .settings-error-message{
+
+    margin:0 0 14px;
+
+    color:var(--danger);
+    font-size:13px;
+
+}

@@ -1,0 +1,877 @@
+.settings-category-page{
+
+    width:100%;
+    padding:24px;
+    min-height:100%;
+    box-sizing:border-box;
+
+}
+
+
+
+.settings-back-link{
+
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+
+    background:none;
+    border:none;
+    padding:0;
+    margin-bottom:16px;
+
+    color:var(--purple);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+
+}
+
+
+
+.settings-back-link:hover{
+
+    text-decoration:underline;
+
+}
+
+
+
+.settings-category-header{
+
+    margin-bottom:24px;
+
+}
+
+
+
+.settings-category-header h1{
+
+    margin:0;
+    font-size:24px;
+
+}
+
+
+
+.settings-category-header p{
+
+    margin-top:6px;
+    color:var(--muted);
+
+}
+
+
+
+.settings-category-body{
+
+    background:var(--surface);
+    border-radius:16px;
+    border:1px solid var(--border);
+    padding:24px;
+    max-width:760px;
+
+}
+
+
+
+/* ---------- Form styling (shared by functional category pages) ---------- */
+
+.form-group{
+
+    margin-bottom:18px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+
+}
+
+
+
+.form-group label{
+
+    font-size:13px;
+    font-weight:600;
+    color:var(--foreground);
+
+}
+
+
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+
+    padding:10px 12px;
+    border:1px solid var(--border-strong);
+    border-radius:8px;
+    font-size:14px;
+    font-family:inherit;
+    box-sizing:border-box;
+
+}
+
+
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+
+    outline:none;
+    border-color:var(--purple);
+
+    box-shadow:0 0 0 3px var(--purple-soft);
+}
+
+
+
+.settings-readonly-value{
+
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:14px;
+    font-family:inherit;
+    box-sizing:border-box;
+    background:var(--surface-hover);
+    color:var(--foreground);
+
+}
+
+
+
+.form-grid{
+
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:0 20px;
+
+}
+
+
+.form-group.checkbox-group{
+
+    justify-content:center;
+
+}
+
+
+.form-group.checkbox-group label{
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:500;
+    cursor:pointer;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--surface-hover);
+
+}
+
+
+.form-group.checkbox-group input[type="checkbox"]{
+
+    width:16px;
+    height:16px;
+    accent-color:var(--purple);
+    cursor:pointer;
+
+}
+
+
+
+@media (max-width:640px){
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+
+
+.settings-actions{
+
+    display:flex;
+    gap:12px;
+    margin-top:8px;
+
+}
+
+
+
+.save-settings{
+
+    background:var(--purple);
+    color:#fff;
+    border:none;
+    padding:10px 22px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+
+}
+
+
+
+.save-settings:hover{
+
+    opacity:0.9;
+
+}
+
+
+
+.save-settings:disabled{
+
+    opacity:0.6;
+    cursor:not-allowed;
+
+}
+
+
+
+.reset-settings{
+
+    background:var(--surface-hover);
+    color:var(--foreground);
+    border:1px solid var(--border-strong);
+    padding:10px 22px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+
+}
+
+
+
+.settings-save-confirmation{
+
+    margin-top:12px;
+    font-size:13px;
+    color:var(--success);
+    font-weight:600;
+
+}
+
+
+
+.settings-error-message{
+
+    margin-top:12px;
+    font-size:13px;
+    color:var(--danger);
+    font-weight:600;
+
+}
+
+
+
+/* ---------- Database Settings (Backup & Restore) ---------- */
+
+.db-info-grid{
+
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:14px;
+    margin-bottom:8px;
+
+}
+
+
+
+@media (max-width:640px){
+
+    .db-info-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+
+
+.db-info-card{
+
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    background:var(--surface-hover);
+
+}
+
+
+
+.db-info-card-label{
+
+    font-size:12px;
+    color:var(--muted);
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    margin-bottom:4px;
+
+}
+
+
+
+.db-info-card-value{
+
+    font-size:15px;
+    color:var(--foreground);
+    font-weight:600;
+    word-break:break-word;
+
+}
+
+
+
+/* Editable numeric fields inside a .db-info-card (e.g. Security &
+   Privacy's lockout/session-timeout inputs), styled to match the app's
+   shared .form-group input so they never look like raw/default HTML. */
+.db-info-card-input{
+
+    width:100%;
+    margin-top:6px;
+
+    padding:10px 12px;
+    border:1px solid var(--border-strong);
+    border-radius:8px;
+    font-size:14px;
+    font-family:inherit;
+    box-sizing:border-box;
+    background:var(--surface);
+    color:var(--foreground);
+
+}
+
+.db-info-card-input:focus{
+
+    outline:none;
+    border-color:var(--purple);
+
+    box-shadow:0 0 0 3px var(--purple-soft);
+}
+
+
+
+.settings-section{
+
+    margin-top:28px;
+    padding-top:24px;
+    border-top:1px solid var(--border);
+
+}
+
+
+
+.settings-section:first-child{
+
+    margin-top:0;
+    padding-top:0;
+    border-top:none;
+
+}
+
+
+
+.settings-section h3{
+
+    margin:0 0 6px 0;
+    font-size:15px;
+
+}
+
+
+
+.settings-section-description{
+
+    margin:0 0 14px 0;
+    color:var(--muted);
+    font-size:13px;
+
+}
+
+
+
+.db-action-button{
+
+    background:var(--purple);
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+
+}
+
+
+
+.db-action-button:hover{
+
+    opacity:0.9;
+
+}
+
+
+
+.db-action-button:disabled{
+
+    opacity:0.6;
+    cursor:not-allowed;
+
+}
+
+
+
+.db-action-button.danger{
+
+    background:var(--danger);
+
+}
+
+
+
+.db-action-button.secondary{
+
+    background:var(--surface-hover);
+    color:var(--foreground);
+    border:1px solid var(--border-strong);
+
+}
+
+
+
+.db-table-counts{
+
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:12px;
+
+}
+
+
+
+.db-table-count-chip{
+
+    background:var(--primary-soft);
+    color:var(--purple-dark);
+    border-radius:999px;
+    padding:5px 12px;
+    font-size:12px;
+    font-weight:600;
+
+}
+
+
+
+/* ---------- Logo upload ---------- */
+
+/* Row pairing the logo frame with its actions: buttons sit to the
+   RIGHT of the frame, vertically centered against it. */
+.logo-frame-row{
+
+    margin-top:14px;
+    display:flex;
+    align-items:center;
+    gap:20px;
+
+}
+
+.logo-actions{
+
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    width:max-content;
+
+}
+
+
+
+.logo-select-button{
+
+    background:transparent;
+    color:var(--purple-dark);
+    border:1px solid var(--purple-dark);
+    padding:9px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    text-align:center;
+
+}
+
+
+
+.logo-select-button:hover{
+
+    background:rgba(79,70,229,.08);
+
+}
+
+
+
+.logo-select-button:disabled{
+
+    opacity:0.6;
+    cursor:not-allowed;
+
+}
+
+
+
+.logo-select-button.danger{
+
+    color:var(--danger);
+    border-color:var(--danger);
+
+}
+
+.logo-select-button.danger:hover{
+
+    background:rgba(220,38,38,.08);
+
+}
+
+
+
+.logo-preview-box{
+
+    width:140px;
+    height:140px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border:1px solid var(--border-strong);
+    border-radius:12px;
+    background:var(--surface-hover);
+    overflow:hidden;
+    flex-shrink:0;
+
+}
+
+
+
+.logo-preview-box img{
+
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    object-position:center;
+
+}
+
+
+
+.logo-preview-note{
+
+    margin-top:10px;
+    margin-bottom:14px;
+    max-width:280px;
+
+}
+
+
+
+.logo-preview-empty{
+
+    font-size:12px;
+    color:var(--muted-light);
+    text-align:center;
+    padding:0 12px;
+
+}
+
+
+
+/* ---------- License Settings ---------- */
+
+.license-status-cards{
+
+    display:grid;
+    grid-template-columns:repeat(5, minmax(0, 1fr));
+    gap:10px;
+    margin-bottom:20px;
+
+}
+
+
+
+@media (max-width:640px){
+
+    .license-status-cards{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+
+.license-status-card{
+
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 8px;
+    text-align:center;
+    background:var(--surface-hover);
+    color:var(--muted-light);
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+
+}
+
+
+
+.license-status-card.is-current.license-status-card-trial{
+    background:var(--primary-soft);
+    color:var(--purple-dark);
+    border-color:var(--primary);
+}
+
+.license-status-card.is-current.license-status-card-active{
+    background:var(--success-soft);
+    color:var(--success-dark);
+    border-color:var(--success);
+}
+
+.license-status-card.is-current.license-status-card-grace{
+    background:var(--warning-soft);
+    color:var(--warning-dark);
+    border-color:var(--warning-soft);
+}
+
+.license-status-card.is-current.license-status-card-expired{
+    background:var(--surface-hover);
+    color:var(--foreground);
+    border-color:var(--border-strong);
+}
+
+.license-status-card.is-current.license-status-card-invalid{
+    background:var(--danger-soft);
+    color:var(--danger-dark);
+    border-color:var(--danger-soft);
+}
+
+
+
+.license-current-status-badge{
+
+    display:inline-block;
+    padding:5px 14px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:700;
+
+}
+
+.license-current-status-badge-trial{ background:var(--primary-soft); color:var(--purple-dark); }
+.license-current-status-badge-active{ background:var(--success-soft); color:var(--success-dark); }
+.license-current-status-badge-grace{ background:var(--warning-soft); color:var(--warning-dark); }
+.license-current-status-badge-expired{ background:var(--surface-hover); color:var(--foreground); }
+.license-current-status-badge-invalid{ background:var(--danger-soft); color:var(--danger-dark); }
+
+
+
+.license-fingerprint-value{
+
+    font-family:monospace;
+    font-size:12px;
+    word-break:break-all;
+
+}
+
+
+
+/* ---------- Coming soon placeholder ---------- */
+
+.settings-coming-soon{
+
+    text-align:center;
+    padding:32px 16px;
+    color:var(--foreground);
+
+}
+
+
+
+.settings-coming-soon-icon{
+
+    color:var(--muted-light);
+    margin-bottom:10px;
+
+}
+
+
+
+.settings-coming-soon h3{
+
+    margin:0 0 8px 0;
+    font-size:16px;
+
+}
+
+
+
+.settings-coming-soon p{
+
+    margin:0 0 14px 0;
+    color:var(--muted);
+    font-size:14px;
+
+}
+
+
+
+.settings-coming-soon ul{
+
+    display:inline-block;
+    text-align:left;
+    margin:0 auto;
+    padding-left:20px;
+    color:var(--foreground);
+    font-size:14px;
+    line-height:1.9;
+
+}
+
+
+
+/* ==========================================================
+   About page — Requirement 31: converted Coming Soon items
+   (toggle switch + manual update-check control).
+========================================================== */
+
+.app-pref-toggle{
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+
+    padding:14px 16px;
+
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--surface-hover);
+
+}
+
+.app-pref-toggle + .app-pref-toggle{
+
+    margin-top:10px;
+
+}
+
+.app-pref-toggle-label{
+
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+
+}
+
+.app-pref-toggle-title{
+
+    font-size:14px;
+    font-weight:600;
+    color:var(--foreground);
+
+}
+
+.app-pref-toggle-description{
+
+    font-size:12.5px;
+    color:var(--muted);
+
+}
+
+.app-pref-switch{
+
+    position:relative;
+
+    width:42px;
+    height:24px;
+    flex-shrink:0;
+
+    border:none;
+    border-radius:999px;
+
+    background:var(--border-strong);
+
+    cursor:pointer;
+
+    transition:background-color .15s ease;
+
+}
+
+.app-pref-switch:disabled{
+
+    opacity:0.6;
+    cursor:not-allowed;
+
+}
+
+.app-pref-switch[aria-checked="true"]{
+
+    background:var(--purple);
+
+}
+
+.app-pref-switch::after{
+
+    content:"";
+
+    position:absolute;
+    top:3px;
+    left:3px;
+
+    width:18px;
+    height:18px;
+
+    border-radius:50%;
+    background:var(--surface);
+    box-shadow:0 1px 2px rgba(0,0,0,.25);
+
+    transition:transform .15s ease;
+
+}
+
+.app-pref-switch[aria-checked="true"]::after{
+
+    transform:translateX(18px);
+
+}
+
+.app-pref-update-row{
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+
+    padding:14px 16px;
+
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--surface-hover);
+
+    margin-top:10px;
+
+}
+
+.app-pref-update-message{
+
+    font-size:12.5px;
+    color:var(--muted);
+
+}

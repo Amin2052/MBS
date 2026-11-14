@@ -1,0 +1,49 @@
+name = "mooral-mbs-api"
+main = "worker/index.js"
+compatibility_date = "2026-08-28"
+workers_dev = true
+
+[vars]
+# Set these in the Cloudflare dashboard for production.
+#
+# MBS_WORKSPACE_ID is intentionally REMOVED. It used to pin this entire
+# deployment to a single hardcoded workspace ("mooral-main"), which is why
+# multi-tenancy was never actually implemented -- see
+# .claude/multi-company-sync-checkpoint.md and
+# cloudflare/migrations/0002_workspace_isolation.sql for the full audit
+# trail. With this var unset, workspaceForRequest() (used only as a
+# LOOKUP HINT at login, never as a trust boundary by itself -- see the
+# comment above that function in worker/index.js) accepts any
+# format-valid client-supplied workspace id, and every table/query is now
+# actually scoped to the workspace derived from the verified session or
+# API key (see resolveWorkspaceForApiKey()). Do NOT re-add this var: it
+# would silently force every login/lookup back onto one workspace again.
+#
+# MBS_API_KEY: kept ONLY as a legacy bridge secret for the one
+# pre-multi-tenant customer, workspace_id 'mooral-main' (whose real key
+# this repo doesn't have access to, to hash it into workspaces.api_key_hash
+# properly). It is refused for every other workspace_id -- see
+# resolveWorkspaceForApiKey(). Once 'mooral-main' is issued a real
+# per-workspace key (via POST /v1/admin/workspaces/rotate-key, not yet
+# built -- see checkpoint), delete this var and the legacy-bridge branch
+# in resolveWorkspaceForApiKey() together.
+#
+# MBS_ADMIN_KEY (NEW, must be set as a Cloudflare secret, not committed
+# here): gates POST /v1/admin/workspaces, which provisions a brand-new
+# customer workspace + API key. Only Mooral (the vendor/Activation
+# Generator) should hold this -- never a customer installation. Generate
+# with e.g. `openssl rand -hex 32` and set via
+# `wrangler secret put MBS_ADMIN_KEY --config cloudflare/wrangler.toml`.
+MBS_CORS_ORIGIN = "https://mooral-mbs-api.alamin2052.workers.dev"
+
+[assets]
+directory = "./portal"
+binding = "ASSETS"
+run_worker_first = ["/v1/*", "/health"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mooral-db"
+database_id = "92581899-43b1-4073-9622-5fed9e93b0c8"
+
+

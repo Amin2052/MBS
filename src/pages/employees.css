@@ -1,0 +1,683 @@
+/* ==========================================================================
+   EMPLOYEES PAGE
+   ========================================================================== */
+
+.employees-page {
+    width: 100%;
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.employees-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.employees-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--foreground);
+    letter-spacing: -0.02em;
+}
+
+.employees-header p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.add-employee-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background .2s ease, transform .2s ease;
+}
+
+.add-employee-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   TOOLBAR
+   ========================================================================== */
+
+.employees-toolbar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+/* Search box base styling lives in the shared global class
+   (src/styles/search.css). Fixed width below matches the Certificates
+   page toolbar exactly so this page no longer stretches to fill the
+   remaining flex space. */
+.employees-toolbar .search-box {
+    flex: 0 0 250px;
+    max-width: 250px;
+}
+
+.employees-toolbar select {
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    font-size: 14px;
+    color: var(--foreground);
+    max-width: 220px;
+}
+
+/* ==========================================================================
+   TABLE
+   ========================================================================== */
+
+.employees-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow-sm);
+    max-height: 560px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Requirement 30: header is a flex sibling of .employees-table-body,
+   outside the scrolling region, so the vertical scrollbar (added by the
+   shared .table-scroll-body utility, applied on the body in the markup)
+   only ever runs alongside the row area and starts below the header
+   instead of crossing through it. Pagination was removed in favor of
+   this in-table scroll (see employees-page.tsx). */
+.employees-table-body {
+    min-height: 0;
+    flex: 1;
+}
+
+.employee-row {
+    display: grid;
+    grid-template-columns: 0.6fr 1.1fr 1.4fr 1.2fr 1.3fr 0.9fr 1.2fr;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+    transition: background .15s ease;
+}
+
+.employee-row:last-child {
+    border-bottom: none;
+}
+
+.employee-row:nth-child(even) {
+    background: var(--background);
+}
+
+.employee-row:hover {
+    background: var(--surface-hover);
+}
+
+.employee-row.employee-row-header {
+    background: var(--surface-hover);
+    font-weight: 700;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    flex-shrink: 0;
+    border-bottom: 2px solid var(--border-strong);
+}
+
+.employee-row.employee-row-header:hover {
+    background: var(--surface-hover);
+}
+
+/* Requirement 3: center normal table-cell data (horizontal + vertical).
+   Photo avatars, action buttons and status badges already manage their
+   own internal centering; this only aligns the cell's own text/content
+   within the grid column. */
+.employee-row > span,
+.employee-row-header > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.employee-photo-cell {
+    justify-content: center;
+}
+
+.employee-photo-cell {
+    display: flex;
+    align-items: center;
+}
+
+.employee-photo-cell img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    border: 1px solid var(--border);
+}
+
+.employee-photo-placeholder {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--background);
+    border: 1px solid var(--border);
+    color: var(--muted);
+}
+
+.employee-id-cell {
+    color: var(--primary);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.employee-id-cell:hover {
+    text-decoration: underline;
+}
+
+.employee-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    width: fit-content;
+}
+
+.employee-status.status-active {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.employee-status.status-inactive {
+    background: var(--surface-hover);
+    color: var(--muted);
+}
+
+.employee-status.status-on-leave {
+    background: var(--warning-soft);
+    color: var(--warning-dark);
+}
+
+.employee-status.status-suspended {
+    background: var(--warning-soft);
+    color: var(--warning-dark);
+}
+
+.employee-status.status-resigned {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.employee-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.icon-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.icon-action-btn:hover {
+    background: var(--background);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.icon-action-btn.danger:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+    background: var(--danger-soft);
+}
+
+.employee-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* ==========================================================================
+   MODAL
+   ========================================================================== */
+
+.employee-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.employee-modal {
+    background: var(--surface);
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow, 0 20px 40px rgba(0,0,0,0.2));
+    padding: 26px;
+    width: 560px;
+    max-width: 92vw;
+    max-height: 88vh;
+    overflow-y: auto;
+}
+
+.employee-modal h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 18px;
+}
+
+.employee-form-section {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.employee-form-section:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.employee-form-section h3 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    margin-bottom: 12px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.form-group label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    background: var(--surface);
+    color: var(--foreground);
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.employee-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.employee-modal-actions button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.employee-modal-actions .cancel-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--foreground);
+}
+
+.employee-modal-actions .save-btn {
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.employee-modal-actions .save-btn:hover {
+    background: var(--primary-dark);
+}
+
+.employee-modal-actions .save-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+/* ==========================================================================
+   PHOTO UPLOAD (mirrors the Company Logo upload styling)
+   ========================================================================== */
+
+.employee-photo-section {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.employee-photo-box {
+    width: 84px;
+    height: 84px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.employee-photo-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.employee-photo-empty {
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.employee-photo-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.photo-action-btn {
+    border: 1px solid var(--primary);
+    background: var(--surface);
+    color: var(--primary);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.photo-action-btn:hover {
+    background: var(--primary);
+    color: #fff;
+}
+
+.photo-action-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.photo-action-btn.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.photo-action-btn.danger:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+/* ==========================================================================
+   VIEW DETAIL
+   ========================================================================== */
+
+.employee-view-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.employee-view-header h2 {
+    margin-bottom: 4px;
+}
+
+.employee-view-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.employee-view-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+    margin-bottom: 16px;
+}
+
+.employee-view-grid div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.employee-view-grid span {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+}
+
+.employee-view-grid strong {
+    font-size: 14px;
+    color: var(--foreground);
+}
+
+.employee-view-description {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    background: var(--background);
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 700px) {
+
+    .employees-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .employees-toolbar {
+        flex-direction: column;
+    }
+
+    .employees-toolbar .search-box {
+        width: 100%;
+    }
+
+    .employees-toolbar select {
+        width: 100%;
+        max-width: none;
+    }
+
+    .employee-modal {
+        width: 100%;
+    }
+
+    .employee-view-grid,
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 900px) {
+
+    .employee-row {
+        grid-template-columns: 1fr 1fr;
+        row-gap: 6px;
+    }
+
+    .employee-row-header {
+        display: none;
+    }
+
+}
+
+/* ==========================================================================
+   CONTRACT SECTION (Employment Type = Contract)
+   ========================================================================== */
+
+.contract-loading,
+.contract-hint {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 12px;
+}
+
+.contract-summary-grid {
+    margin-bottom: 14px;
+}
+
+.contract-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    width: fit-content;
+}
+
+.contract-status-active {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.contract-status-expiring-soon {
+    background: var(--warning-soft);
+    color: var(--warning-dark);
+}
+
+.contract-status-expired {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.contract-history {
+    margin-top: 18px;
+}
+
+.contract-history h4 {
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
+
+.contract-history-table {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.contract-history-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1.4fr;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+}
+
+/* Requirement 3: center normal data cells; the extension-reason column
+   (last, wider column) holds free-form notes text, so it stays left. */
+.contract-history-row > span {
+    text-align: center;
+}
+
+.contract-history-row > span:last-child {
+    text-align: left;
+}
+
+.contract-history-row:last-child {
+    border-bottom: none;
+}
+
+.contract-history-header {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface-alt, rgba(0,0,0,0.02));
+}
+
+.contract-extend-modal {
+    width: 460px;
+}
+
+@media (max-width: 640px) {
+
+    .contract-history-row {
+        grid-template-columns: 1fr 1fr;
+        row-gap: 4px;
+    }
+
+}

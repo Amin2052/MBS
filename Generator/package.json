@@ -1,0 +1,61 @@
+{
+  "name": "mbs-license-generator",
+  "version": "1.0.0",
+  "description": "MBS License Generator (private administrative tool)",
+  "main": "./out/main/main.js",
+  "author": "Mooral Business Suite",
+  "license": "Proprietary",
+  "private": true,
+  "scripts": {
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
+    "dev": "electron-vite dev",
+    "dev:prod": "node scripts/dev-prod.mjs",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json --composite false && tsc --noEmit -p tsconfig.node.json",
+    "dist:win": "node scripts/dist-win.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.14.9",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "electron": "^31.1.0",
+    "electron-builder": "^24.13.3",
+    "electron-rebuild": "^3.2.9",
+    "electron-vite": "^2.3.0",
+    "typescript": "^5.5.2",
+    "vite": "^5.3.1"
+  },
+  "build": {
+    "appId": "com.mooral.licensegenerator",
+    "productName": "MBS License Generator",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "MBS-License-Generator-Setup.exe",
+      "icon": "build/generator-icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MBS License Generator"
+    },
+    "files": [
+      "out/**/*"
+    ]
+  }
+}

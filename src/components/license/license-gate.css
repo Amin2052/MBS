@@ -1,0 +1,221 @@
+/*
+ * License-gate (Activation) specific styles.
+ * The page shell, background, card, typography, inputs and buttons all
+ * come from the shared Login design (see ../auth/login-screen.css, class
+ * .mbs-login). This file only adds the handful of widgets that are unique
+ * to activation: the 5-group code entry, the license file row, and the
+ * trial modal.
+ */
+
+.mbs-login .mbs-license-card{
+  max-width:460px;
+}
+
+.mbs-login .mbs-license-code-row{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:1.15rem;
+}
+
+.mbs-login .mbs-license-code-input{
+  width:auto;
+  flex:1;
+  min-width:0;
+  text-align:center;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  font-family:ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-weight:700;
+  padding:0.75rem 0.3rem;
+}
+
+.mbs-login .mbs-license-label-spaced{
+  margin-top:0;
+}
+
+.mbs-login .mbs-license-package{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:1.15rem;
+}
+
+.mbs-login .mbs-license-browse{
+  width:auto;
+  flex:0 0 auto;
+  padding:0.7rem 1rem;
+  font-size:0.82rem;
+}
+
+.mbs-login .mbs-license-package span{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:0.82rem;
+  font-weight:600;
+}
+.mbs-login .mbs-license-file-empty{color:var(--mbs-ink-dim); font-weight:500;}
+.mbs-login .mbs-license-file-loaded{color:#8fe1b0;}
+
+.mbs-login .mbs-license-activate{
+  margin-bottom:0.9rem;
+}
+
+.mbs-login .mbs-license-request-actions{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:8px;
+  margin-bottom:0.5rem;
+}
+.mbs-login .mbs-license-request-actions button{
+  min-width:0;
+  min-height:38px;
+  padding:0.5rem 0.4rem;
+  border:1px solid var(--mbs-glass-border);
+  border-radius:10px;
+  background:rgba(255,255,255,0.05);
+  color:var(--mbs-ink-white);
+  cursor:pointer;
+  font:600 11px 'Inter', sans-serif;
+  transition:background .15s ease, border-color .15s ease;
+}
+.mbs-login .mbs-license-request-actions button:hover{
+  background:rgba(255,255,255,0.09);
+  border-color:rgba(108,214,255,0.35);
+}
+.mbs-login .mbs-license-trial-action{
+  background:rgba(31,124,232,0.14) !important;
+  border-color:rgba(108,214,255,0.30) !important;
+  color:#dff3ff !important;
+}
+
+.mbs-login .mbs-license-edit-profile{
+  display:block;
+  margin:0.55rem auto 0;
+  padding:2px 5px;
+  border:0;
+  background:transparent;
+  color:#91a7c8;
+  cursor:pointer;
+  font:500 10px 'Inter', sans-serif;
+}
+.mbs-login .mbs-license-edit-profile:hover{
+  color:#c7d9f5;
+  text-decoration:underline;
+}
+
+.mbs-license-loading{
+  align-items:center;
+  justify-content:center;
+  display:flex;
+  color:var(--mbs-ink-dim, #9fb0cf);
+}
+
+/* Trial modal */
+.mbs-license-modal-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:20;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(2,8,20,0.66);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+
+.mbs-license-modal{
+  width:min(440px, 100%);
+  max-height:calc(100vh - 36px);
+  overflow:auto;
+  padding:22px;
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:18px;
+  background:rgba(11,26,53,0.94);
+  color:#f4f7fd;
+  box-shadow:0 30px 80px -20px rgba(0,0,0,0.7);
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.mbs-license-modal-head{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:17px;
+}
+.mbs-license-modal-head h2{
+  margin:4px 0 4px;
+  font:700 19px 'Sora','Inter',sans-serif;
+}
+.mbs-license-modal-head p{
+  margin:0;
+  color:#9fb0cf;
+  font-size:11px;
+  line-height:1.45;
+}
+.mbs-license-eyebrow{
+  color:#6cd6ff;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+}
+.mbs-license-modal-close{
+  width:30px;
+  height:30px;
+  flex:0 0 auto;
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;
+  background:rgba(255,255,255,0.05);
+  color:#dbe7f7;
+  cursor:pointer;
+  font-size:18px;
+}
+
+.mbs-license-trial-form{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.mbs-license-trial-form label{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  color:#a9b9d1;
+  font-size:10px;
+  font-weight:600;
+}
+.mbs-license-trial-form input.mbs-field-input{
+  font-size:11px;
+  padding:0.6rem 0.7rem;
+}
+
+.mbs-license-trial-request-id{
+  margin-top:11px;
+  color:#8fa4c4;
+  font-size:10px;
+}
+.mbs-license-trial-request-id strong{color:#cbdaf0;}
+
+.mbs-license-modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:17px;
+}
+.mbs-license-modal-actions button{
+  width:auto;
+}
+
+@media (max-width: 620px){
+  .mbs-license-code-row{gap:5px;}
+  .mbs-license-code-input{font-size:15px;}
+  .mbs-license-request-actions{grid-template-columns:1fr;}
+  .mbs-license-trial-form{grid-template-columns:1fr;}
+}

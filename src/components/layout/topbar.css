@@ -1,0 +1,506 @@
+.topbar{
+
+    height:72px;
+
+    background:var(--surface);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:0 28px;
+
+    border-bottom:1px solid var(--border);
+
+    box-shadow:var(--shadow);
+
+}
+
+
+
+
+/* Base search-box styling (height, padding, border, border-radius,
+   background, colors, focus-within border/box-shadow, transition, icon
+   and input styling) now comes entirely from the shared global .search-box
+   class (src/styles/search.css) — the same class every standardized
+   page-level search box uses. This previously duplicated those rules in a
+   separate .topbar-search block, which is why its focus state could drift
+   out of sync (e.g. missing focus-within styling, showing the browser's
+   default outline) whenever the shared class was updated elsewhere.
+
+   Only the properties that are genuinely specific to the topbar (its
+   fixed width, and position:relative so the results dropdown below can
+   be positioned against it) are kept here. */
+.topbar .topbar-search{
+
+    width:250px;
+
+    position:relative;
+
+}
+
+
+
+
+
+/* ==========================
+   GLOBAL SEARCH RESULT
+========================== */
+
+
+.search-results{
+
+    position:absolute;
+
+    top:52px;
+
+    left:0;
+
+    width:100%;
+
+    max-height:320px;
+
+    overflow-y:auto;
+
+    overflow-x:hidden;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    box-shadow:var(--shadow);
+
+    z-index:9999;
+
+    scrollbar-width:none;
+
+    -ms-overflow-style:none;
+
+}
+
+.search-results::-webkit-scrollbar{
+
+    width:0;
+
+    height:0;
+
+    display:none;
+
+}
+
+
+
+
+
+.search-item{
+
+
+    padding:12px 14px;
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    gap:4px;
+
+
+    cursor:pointer;
+
+
+    color:var(--foreground);
+
+
+}
+
+
+
+
+.search-item-header{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:8px;
+
+}
+
+
+
+
+.search-item-badge{
+
+    font-size:10px;
+
+    font-weight:600;
+
+    text-transform:uppercase;
+
+    letter-spacing:.4px;
+
+    color:var(--muted);
+
+    background:var(--background);
+
+    border:1px solid var(--border);
+
+    border-radius:6px;
+
+    padding:2px 8px;
+
+    white-space:nowrap;
+
+}
+
+
+
+
+
+.search-item:hover{
+
+
+    background:var(--surface-hover);
+
+
+}
+
+
+
+
+
+.search-item strong{
+
+
+    font-size:14px;
+
+
+    font-weight:600;
+
+
+}
+
+
+
+
+
+.search-item span{
+
+
+    font-size:12px;
+
+
+    color:var(--muted);
+
+
+}
+
+
+
+
+
+.search-empty{
+
+
+    padding:14px;
+
+
+    color:var(--muted);
+
+
+    font-size:14px;
+
+
+}
+
+
+
+
+
+/* ==========================
+   TOPBAR ACTIONS
+========================== */
+
+
+.topbar-actions{
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:14px;
+
+
+}
+
+
+
+
+
+.topbar-btn{
+
+
+    height:40px;
+
+
+    padding:0 14px;
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:8px;
+
+
+    border:1px solid var(--border);
+
+
+    background:var(--surface);
+
+
+    color:var(--foreground);
+
+
+    border-radius:10px;
+
+
+    cursor:pointer;
+
+
+    transition:.2s;
+
+
+}
+
+
+
+
+
+.topbar-btn:hover{
+
+
+    background:var(--surface-hover);
+
+
+}
+
+
+
+
+
+.profile-btn{
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:10px;
+
+
+    border:none;
+
+
+    background:transparent;
+
+
+    cursor:pointer;
+
+
+    color:var(--foreground);
+
+
+}
+
+
+
+
+
+.topbar-avatar-photo{
+
+
+    width:28px;
+
+    height:28px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+    flex-shrink:0;
+
+
+}
+
+
+
+.profile-btn div{
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    text-align:left;
+
+
+}
+
+
+
+
+/* Compact identity chip -- subtle border/badge treatment for the
+   Owner/Administrator/Employee - username text, using the same
+   surface/border tokens as the rest of the topbar so it reads as part
+   of the existing UI rather than a new design element. */
+.profile-identity-chip{
+
+    padding:5px 10px;
+
+    border:1px solid var(--border);
+    border-radius:8px;
+
+    background:var(--surface-hover);
+
+}
+
+
+
+
+
+.profile-btn span{
+
+
+    font-size:12px;
+
+
+    color:var(--muted);
+
+
+}
+
+
+.profile-menu-wrapper{
+
+    position:relative;
+
+}
+
+
+.profile-dropdown{
+
+    position:absolute;
+    top:calc(100% + 8px);
+    right:0;
+
+    min-width:160px;
+
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+
+    padding:6px;
+
+    z-index:50;
+
+}
+
+
+.profile-dropdown-item{
+
+    width:100%;
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    padding:9px 10px;
+
+    border:none;
+    background:transparent;
+    border-radius:8px;
+
+    color:var(--foreground);
+    font-size:13px;
+
+    cursor:pointer;
+
+    transition:.15s;
+
+}
+
+
+.profile-dropdown-item:hover{
+
+    background:var(--surface-hover);
+
+}
+.profile-user-list{
+    padding:8px 0;
+}
+
+
+.profile-dropdown-user{
+
+    padding:8px 14px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:4px;
+
+    font-size:13px;
+
+    cursor:pointer;
+
+}
+
+
+.profile-dropdown-user:hover{
+
+    background:var(--surface-hover);
+
+}
+.profile-dropdown-user.active-user{
+
+    background:var(--surface-hover);
+
+    font-weight:600;
+
+}
+
+
+.profile-dropdown-user strong{
+
+    font-size:13px;
+
+}
+
+
+.profile-dropdown-user span{
+
+    color:var(--muted);
+
+    font-size:12px;
+
+}

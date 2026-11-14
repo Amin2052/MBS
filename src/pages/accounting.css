@@ -1,0 +1,1593 @@
+/* =====================================
+ACCOUNTING PAGE
+===================================== */
+
+.accounting-page{
+
+    width:100%;
+
+    padding:24px;
+    min-height:100%;
+
+    color:var(--foreground);
+
+}
+
+
+/* =====================================
+HEADER
+===================================== */
+
+
+.accounting-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:24px;
+
+}
+
+
+.accounting-header h1{
+
+    margin:0;
+
+    font-size:28px;
+
+    font-weight:700;
+
+}
+
+
+.accounting-header p{
+
+    margin:6px 0 0;
+
+    color:var(--muted);
+
+    font-size:14px;
+
+}
+
+
+
+/* =====================================
+ADD BUTTON
+===================================== */
+
+
+.add-transaction-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:8px;
+
+    padding:10px 18px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:var(--primary);
+
+    color:white;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.2s;
+
+}
+
+
+.add-transaction-btn:hover{
+
+    background:var(--primary-dark);
+
+}
+
+
+
+/* =====================================
+SUMMARY CARDS
+===================================== */
+
+
+.accounting-summary{
+
+    display:grid;
+
+    grid-template-columns:
+
+    repeat(4,minmax(180px,1fr));
+
+
+    gap:18px;
+
+    margin-bottom:24px;
+
+}
+
+
+
+.summary-card{
+
+    background:var(--surface);
+
+    padding:20px;
+
+    border-radius:14px;
+
+    box-shadow:
+
+    0 4px 14px rgba(0,0,0,.06);
+
+
+    border:1px solid var(--border);
+
+}
+
+
+
+.summary-card span{
+
+    display:block;
+
+    font-size:14px;
+
+    color:var(--muted);
+
+    margin-bottom:10px;
+
+}
+
+
+
+.summary-card h2{
+
+    margin:0;
+
+    font-size:28px;
+
+    font-weight:700;
+
+    /* Requirement 34: amount/value text is black/dark for readability
+       across all four summary cards (was green/red/blue per card type,
+       inconsistent contrast). Card layout, icons and labels are
+       unchanged -- only this text color. */
+    color:var(--foreground);
+
+}
+
+
+
+/* =====================================
+TOOLBAR
+===================================== */
+
+
+.accounting-toolbar{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+    margin-bottom:24px;
+
+    background:var(--surface);
+
+    padding:18px;
+
+    border-radius:14px;
+
+    border:1px solid var(--border);
+
+}
+
+
+
+/* Search box base styling now lives in the shared global class
+   (src/styles/search.css). Only the page-specific width is kept here. */
+.accounting-toolbar .search-box{
+
+    width:250px;
+
+}
+
+
+
+.accounting-toolbar select{
+
+    height:42px;
+
+    min-width:140px;
+
+    padding:0 12px;
+
+    border-radius:10px;
+
+    border:1px solid var(--border-strong);
+
+    background:var(--surface);
+
+    outline:none;
+
+}
+
+
+.accounting-toolbar select:focus{
+
+    border-color:var(--primary);
+
+    box-shadow:0 0 0 3px var(--primary-soft);
+}
+
+
+.date-range-filter{
+
+    height:42px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:0 12px;
+
+    background:var(--surface-hover);
+
+    border:1px solid var(--border-strong);
+
+    border-radius:10px;
+
+}
+
+
+.date-range-filter input[type="date"]{
+
+    height:100%;
+
+    border:none;
+
+    outline:none;
+
+    background:transparent;
+
+    font-size:13px;
+
+    color:var(--foreground);
+
+}
+
+
+.date-range-filter span{
+
+    font-size:12px;
+
+    color:var(--muted-light);
+
+}
+
+
+.clear-date-filter{
+
+    height:28px;
+
+    padding:0 10px;
+
+    border-radius:8px;
+
+    border:1px solid var(--border-strong);
+
+    background:var(--surface);
+
+    font-size:12px;
+
+    color:var(--foreground);
+
+    cursor:pointer;
+
+}
+
+
+.clear-date-filter:hover{
+
+    background:var(--surface-hover);
+
+}
+
+/* =====================================
+TRANSACTION TABLE
+===================================== */
+
+
+.accounting-table{
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:14px;
+
+    max-height:420px;
+
+    display:flex;
+    flex-direction:column;
+
+    overflow:hidden;
+
+    box-shadow:0 4px 14px rgba(0,0,0,.06);
+
+}
+
+/* Requirement 29: header is a flex sibling of .accounting-table-body,
+   outside the scrolling region, so the vertical scrollbar (added by the
+   shared .table-scroll-body utility on the body, see markup) only ever
+   runs alongside the row area and starts below the header instead of
+   crossing through it. Horizontal + vertical scroll/scrollbar styling
+   itself comes from .table-scroll-body (src/styles/layout.css). */
+.accounting-table-body{
+    min-height:0;
+    flex:1;
+}
+
+
+
+.accounting-table-head,
+.accounting-table-row{
+
+    display:grid;
+
+    grid-template-columns:
+
+    120px
+    100px
+    140px
+    minmax(200px,1fr)
+    120px
+    120px
+    100px;
+
+
+    min-width:950px;
+
+
+    align-items:center;
+
+
+    padding:14px 20px;
+
+}
+
+
+
+.accounting-table-head{
+
+    flex-shrink:0;
+
+    background:var(--surface-hover);
+
+
+    font-weight:700;
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.04em;
+
+    color:var(--muted);
+
+    border-bottom:2px solid var(--border-strong);
+
+}
+
+
+
+.accounting-table-row{
+
+
+    border-top:1px solid var(--border);
+
+
+    transition:.2s;
+
+
+}
+
+.accounting-table-row:nth-child(even){
+
+    background:var(--background);
+
+}
+
+
+
+.accounting-table-row:hover{
+
+
+    background:var(--surface-hover);
+
+
+}
+
+
+
+.accounting-table-head span,
+.accounting-table-row span{
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    align-items:center;
+
+
+    text-align:center;
+
+
+}
+
+
+
+.transaction-id{
+
+
+    color:var(--primary);
+
+
+    font-weight:700;
+
+
+}
+
+
+
+
+/* =====================================
+TYPE BADGE
+===================================== */
+
+
+.transaction-type{
+
+
+    display:inline-flex;
+
+
+    align-items:center;
+
+
+    justify-content:center;
+
+
+    padding:6px 12px;
+
+
+    border-radius:20px;
+
+
+    font-size:13px;
+
+
+    font-weight:600;
+
+
+}
+
+
+
+.type-income{
+
+
+    background:var(--success-soft);
+
+
+    color:var(--success-dark);
+
+
+}
+
+
+
+.type-expense{
+
+
+    background:var(--danger-soft);
+
+
+    color:var(--danger-dark);
+
+
+}
+
+
+
+
+
+/* =====================================
+AMOUNT
+===================================== */
+
+
+.amount-column-head{
+
+
+    justify-content:flex-end;
+
+
+    text-align:right;
+
+
+}
+
+
+
+.amount-income{
+
+
+    color:var(--success);
+
+
+    font-weight:700;
+
+
+    font-variant-numeric:
+
+    tabular-nums;
+
+
+    justify-content:flex-end;
+
+
+    text-align:right;
+
+
+}
+
+
+
+.amount-expense{
+
+
+    color:var(--danger);
+
+
+    font-weight:700;
+
+
+    font-variant-numeric:
+
+    tabular-nums;
+
+
+    justify-content:flex-end;
+
+
+    text-align:right;
+
+
+}
+
+
+
+
+
+/* =====================================
+ACTION BUTTON
+===================================== */
+
+
+.transaction-actions{
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    align-items:center;
+
+
+    gap:8px;
+
+
+}
+
+
+
+.transaction-actions button{
+
+
+    width:32px;
+
+
+    height:32px;
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    justify-content:center;
+
+
+    border:none;
+
+
+    border-radius:8px;
+
+
+    background:var(--surface-hover);
+
+
+    cursor:pointer;
+
+
+    transition:.2s;
+
+
+}
+
+
+
+.transaction-actions button:hover{
+
+
+    background:var(--primary);
+
+
+    color:white;
+
+
+}
+
+
+
+.transaction-actions button:disabled{
+
+
+    cursor:not-allowed;
+
+
+    opacity:.4;
+
+
+}
+
+
+
+.transaction-actions button:disabled:hover{
+
+
+    background:var(--surface-hover);
+
+
+    color:inherit;
+
+
+}
+
+
+
+
+
+
+
+.invoice-generated-note{
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:8px;
+
+
+    padding:10px 14px;
+
+
+    border-radius:10px;
+
+
+    background:var(--primary-soft);
+
+
+    color:var(--purple-dark);
+
+
+    font-size:13px;
+
+
+    line-height:1.4;
+
+
+    margin-bottom:16px;
+
+
+}
+
+
+
+/* =====================================
+EMPTY STATE
+===================================== */
+
+
+.empty-transactions{
+
+
+    padding:60px 20px;
+
+
+    text-align:center;
+
+
+    color:var(--muted);
+
+
+    font-size:15px;
+
+
+    font-weight:500;
+
+
+}
+/* =====================================
+MODAL OVERLAY
+===================================== */
+
+
+.modal-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(15,23,42,.45);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    z-index:999;
+
+
+}
+
+
+
+
+/* =====================================
+MODAL
+===================================== */
+
+
+.accounting-modal{
+
+
+    width:640px;
+
+
+    max-height:88vh;
+
+
+    overflow-y:auto;
+
+
+    background:var(--surface);
+
+
+    border-radius:20px;
+
+
+    padding:28px;
+
+
+    box-shadow:
+
+    0 20px 50px rgba(0,0,0,.15);
+
+
+}
+
+
+
+
+/* =====================================
+MODAL HEADER
+===================================== */
+
+
+.modal-header{
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:center;
+
+
+    margin-bottom:20px;
+
+
+}
+
+
+
+.modal-header h2{
+
+
+    margin:0;
+
+
+    font-size:22px;
+
+
+    font-weight:700;
+
+
+}
+
+
+
+.modal-header button{
+
+
+    width:34px;
+
+
+    height:34px;
+
+
+    border:none;
+
+
+    border-radius:8px;
+
+
+    background:var(--surface-hover);
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    justify-content:center;
+
+
+    cursor:pointer;
+
+
+}
+
+
+
+
+/* =====================================
+FORM
+===================================== */
+
+
+.accounting-form-grid{
+
+
+    display:grid;
+
+
+    grid-template-columns:1fr 1fr;
+
+
+    gap:16px;
+
+
+}
+
+
+
+.form-field{
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    gap:6px;
+
+
+}
+
+
+
+.form-field.full{
+
+
+    grid-column:1/-1;
+
+
+}
+
+
+
+.form-field label{
+
+
+    font-size:12px;
+
+
+    font-weight:600;
+
+
+    color:var(--muted);
+
+
+}
+
+
+
+
+.form-field input,
+.form-field select,
+.form-field textarea{
+
+
+    width:100%;
+
+
+    box-sizing:border-box;
+
+
+    border:1px solid var(--border-strong);
+
+
+    border-radius:8px;
+
+
+    outline:none;
+
+
+    font-size:14px;
+
+
+    font-family:inherit;
+
+
+}
+
+
+
+.form-field input,
+.form-field select{
+
+
+    height:42px;
+
+
+    padding:0 12px;
+
+
+}
+
+
+
+.form-field textarea{
+
+
+    min-height:90px;
+
+
+    padding:12px;
+
+
+    resize:vertical;
+
+
+}
+
+
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus{
+
+
+    border-color:var(--primary);
+
+
+    box-shadow:0 0 0 3px var(--primary-soft);
+}
+
+
+
+
+/* =====================================
+MODAL FOOTER
+===================================== */
+
+
+.modal-footer{
+
+
+    display:flex;
+
+
+    justify-content:flex-end;
+
+
+    gap:12px;
+
+
+    margin-top:24px;
+
+
+}
+
+
+
+
+.cancel-btn{
+
+
+    padding:12px 18px;
+
+
+    border:1px solid var(--border-strong);
+
+
+    border-radius:10px;
+
+
+    background:var(--surface);
+
+
+    cursor:pointer;
+
+
+    font-weight:600;
+
+
+}
+
+
+
+.cancel-btn:hover{
+
+
+    background:var(--surface-hover);
+
+
+}
+
+
+
+
+
+.save-btn{
+
+
+    padding:12px 22px;
+
+
+    border:none;
+
+
+    border-radius:10px;
+
+
+    background:var(--primary);
+
+
+    color:white;
+
+
+    cursor:pointer;
+
+
+    font-weight:600;
+
+
+}
+
+
+
+.save-btn:hover{
+
+
+    background:var(--primary-dark);
+
+
+}
+
+
+
+
+
+/* =====================================
+RESPONSIVE
+===================================== */
+
+
+@media(max-width:1200px){
+
+
+    .accounting-summary{
+
+
+        grid-template-columns:
+
+        repeat(2,1fr);
+
+
+    }
+
+
+}
+
+
+
+@media(max-width:700px){
+
+
+    .accounting-page{
+
+
+        padding:16px;
+
+
+    }
+
+
+
+    .accounting-header{
+
+
+        flex-direction:column;
+
+
+        align-items:flex-start;
+
+
+        gap:15px;
+
+
+    }
+
+
+
+    .accounting-summary{
+
+
+        grid-template-columns:1fr;
+
+
+    }
+
+
+
+    .accounting-toolbar{
+
+
+        flex-direction:column;
+
+
+        align-items:stretch;
+
+
+    }
+
+
+
+    .accounting-toolbar .search-box{
+
+
+        width:100%;
+
+
+    }
+
+
+
+    .accounting-modal{
+
+
+        width:95%;
+
+
+        padding:20px;
+
+
+    }
+
+
+
+    .accounting-form-grid{
+
+
+        grid-template-columns:1fr;
+
+
+    }
+
+
+
+    .modal-footer{
+
+
+        flex-direction:column;
+
+
+    }
+
+
+
+    .cancel-btn,
+    .save-btn{
+
+
+        width:100%;
+
+
+    }
+
+
+}
+
+
+/* =====================================
+ACCOUNTING ROLE CONTROL
+===================================== */
+
+
+.accounting-role-control{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+
+.accounting-role-badge{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    padding:6px 12px;
+
+    border-radius:20px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    background:var(--primary-soft);
+
+    color:var(--purple-dark);
+
+}
+
+
+.accounting-role-select{
+
+    padding:8px 10px;
+
+    border-radius:8px;
+
+    border:1px solid var(--border-strong);
+
+    background:var(--surface);
+
+    color:var(--foreground);
+
+    font-size:13px;
+
+    font-weight:500;
+
+    cursor:pointer;
+
+}
+
+
+.accounting-view-only{
+
+    font-size:12px;
+
+    color:var(--muted-light);
+
+    font-style:italic;
+
+}
+
+
+
+
+/* =====================================
+ACCOUNTING TABS (Ledger / Journal / Account Summary)
+===================================== */
+
+
+.accounting-tabs{
+
+    display:flex;
+
+    gap:8px;
+
+    margin-bottom:20px;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+
+.accounting-tab{
+
+    padding:10px 16px;
+
+    border:none;
+
+    background:transparent;
+
+    color:var(--muted);
+
+    font-weight:600;
+
+    font-size:14px;
+
+    cursor:pointer;
+
+    border-bottom:2px solid transparent;
+
+    transition:.2s;
+
+}
+
+
+.accounting-tab:hover{
+
+    color:var(--foreground);
+
+}
+
+
+.accounting-tab.active{
+
+    color:var(--primary);
+
+    border-bottom-color:var(--primary);
+
+}
+
+
+
+
+/* =====================================
+LEDGER VIEW
+===================================== */
+
+
+.ledger-balance-card{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:4px;
+
+    padding:20px 24px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:16px;
+
+    margin-bottom:16px;
+
+    width:fit-content;
+
+    min-width:260px;
+
+}
+
+
+.ledger-balance-card span{
+
+    font-size:13px;
+
+    color:var(--muted);
+
+    font-weight:500;
+
+}
+
+
+.ledger-balance-card h2{
+
+    margin:0;
+
+    font-size:26px;
+
+    font-weight:700;
+
+    color:var(--foreground);
+
+}
+
+
+.ledger-table-row{
+
+    grid-template-columns: 110px 130px 1.6fr 120px 120px 130px 1fr;
+
+}
+
+
+.date-range-filter{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+}
+
+
+.date-range-filter input{
+
+    height:42px;
+
+    padding:0 12px;
+
+    border:1px solid var(--border-strong);
+
+    border-radius:10px;
+
+    outline:none;
+
+}
+
+
+.date-range-filter input:focus{
+
+    border-color:var(--primary);
+
+    box-shadow:0 0 0 3px var(--primary-soft);
+}
+
+
+.date-range-filter span{
+
+    color:var(--muted);
+
+    font-size:13px;
+
+}
+
+
+
+
+/* =====================================
+JOURNAL VIEW
+===================================== */
+
+
+.journal-count-label{
+
+    font-size:14px;
+
+    font-weight:600;
+
+    color:var(--foreground);
+
+}
+
+
+.journal-table-row{
+
+    grid-template-columns: 130px 100px 1fr 1fr 120px 130px 1.4fr;
+
+}
+
+
+.form-error{
+
+    background:var(--danger-soft);
+
+    color:var(--danger-dark);
+
+    border:1px solid var(--danger-soft);
+
+    border-radius:10px;
+
+    padding:10px 14px;
+
+    font-size:13px;
+
+    margin-bottom:16px;
+
+}
+
+
+
+
+/* =====================================
+ACCOUNT SUMMARY VIEW
+===================================== */
+
+
+.account-summary-group{
+
+    margin-bottom:28px;
+
+}
+
+
+.account-summary-group-title{
+
+    font-size:15px;
+
+    font-weight:700;
+
+    color:var(--foreground);
+
+    margin:0 0 12px 0;
+
+}
+
+
+.account-summary-cards{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+
+}
+
+
+.account-summary-turnover{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    font-size:12px;
+
+    color:var(--muted-light);
+
+    margin-top:6px;
+
+}

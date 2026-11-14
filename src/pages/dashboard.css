@@ -1,0 +1,1362 @@
+.dashboard{
+
+    width:100%;
+
+}
+
+
+.dashboard-header{
+
+    margin-bottom:16px;
+
+}
+
+
+.dashboard-header h1{
+
+    font-size:32px;
+
+    font-weight:700;
+
+    letter-spacing:-0.02em;
+
+    color:var(--foreground);
+
+}
+
+
+.dashboard-header p{
+
+    margin-top:6px;
+
+    color:var(--muted);
+
+}
+
+
+
+
+
+.stats-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:14px;
+
+}
+
+
+
+
+
+.stat-card{
+
+    position:relative;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:18px 18px 18px 20px;
+
+    box-shadow:var(--shadow-sm);
+
+    transition:.25s;
+
+}
+
+
+/* Thin semantic accent rail on the left edge of each KPI card, tinted by
+   the same color as its icon chip (.blue/.green/.purple/.orange), so the
+   card reads as a distinct module rather than a plain white box. */
+.stat-card::before{
+
+    content:"";
+    position:absolute;
+    top:14px;
+    bottom:14px;
+    left:0;
+    width:3px;
+    border-radius:0 3px 3px 0;
+    background:var(--border-strong);
+}
+
+.stat-card:has(.icon-box.blue)::before{ background:var(--primary); }
+.stat-card:has(.icon-box.green)::before{ background:var(--success); }
+.stat-card:has(.icon-box.purple)::before{ background:var(--purple); }
+.stat-card:has(.icon-box.orange)::before{ background:var(--warning); }
+
+
+
+
+.stat-card:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:var(--shadow-lg);
+
+    border-color:var(--border-strong);
+
+}
+
+
+
+
+
+.stat-top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+}
+
+
+
+
+
+.stat-card span{
+
+    color:var(--muted);
+
+    font-size:14px;
+
+}
+
+
+
+
+
+.stat-card h2{
+
+    margin-top:8px;
+
+    font-size:30px;
+
+    font-weight:750;
+
+}
+
+
+
+
+
+.icon-box{
+
+    width:44px;
+
+    height:44px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:12px;
+
+}
+
+
+
+
+
+.blue{
+
+    background:var(--primary-soft);
+
+    color:var(--primary);
+
+}
+
+
+.green{
+
+    background:var(--success-soft);
+
+    color:var(--success);
+
+}
+
+
+.purple{
+
+    background:var(--purple-soft);
+
+    color:var(--purple);
+
+}
+
+
+.orange{
+
+    background:var(--warning-soft);
+
+    color:var(--warning-dark);
+
+}
+
+
+
+
+
+.stat-card p{
+
+    margin-top:10px;
+
+    color:var(--muted);
+
+}
+
+
+
+
+
+.success{
+
+    color:var(--success)!important;
+
+}
+
+
+.warning{
+
+    color:var(--warning)!important;
+
+}
+
+
+
+
+
+.dashboard-box{
+
+    margin-top:16px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:18px;
+
+    box-shadow:var(--shadow-sm);
+
+}
+
+
+
+
+
+.box-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:12px;
+
+    gap:12px;
+
+}
+
+
+
+
+
+.box-header h2{
+
+    font-size:20px;
+
+}
+
+
+
+
+
+.box-header span{
+
+    color:var(--muted);
+
+    font-size:14px;
+
+}
+
+
+/* Small pill count next to a box-header title (e.g. Inventory Alert). */
+.alert-count{
+
+    background:var(--warning);
+
+    color:#ffffff;
+
+    font-size:12px!important;
+
+    font-weight:700;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+    white-space:nowrap;
+
+}
+
+
+
+
+.chart{
+
+    width:100%;
+
+}
+
+/* Sales Overview line chart: recharts renders a focusable SVG wrapper
+   for keyboard accessibility, which shows the browser's default
+   focus-ring on click in most browsers. Keep it for real keyboard
+   navigation (:focus-visible) but drop it for a mouse click, and
+   disable the default grey hover/cursor highlight band recharts draws
+   behind the pointer on hover -- this chart's own Tooltip already sets
+   cursor={false} for the same reason, this CSS is the belt-and-braces
+   fallback for any residual outline/box the SVG itself draws. */
+.chart .recharts-wrapper:focus,
+.chart .recharts-surface:focus{
+    outline:none;
+}
+
+.chart .recharts-wrapper:focus-visible,
+.chart .recharts-surface:focus-visible{
+    outline:2px solid var(--primary);
+    outline-offset:2px;
+}
+
+.chart .recharts-tooltip-cursor{
+    display:none;
+}
+
+
+/* Shown instead of the chart when there is no data yet, or while loading. */
+.chart-empty{
+
+    height:320px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:var(--muted);
+
+    font-size:14px;
+
+    text-align:center;
+
+    background:var(--background);
+
+    border:1px dashed var(--border-strong);
+
+    border-radius:12px;
+
+}
+
+.chart-empty::before{
+
+    content:"";
+
+    width:38px;
+
+    height:38px;
+
+    border-radius:50%;
+
+    background:var(--surface-hover);
+
+    border:1px solid var(--border);
+
+}
+
+
+/* Shared empty/loading placeholder for list-style dashboard boxes
+   (Top Selling Products, Recent Orders, Inventory Alert). Mirrors the
+   `.empty-orders` convention already used on the Orders page. */
+.dashboard-box-empty{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    padding:36px 20px;
+
+    text-align:center;
+
+    color:var(--muted);
+
+    font-size:13.5px;
+
+    background:var(--background);
+
+    border:1px dashed var(--border-strong);
+
+    border-radius:12px;
+
+}
+
+/* Small neutral icon dot standing in for an illustration, so the empty
+   state reads as an intentional module rather than blank space. Purely
+   decorative -- no markup change needed. */
+.dashboard-box-empty::before{
+
+    content:"";
+
+    width:34px;
+
+    height:34px;
+
+    border-radius:50%;
+
+    background:var(--surface-hover);
+
+    border:1px solid var(--border);
+
+}
+
+
+.alert-row{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:12px 0;
+
+    color:var(--foreground);
+
+}
+
+
+.alert-row.success{
+
+    color:var(--success);
+
+}
+
+
+/* =========================
+   Quick Actions
+========================= */
+
+
+.quick-actions{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:12px;
+
+}
+
+
+
+
+
+.quick-actions button{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:flex-start;
+
+    gap:10px;
+
+    padding:10px 14px;
+
+    border-radius:12px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    cursor:pointer;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    color:var(--foreground);
+
+    text-align:left;
+
+    transition:.25s;
+
+}
+
+
+
+
+
+.quick-actions button:hover{
+
+    transform:translateY(-2px);
+
+    background:var(--surface-hover);
+
+    box-shadow:var(--shadow);
+
+    border-color:var(--primary);
+
+}
+
+
+.quick-actions button:focus-visible{
+
+    outline:2px solid var(--primary);
+
+    outline-offset:2px;
+
+}
+
+
+/* Color-coded icon chip, reusing the same palette as the stat cards
+   (.blue/.green/.purple/.orange) for visual consistency. */
+.qa-icon{
+
+    width:34px;
+
+    height:34px;
+
+    flex-shrink:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:10px;
+
+}
+
+
+
+
+/* =========================
+   Top Selling Products
+========================= */
+
+
+
+.top-product-row{
+
+    display:grid;
+
+    grid-template-columns:
+    44px
+    1fr
+    120px;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:10px 0;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+
+
+
+.top-product-row:last-child{
+
+    border-bottom:none;
+
+}
+
+
+
+
+.top-product-row strong{
+
+    font-size:15px;
+
+}
+
+
+/* Circular rank badge, replaces the plain "#1" text. */
+.rank-badge{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    width:28px;
+
+    height:28px;
+
+    border-radius:50%;
+
+    background:var(--background);
+
+    color:var(--primary);
+
+    font-size:13px;
+
+    font-weight:700;
+
+    flex-shrink:0;
+
+}
+
+
+
+
+.top-product-row span{
+
+    color:var(--muted);
+
+}
+
+
+.top-product-row span.rank-badge{
+
+    color:var(--primary);
+
+}
+
+
+
+
+/* =========================
+   Recent Orders
+========================= */
+
+
+
+.recent-orders-scroll{
+
+    width:100%;
+
+    overflow-x:auto;
+
+}
+
+
+.recent-orders-table{
+
+    width:100%;
+
+    min-width:640px;
+
+}
+
+
+
+
+.recent-order-row{
+
+    display:grid;
+
+    grid-template-columns:
+    1fr
+    1.5fr
+    1.5fr
+    1fr
+    1fr;
+
+    gap:12px;
+
+    padding:10px 0;
+
+    border-bottom:1px solid var(--border);
+
+    align-items:center;
+
+}
+
+
+
+
+.recent-order-row:last-child{
+
+    border-bottom:none;
+
+}
+
+
+/* Header row of the Recent Orders table. */
+.recent-order-head{
+
+    border-bottom:2px solid var(--border);
+
+}
+
+
+.recent-order-head strong{
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.04em;
+
+    color:var(--muted);
+
+}
+
+
+
+
+.recent-order-row strong{
+
+    font-size:14px;
+
+}
+
+
+
+
+.recent-order-row span{
+
+    font-size:14px;
+
+}
+
+
+/* Prevents long customer/product names from breaking the grid layout. */
+.cell-truncate{
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+
+
+
+/* Shared status badge, matching the styling used on the Orders page
+   so a status reads the same way everywhere in the app. */
+.status-badge{
+
+    display:inline-flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:6px 14px;
+
+    border-radius:20px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    width:fit-content;
+
+    white-space:nowrap;
+
+}
+
+
+.status-pending{
+
+    background:var(--warning-soft);
+
+    color:var(--warning-dark);
+
+}
+
+
+.status-completed{
+
+    background:var(--success-soft);
+
+    color:var(--success-dark);
+
+}
+
+
+.status-cancelled{
+
+    background:var(--danger-soft);
+
+    color:var(--danger-dark);
+
+}
+
+
+
+
+/* =========================
+   Responsive
+========================= */
+
+
+@media(max-width:1100px){
+
+
+    .stats-grid{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+
+    .quick-actions{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+}
+
+
+@media(max-width:600px){
+
+
+    .stats-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+
+
+    .quick-actions{
+
+        grid-template-columns:1fr;
+
+    }
+
+
+
+    /* Grid with only 2 columns but 3 cells (rank/name/qty) used to leave
+       the "sold" quantity orphaned on its own implicit row, overlapping
+       the next product's rank badge. Stack the row instead. */
+    .top-product-row{
+
+        display:flex;
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:6px;
+
+    }
+
+
+
+    /* Recent Orders collapses into labeled "cards" instead of an
+       unlabeled stack of values, using the data-label attributes set
+       in the component. The header row is redundant once each value
+       carries its own label, so it's hidden here. */
+    .recent-order-head{
+
+        display:none;
+
+    }
+
+    .recent-orders-table{
+
+        min-width:0;
+
+    }
+
+    .recent-order-row{
+
+        grid-template-columns:1fr;
+
+        gap:8px;
+
+        padding:16px 0;
+
+    }
+
+    .recent-order-row span::before{
+
+        content:attr(data-label);
+
+        display:block;
+
+        font-size:11px;
+
+        text-transform:uppercase;
+
+        letter-spacing:.03em;
+
+        color:var(--muted);
+
+        margin-bottom:3px;
+
+    }
+
+}
+
+
+/* =====================================
+DASHBOARD ROW (Top Selling Products + Notifications)
+===================================== */
+
+.dashboard-row{
+
+    display:flex;
+
+    gap:16px;
+
+    margin-top:16px;
+
+    align-items:stretch;
+
+}
+
+.dashboard-row .dashboard-box{
+
+    margin-top:0;
+
+}
+
+.dashboard-box-top-products{
+
+    flex:0 1 55%;
+
+}
+
+.dashboard-box-notifications{
+
+    flex:0 1 45%;
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+
+/* =====================================
+NOTIFICATIONS WIDGET
+===================================== */
+
+.notifications-reset-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    padding:6px 12px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:var(--danger-soft);
+
+    color:var(--danger);
+
+    font-size:12px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    white-space:nowrap;
+
+    transition:.2s;
+
+}
+
+.notifications-reset-btn:hover{
+
+    background:var(--danger);
+
+    color:#fff;
+
+}
+
+.notifications-search{
+
+    margin-bottom:10px;
+
+}
+
+.notifications-list{
+
+    height:220px;
+
+    overflow-y:auto;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+
+    scrollbar-width:none;
+
+    -ms-overflow-style:none;
+
+}
+
+.notifications-list::-webkit-scrollbar{
+
+    display:none;
+
+}
+
+.notification-row{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+}
+
+.notification-row-main{
+
+    flex:1;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:10px 12px;
+
+    border:1px solid transparent;
+
+    border-radius:10px;
+
+    background:var(--background);
+
+    color:var(--foreground);
+
+    font-size:13px;
+
+    text-align:left;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.notification-row-main:hover{
+
+    background:var(--primary-soft);
+
+    border-color:var(--border);
+}
+
+.notification-row-main svg{
+
+    color:var(--primary);
+
+    flex-shrink:0;
+
+}
+
+.notification-delete-btn{
+
+    width:30px;
+
+    height:30px;
+
+    flex-shrink:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:var(--surface-hover);
+
+    color:var(--danger);
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.notification-delete-btn:hover{
+
+    background:var(--danger-soft);
+
+}
+
+
+/* =====================================
+NOTIFICATION DETAILS MODAL
+===================================== */
+
+.notification-modal-backdrop{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(15,23,42,.45);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    z-index:999;
+
+}
+
+.notification-modal{
+
+    width:480px;
+
+    max-width:92vw;
+
+    max-height:88vh;
+
+    overflow-y:auto;
+
+    background:var(--surface,#fff);
+
+    border:1px solid var(--border);
+
+    border-radius:20px;
+
+    padding:26px;
+
+    box-shadow:var(--shadow-lg);
+
+}
+
+.notification-modal-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:18px;
+
+}
+
+.notification-modal-header h2{
+
+    margin:0;
+
+    font-size:20px;
+
+    font-weight:700;
+
+}
+
+.notification-modal-close{
+
+    width:32px;
+
+    height:32px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:var(--surface-hover);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.notification-modal-close:hover{
+
+    background:var(--border);
+
+}
+
+.notification-modal-body{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:14px;
+
+}
+
+.notification-modal-row{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    gap:12px;
+
+    font-size:14px;
+
+}
+
+.notification-modal-row span{
+
+    color:var(--muted);
+
+}
+
+.notification-modal-row-block{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+}
+
+.notification-modal-row-block pre{
+
+    margin:6px 0 0;
+
+    width:100%;
+
+    box-sizing:border-box;
+
+    background:var(--background);
+
+    border:1px solid var(--border);
+
+    border-radius:10px;
+
+    padding:10px 12px;
+
+    font-size:12px;
+
+    white-space:pre-wrap;
+
+    word-break:break-word;
+
+}
+
+
+@media (max-width: 900px){
+
+    .dashboard-row{
+
+        flex-direction:column;
+
+    }
+
+    .dashboard-box-top-products,
+    .dashboard-box-notifications{
+
+        flex:1 1 100%;
+
+    }
+
+}
+
+
+
+/* =====================================
+DASHBOARD ROW -- ROLE-BASED MESSAGES SLOTS
+
+Admin: Messages replaces Top Selling Products on the left, at the
+same 55% width Top Selling Products used to have; Notifications stays
+on the right, untouched.
+
+General (non-Owner, non-Administrator) users: Top Selling Products
+stays but ~40% narrower, Messages takes its place on the right at
+~40% wider than Notifications used to be. Owner's own dashboard row
+(.dashboard-box-top-products / .dashboard-box-notifications, 55/45)
+is untouched by any of this -- these are new, separate classes.
+===================================== */
+
+.dashboard-messages-slot-admin{
+
+    flex:0 1 55%;
+
+    display:flex;
+    flex-direction:column;
+
+}
+
+.dashboard-messages-slot-admin .dashboard-box,
+.dashboard-messages-slot-employee .dashboard-box{
+
+    flex:1;
+
+}
+
+.dashboard-top-products-slot-employee{
+
+    flex:0 1 33%;
+    margin-top:0;
+
+}
+
+.dashboard-messages-slot-employee{
+
+    flex:0 1 67%;
+
+    display:flex;
+    flex-direction:column;
+
+}
+
+@media (max-width: 900px){
+
+    .dashboard-messages-slot-admin,
+    .dashboard-top-products-slot-employee,
+    .dashboard-messages-slot-employee{
+
+        flex:1 1 100%;
+
+    }
+
+}

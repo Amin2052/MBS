@@ -1,0 +1,813 @@
+/* ==========================================================================
+   REPORTS PAGE
+   Design language matches Dashboard / Customers / Products / Orders /
+   Invoices / Accounting (shared CSS variables with safe fallbacks so this
+   file still renders correctly even if a variable isn't defined globally).
+   ========================================================================== */
+
+.reports-page {
+    width: 100%;
+    padding: 24px;
+    min-height: 100%;
+    color: var(--foreground);
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.reports-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.reports-header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--foreground);
+}
+
+.reports-header p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* ==========================================================================
+   EXPORT TOOLBAR
+   ========================================================================== */
+
+.reports-export-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.export-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface, #ffffff);
+    color: var(--foreground);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.export-btn:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.export-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.export-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.export-btn:disabled:hover {
+    background: var(--surface, #ffffff);
+    border-color: var(--border);
+    transform: none;
+}
+
+/* ==========================================================================
+   ERROR BANNER
+   ========================================================================== */
+
+.reports-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--danger-soft);
+    border: 1px solid var(--danger-soft);
+    color: var(--danger-dark);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.retry-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--danger-soft);
+    background:var(--surface);
+    color: var(--danger-dark);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s ease;
+}
+
+.retry-btn:hover {
+    background: var(--danger-soft);
+}
+
+.retry-btn:focus-visible {
+    outline: 2px solid var(--danger-dark);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   TOOLBAR
+   ========================================================================== */
+
+.reports-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+/* DATE FILTER */
+
+.reports-date-filter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.reports-date-filter input {
+    width: 170px;
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface, #ffffff);
+    color: var(--foreground);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s ease;
+}
+
+.reports-date-filter input:focus-visible {
+    border-color: var(--primary);
+    box-shadow:0 0 0 3px var(--primary-soft);
+}
+
+.reports-date-filter button {
+    height: 42px;
+    padding: 0 22px;
+    border: none;
+    border-radius: 12px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease;
+}
+
+.reports-date-filter button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.reports-date-filter button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* SECTION FILTER (advanced filter: show/hide report sections) */
+
+.reports-section-filter {
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface, #ffffff);
+    color: var(--foreground);
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    transition: border-color .2s ease;
+}
+
+.reports-section-filter:focus-visible {
+    border-color: var(--primary);
+    box-shadow:0 0 0 3px var(--primary-soft);
+}
+
+/* SEARCH */
+
+/* Search box base styling now lives in the shared global class
+   (src/styles/search.css). Only the page-specific width is kept here. */
+.reports-toolbar .search-box {
+    width: 250px;
+    max-width: 100%;
+}
+
+/* ==========================================================================
+   QUICK FILTERS
+   ========================================================================== */
+
+.reports-quick-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.quick-filter-btn {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface, #ffffff);
+    color: var(--foreground);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.quick-filter-btn:hover {
+    border-color: var(--primary);
+}
+
+.quick-filter-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.quick-filter-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   SUMMARY / EXECUTIVE DASHBOARD CARDS
+   ========================================================================== */
+
+.reports-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+    align-items: stretch;
+}
+
+.reports-card {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: transform .2s ease, box-shadow .2s ease;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 96px;
+    overflow: hidden;
+}
+
+.reports-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-strong);
+}
+
+.reports-card span {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reports-card strong {
+    display: block;
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   REPORT SECTION
+   ========================================================================== */
+
+.reports-section {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.05));
+}
+
+.reports-section h2 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    color: var(--foreground);
+}
+
+.reports-section p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* EMPTY */
+
+.reports-empty {
+    padding: 30px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* ==========================================================================
+   SALES / INVENTORY / ACCOUNTING CARD GRID (shared)
+   ========================================================================== */
+
+.reports-sales-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+    align-items: stretch;
+}
+
+.reports-sales-card {
+    background: var(--surface, #ffffff);
+    padding: 20px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.05));
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 92px;
+}
+
+.reports-sales-card span {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.reports-sales-card strong {
+    display: block;
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--foreground);
+}
+
+/* ==========================================================================
+   CHARTS
+   ========================================================================== */
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.chart-card {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.chart-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--muted);
+}
+
+.mini-chart {
+    width: 100%;
+    height: 120px;
+    display: block;
+    animation: chartFadeIn .4s ease-out;
+}
+
+.mini-chart rect,
+.mini-chart polyline,
+.mini-chart circle {
+    animation: chartFadeIn .5s ease-out;
+}
+
+@keyframes chartFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.chart-axis {
+    stroke: var(--border);
+    stroke-width: 1;
+}
+
+.chart-empty {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted, var(--muted-light));
+    font-size: 13px;
+    text-align: center;
+}
+
+/* ==========================================================================
+   SALES TREND TABLE
+   ========================================================================== */
+
+.table-scroll {
+    margin-top: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Match the Product table scrollbar exactly; only the Sales Trend rows scroll. */
+.reports-table-body {
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.reports-table-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.reports-table-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.reports-table-body::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 8px;
+}
+
+.reports-table-body::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+}
+
+.reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface, #ffffff);
+}
+
+.reports-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-align: center;
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--muted);
+    background: var(--surface-hover);
+    border-bottom: 2px solid var(--border-strong);
+}
+
+.reports-table td {
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--foreground);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    vertical-align: middle;
+}
+
+.reports-table tbody tr {
+    transition: background .15s ease;
+}
+
+.reports-table tbody tr:nth-child(even) {
+    background: var(--background);
+}
+
+.reports-table tbody tr:hover {
+    background: var(--surface-hover);
+}
+
+.reports-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ==========================================================================
+   REPORT OVERVIEW GRID
+   ========================================================================== */
+
+.reports-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.reports-overview-card {
+    background: var(--surface-hover);
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    min-height: 84px;
+}
+
+.reports-overview-card span {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.reports-overview-card strong {
+    display: block;
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--foreground);
+    word-break: break-word;
+}
+
+/* ==========================================================================
+   PRINT / PDF REPORT LAYOUT
+   Hidden on screen. Rendered only via the browser's native Print / Save as
+   PDF dialog (triggered by the PDF and Print export buttons), formatted as
+   a premium, black & white printer-friendly A4 business report.
+   ========================================================================== */
+
+.printable-report {
+    display: none;
+}
+
+@media print {
+
+    @page {
+        size: A4;
+        margin: 16mm 14mm;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .printable-report,
+    .printable-report * {
+        visibility: visible;
+    }
+
+    .printable-report {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background:var(--surface);
+        color: #000000;
+    }
+
+    .print-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 2px solid #000000;
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+    }
+
+    .print-logo-block {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .print-logo-placeholder {
+        width: 48px;
+        height: 48px;
+        border: 1px solid #000000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .print-logo-image {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+    }
+
+    .print-company-name {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .print-company-sub {
+        font-size: 11px;
+        color: var(--foreground);
+    }
+
+    .print-meta {
+        text-align: right;
+        font-size: 11px;
+        line-height: 1.6;
+    }
+
+    .print-title {
+        font-size: 20px;
+        font-weight: 700;
+        text-align: center;
+        margin: 6px 0 18px 0;
+    }
+
+    .print-section {
+        margin-bottom: 18px;
+    }
+
+    .print-avoid-break {
+        break-inside: avoid;
+    }
+
+    .print-section h2 {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        border-bottom: 1px solid #000000;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+    }
+
+    .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+
+    .print-table td,
+    .print-table th {
+        border: 1px solid #000000;
+        padding: 6px 8px;
+        text-align: left;
+    }
+
+    .print-data-table thead {
+        display: table-header-group;
+    }
+
+    .print-data-table tr {
+        break-inside: avoid;
+    }
+
+    .print-align-right {
+        text-align: right;
+    }
+
+    .print-footer {
+        margin-top: 24px;
+        padding-top: 8px;
+        border-top: 1px solid #000000;
+        font-size: 10px;
+        text-align: center;
+        color: var(--foreground);
+    }
+}
+
+/* ==========================================================================
+   ACCESSIBILITY
+   ========================================================================== */
+
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1440px) {
+    .charts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1200px) {
+    .reports-summary-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .reports-overview-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .reports-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .reports-date-filter {
+        flex-wrap: wrap;
+    }
+
+    .reports-date-filter input {
+        width: 100%;
+    }
+
+    .reports-section-filter {
+        width: 100%;
+    }
+
+    .reports-toolbar .search-box {
+        width: 100%;
+    }
+
+    .reports-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .reports-sales-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .reports-overview-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .reports-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reports-sales-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reports-overview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reports-date-filter {
+        width: 100%;
+    }
+
+    .reports-export-toolbar {
+        width: 100%;
+    }
+
+    .export-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}

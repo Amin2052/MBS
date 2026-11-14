@@ -1,0 +1,90 @@
+{
+  "name": "mooral-business-suite",
+  "version": "0.1.11",
+  "description": "Professional Offline Desktop Business Management Software",
+  "main": "./out/main/main.js",
+  "author": "Mooral Business Suite",
+  "license": "Proprietary",
+  "scripts": {
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json --composite false && tsc --noEmit -p tsconfig.node.json",
+    "dist:win": "electron-vite build && electron-builder --win",
+    "test": "node scripts/run-main-tests.mjs && playwright test",
+    "test:main": "node scripts/run-main-tests.mjs",
+    "test:e2e": "playwright test",
+    "release:check": "node scripts/release-check.mjs",
+    "verify:online": "node scripts/verify-online-architecture.mjs",
+    "verify:release": "node scripts/verify-release.mjs",
+    "cloudflare:deploy": "npx wrangler deploy --config cloudflare/wrangler.toml",
+    "cloudflare:types": "npx wrangler types --config cloudflare/wrangler.toml"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "lucide-react": "^1.24.0",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "recharts": "^3.9.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@electron/rebuild": "^4.2.0",
+    "@playwright/test": "^1.62.1",
+    "@swc/core": "^1.15.43",
+    "@tailwindcss/postcss": "^4.3.2",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.14.9",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.5.2",
+    "electron": "^31.1.0",
+    "electron-builder": "^24.13.3",
+    "electron-rebuild": "^3.2.9",
+    "electron-vite": "^2.3.0",
+    "esbuild": "^0.21.5",
+    "tailwindcss": "^4.3.2",
+    "typescript": "^5.5.2",
+    "vite": "^5.3.1"
+  },
+  "build": {
+    "appId": "com.mooral.businesssuite",
+    "productName": "Mooral Business Suite",
+    "directories": {
+      "output": "dist"
+    },
+    "asarUnpack": [
+      "**/*.node",
+      "node_modules/better-sqlite3/**/*"
+    ],
+    "files": [
+      "out/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "MBS.ico",
+      "MBS-taskbar.ico",
+      "!node_modules/**/*.md",
+      "!node_modules/**/*.d.ts",
+      "!node_modules/**/test/**",
+      "!node_modules/**/tests/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "MBS.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Mooral Business Suite"
+    }
+  },
+  "keywords": []
+}

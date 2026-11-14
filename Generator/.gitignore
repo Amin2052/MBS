@@ -1,0 +1,20 @@
+node_modules/
+out/
+dist/
+release/
+
+# Runtime secrets/data (Electron userData in dev — the packaged app's
+# real userData lives outside the repo entirely, but this covers any
+# local dev runs that point userData at the project folder).
+vault.json
+signing-key.json
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+cloud-sync.json
+cloud-customer-config.json
+
+# Logs / OS cruft
+*.log
+.DS_Store
+Thumbs.db

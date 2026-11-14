@@ -1,0 +1,384 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+
+html,
+body,
+#root{
+
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+    font-family:Segoe UI,Arial,sans-serif;
+
+}
+
+
+
+/* MAIN APP LAYOUT (Requirement 5: main frame + sidebar + content shell).
+   The background image / soft wash below is adapted from the Generator
+   project's visual reference (Requirement 7): a subtle background image
+   behind translucent surfaces, without altering MBS's own component
+   logic or theme tokens. Falls back to "none" when no background asset
+   is configured, so existing installs are unaffected. */
+
+.app-layout{
+
+    display:flex;
+
+    width:100%;
+
+    height:100vh;
+
+    overflow:hidden;
+
+    background:var(--background);
+    background-image:var(--app-background-image, none);
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+
+    color:var(--foreground);
+
+}
+
+
+
+/* FIXED SIDEBAR — Generator-style translucent surface (Requirement 2).
+   Visual language (color, blur, spacing, active/hover treatment) is
+   adapted from Generator/src/styles/app.css (.gen-nav / .gen-nav button),
+   using the --sidebar-* tokens defined per-theme in themes.css. Markup,
+   navigation, and permission filtering in sidebar.tsx are unchanged. */
+
+.sidebar{
+
+    width:220px;
+
+    min-width:220px;
+
+    max-width:220px;
+
+
+    height:100%;
+
+
+    background:var(--sidebar);
+    color:var(--sidebar-fg);
+
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+
+
+    display:flex;
+
+    flex-direction:column;
+
+
+    flex-shrink:0;
+
+
+    overflow:hidden;
+
+
+    border-right:1px solid var(--sidebar-border);
+
+}
+
+
+
+/* SIDEBAR HEADER */
+
+.sidebar-header{
+
+    padding:22px;
+
+    flex-shrink:0;
+
+    border-bottom:1px solid var(--sidebar-border);
+
+}
+
+
+.sidebar-header h1{
+
+    font-size:20px;
+
+    font-weight:750;
+
+    letter-spacing:-.2px;
+
+    color:var(--sidebar-fg);
+
+}
+
+
+.sidebar-header span{
+
+    color:var(--sidebar-fg-muted);
+
+    font-size:12px;
+
+}
+
+
+
+/* NAV AREA */
+
+.sidebar-nav{
+
+    padding:14px 10px;
+
+    flex:1;
+
+
+    overflow-y:auto;
+
+}
+
+
+
+.sidebar-nav ul{
+
+    list-style:none;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:4px;
+
+}
+
+
+
+/* MENU LINK */
+
+.sidebar-link{
+
+    display:block;
+
+    margin:0;
+
+    padding:9px 12px;
+
+
+    border-radius:8px;
+
+    font-size:13px;
+    font-weight:550;
+
+    color:var(--sidebar-fg-muted);
+
+
+    text-decoration:none;
+
+
+    transition:background-color .18s ease, color .18s ease;
+
+}
+
+
+
+.sidebar-link:hover{
+
+    background:var(--sidebar-hover-bg);
+
+    color:var(--sidebar-hover-fg);
+
+}
+
+
+
+.sidebar-link-active{
+
+    position:relative;
+
+    background:var(--sidebar-active-bg);
+
+    color:var(--sidebar-active-fg);
+
+    font-weight:650;
+
+    box-shadow:inset 3px 0 0 var(--sidebar-active-fg);
+
+}
+
+
+
+/* REMOVE SIDEBAR SCROLLBAR */
+
+.sidebar,
+.sidebar *{
+
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+
+}
+
+
+.sidebar::-webkit-scrollbar,
+.sidebar *::-webkit-scrollbar{
+
+    width:0;
+    height:0;
+    display:none;
+
+}
+
+
+
+/* MAIN AREA — large content area to the right of the main sidebar. Given
+   a soft translucent surface so the Generator-inspired background wash
+   (Requirement 7) reads through on the app shell, while individual page
+   content keeps its own opaque surfaces and stays fully readable. */
+
+.app-main{
+
+    flex:1;
+
+
+    min-width:0;
+
+
+    height:100%;
+
+
+    display:flex;
+
+    flex-direction:column;
+
+
+    background:var(--app-main-surface, var(--background));
+
+}
+
+
+
+/* TOP BAR */
+
+.topbar{
+
+    height:72px;
+
+    min-height:72px;
+
+
+    background:var(--surface);
+
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+
+    padding:0 30px;
+
+
+    flex-shrink:0;
+
+    border-bottom:1px solid var(--border);
+
+    box-shadow:var(--shadow-sm);
+
+}
+
+
+
+.topbar-title{
+
+    font-size:22px;
+
+    font-weight:700;
+
+}
+
+
+
+/* PAGE CONTENT */
+
+.content{
+
+    flex:1;
+
+
+    min-width:0;
+
+
+    overflow-y:auto;
+    overflow-x:hidden;
+
+
+    padding:30px;
+
+}
+
+/* Global main-content scrollbar (Requirement 3): a themed, visible
+   scrollbar for page-level scrolling, kept visually distinct from and
+   independent of any in-table scrollbars declared elsewhere. */
+.content::-webkit-scrollbar{
+    width:10px;
+}
+
+.content::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.content::-webkit-scrollbar-thumb{
+    background:var(--border);
+    border-radius:8px;
+}
+
+.content::-webkit-scrollbar-thumb:hover{
+    background:var(--muted);
+}
+
+
+/* ==========================================================================
+   TABLE SCROLL CONTAINERS
+   --------------------------------------------------------------------------
+   Standard scroll behaviour for data tables across the app: header stays
+   fixed/sticky, only the row body scrolls, and the vertical scrollbar
+   sits on the right of the row area (never the left). Horizontal
+   overflow (wide tables) scrolls at the bottom of the same container.
+   Individual pages opt in by giving their existing "*-table-body" /
+   "*-table" row-container element the "table-scroll-body" class; this is
+   additive and only applies where a page already needs scrolling.
+   ========================================================================== */
+
+.table-scroll-body{
+    overflow-y:auto;
+    overflow-x:auto;
+    direction:ltr;
+}
+
+.table-scroll-body::-webkit-scrollbar{
+    width:8px;
+    height:8px;
+}
+
+.table-scroll-body::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.table-scroll-body::-webkit-scrollbar-thumb{
+    background:var(--border);
+    border-radius:8px;
+}
+
+.table-scroll-body::-webkit-scrollbar-thumb:hover{
+    background:var(--muted);
+}
+
+[class$="-table-head"],
+.table-head{
+    position:sticky;
+    top:0;
+    z-index:2;
+}

@@ -1,0 +1,653 @@
+.profile-page{
+
+    width:100%;
+    padding:24px;
+    min-height:100%;
+
+}
+
+
+
+/* Back to Dashboard link -- mirrors .settings-back-link in
+   src/pages/settings/settings-category.css so every "back" link in
+   the app looks and behaves the same. */
+.profile-back-link{
+
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+
+    background:none;
+    border:none;
+    padding:0;
+    margin-bottom:16px;
+
+    color:var(--purple);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+
+}
+
+
+
+.profile-back-link:hover{
+
+    text-decoration:underline;
+
+}
+
+
+
+.profile-header{
+
+    margin-bottom:20px;
+
+}
+
+
+
+.profile-header h1{
+
+    margin:0;
+    font-size:28px;
+    font-weight:700;
+    color:var(--foreground);
+
+}
+
+
+
+.profile-header p{
+
+    margin-top:6px;
+    color:var(--muted);
+    font-size:14px;
+
+}
+
+
+
+/* Profile main card */
+
+.profile-card{
+
+    width:100%;
+    max-width:650px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:16px;
+
+    padding:28px;
+
+    display:flex;
+
+    gap:28px;
+
+    align-items:flex-start;
+
+}
+
+
+
+/* User avatar */
+
+.profile-avatar-wrapper{
+
+    position:relative;
+
+    flex-shrink:0;
+
+}
+
+
+
+.profile-avatar{
+
+    width:80px;
+    height:80px;
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:var(--primary-soft);
+
+    color:var(--purple);
+
+    overflow:hidden;
+
+}
+
+
+
+.profile-avatar img{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+}
+
+
+
+/* Compact pencil control on the avatar -- keeps the picture control
+   obvious without introducing a large decorative section. */
+.profile-avatar-edit-btn{
+
+    position:absolute;
+    bottom:0;
+    right:0;
+
+    width:24px;
+    height:24px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:50%;
+
+    background:var(--purple);
+    color:#ffffff;
+    border:2px solid #ffffff;
+
+    cursor:pointer;
+
+}
+
+
+
+.profile-avatar-edit-btn:disabled{
+
+    opacity:.6;
+    cursor:default;
+
+}
+
+
+
+.profile-avatar-menu{
+
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0;
+
+    min-width:150px;
+
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+
+    padding:6px;
+
+    z-index:20;
+
+}
+
+
+
+.profile-avatar-menu button{
+
+    width:100%;
+
+    text-align:left;
+
+    padding:8px 10px;
+
+    border:none;
+    background:transparent;
+    border-radius:8px;
+
+    font-size:13px;
+    color:var(--foreground);
+
+    cursor:pointer;
+
+}
+
+
+
+.profile-avatar-menu button:hover{
+
+    background:var(--surface-hover);
+
+}
+
+
+
+/* Information section */
+
+.profile-info{
+
+    flex:1;
+
+}
+
+
+
+.profile-row{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:14px 0;
+
+    border-bottom:1px solid var(--surface-hover);
+
+}
+
+
+
+.profile-row:last-child{
+
+    border-bottom:none;
+
+}
+
+
+
+.profile-row span{
+
+    color:var(--muted);
+
+    font-size:14px;
+
+}
+
+
+
+.profile-row strong{
+
+    color:var(--foreground);
+
+    font-size:15px;
+
+    font-weight:600;
+
+}
+
+
+
+/* Edit-mode inputs sit directly inside .profile-row (same row layout
+   as the read-only label/value pairs above), right-aligned to match. */
+.profile-row input{
+
+    padding:6px 10px;
+
+    border:1px solid var(--border-strong);
+    border-radius:6px;
+
+    font-size:14px;
+
+    min-width:220px;
+
+    text-align:right;
+
+    color:var(--foreground);
+
+}
+
+
+
+.profile-row input:disabled,
+.profile-row input:read-only{
+
+    background:var(--surface-hover);
+    color:var(--muted);
+    cursor:not-allowed;
+
+}
+
+
+
+/* Edit Profile form -- reuses the exact Settings > Company Profile
+   design language (.form-group / .form-grid / .settings-actions /
+   .save-settings / .reset-settings, imported from
+   settings/settings-category.css) so structure, spacing, input
+   style, button style and typography match that page precisely.
+   This wrapper only adds the LTR guarantee the fields still need. */
+.profile-edit-form{
+
+    width:100%;
+
+}
+
+
+
+/* Left-to-right typing regardless of any app-wide RTL setting --
+   scoped to just these Edit Profile inputs. Needs !important because
+   src/styles/rtl.css's `[dir="rtl"] input{ text-align:right }` rule
+   has equal selector specificity, so cascade order alone can't be
+   relied on to keep these fields LTR. */
+.profile-edit-form input{
+
+    direction:ltr !important;
+    text-align:left !important;
+    unicode-bidi:plain-text;
+
+}
+
+
+
+/* Designation / Job Title for users who aren't Owner/HR: a plain
+   read-only value box, not an <input> -- so it can't be focused,
+   selected-and-typed-into, or mistaken for an editable field. Sized
+   and styled to match the .form-group input it stands in for. */
+.profile-readonly-value{
+
+    width:100%;
+    box-sizing:border-box;
+
+    display:flex;
+    align-items:center;
+
+    padding:10px 12px;
+
+    border:1px solid var(--border);
+    border-radius:8px;
+
+    background:var(--surface-hover);
+    color:var(--muted);
+
+    font-size:14px;
+
+    direction:ltr !important;
+    text-align:left !important;
+
+}
+
+
+
+/* Edit Profile -- compact inline control matching the existing
+   .profile-row layout, no separate profile system/page. */
+.profile-value-with-action{
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+}
+
+
+
+.profile-edit-trigger{
+
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:4px 8px;
+
+    color:var(--purple);
+    font-size:12px;
+    font-weight:600;
+
+    cursor:pointer;
+
+}
+
+
+
+.profile-edit-trigger:hover{
+
+    background:var(--primary-soft);
+
+}
+
+
+
+.profile-edit-field{
+
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+
+}
+
+
+
+.profile-edit-field input{
+
+    padding:6px 10px;
+
+    border:1px solid var(--border-strong);
+    border-radius:6px;
+
+    font-size:14px;
+
+    min-width:200px;
+
+}
+
+
+
+/* Save Changes / Discard Changes -- shown while editing the username.
+   Matches the app's existing primary/secondary button styling (e.g.
+   .save-password-btn's indigo primary on Change Password). */
+.profile-edit-actions{
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    margin-top:20px;
+    padding-top:16px;
+    border-top:1px solid var(--surface-hover);
+
+}
+
+
+
+.profile-edit-save-btn{
+
+    height:32px;
+    padding:0 14px;
+
+    border:none;
+    border-radius:8px;
+
+    background:var(--purple-dark);
+    color:#ffffff;
+
+    font-size:13px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:0.15s ease;
+
+}
+
+
+
+.profile-edit-save-btn:hover:not(:disabled){
+
+    background:var(--purple-dark);
+
+}
+
+
+
+.profile-edit-save-btn:disabled{
+
+    background:var(--purple-soft);
+    color:var(--purple-dark);
+    cursor:default;
+
+}
+
+
+
+.profile-edit-discard-btn{
+
+    height:32px;
+    padding:0 14px;
+
+    border:1px solid var(--border-strong);
+    border-radius:8px;
+
+    background:var(--surface);
+    color:var(--foreground);
+
+    font-size:13px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:0.15s ease;
+
+}
+
+
+
+.profile-edit-discard-btn:hover:not(:disabled){
+
+    background:var(--surface-hover);
+
+}
+
+
+
+.profile-edit-discard-btn:disabled{
+
+    opacity:.6;
+    cursor:default;
+
+}
+
+
+
+.profile-edit-error{
+
+    margin:0 0 8px;
+
+    color:var(--danger-dark);
+    font-size:12.5px;
+
+}
+
+
+
+/* Active status badge */
+
+.active-status{
+
+    background:var(--success-soft);
+
+    color:var(--success-dark) !important;
+
+    padding:4px 12px;
+
+    border-radius:20px;
+
+    font-size:13px !important;
+
+    font-weight:600;
+
+}
+
+
+
+/* Responsive */
+
+@media(max-width:640px){
+
+    .profile-page{
+
+        padding:16px;
+
+    }
+
+
+    .profile-card{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        padding:20px;
+
+    }
+
+
+    .profile-row{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:6px;
+
+    }
+
+}
+
+
+
+/* Requirement 32: Edit Profile and Change Password made visually
+   identical (height, border/radius, typography, icon spacing,
+   hover/disabled). Layered on top of the existing single-use
+   .profile-edit-trigger / .profile-edit-discard-btn classes (kept so
+   nothing else keys off them) rather than merging the two buttons or
+   removing either. */
+.profile-action-btn{
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+
+    height:32px;
+    padding:0 14px;
+
+    border:1px solid var(--border-strong);
+    border-radius:8px;
+
+    background:var(--surface);
+    color:var(--foreground);
+
+    font-size:13px;
+    font-weight:600;
+    line-height:1;
+
+    cursor:pointer;
+
+    transition:background-color .15s ease, border-color .15s ease;
+
+}
+
+.profile-action-btn:hover:not(:disabled){
+
+    background:var(--surface-hover);
+
+}
+
+.profile-action-btn:focus-visible{
+
+    outline:none;
+    border-color:var(--purple);
+    box-shadow:0 0 0 3px rgba(99,102,241,.15);
+
+}
+
+.profile-action-btn:disabled{
+
+    opacity:.6;
+    cursor:default;
+
+}

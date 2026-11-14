@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mooral Business Suite</title>
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("mooral.theme") || "system";
+
+          var resolvedTheme = theme;
+
+          if (theme === "system") {
+            resolvedTheme = window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          }
+
+          document.documentElement.setAttribute("data-theme", resolvedTheme);
+
+          var language = localStorage.getItem("mooral.language") || "en";
+          var rtlLanguages = ["ar"];
+
+          document.documentElement.setAttribute("lang", language);
+          document.documentElement.setAttribute(
+            "dir",
+            rtlLanguages.indexOf(language) !== -1 ? "rtl" : "ltr"
+          );
+        } catch (error) {
+          document.documentElement.setAttribute("data-theme", "light");
+          document.documentElement.setAttribute("dir", "ltr");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.npm/
+
+# Build output
+out/
+dist/
+release/
+build/
+*.tsbuildinfo
+
+# QA / temporary artefacts
+qa-screenshots/
+qa-tmp/
+tests/.artifacts/
+*.log
+AUDIT_LOG.md.local
+
+# Local databases and backups (never commit real business data)
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+backups/
+*.mbs-backup
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+
+# Electron builder cache
+.electron-builder-cache/
