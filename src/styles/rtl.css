@@ -24,11 +24,14 @@
 
 [dir="rtl"] .sidebar {
   border-right: none;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid var(--sidebar-border);
 }
 
+/* The active-navigation bar is now a mirrored inset rule using the accent
+   token, so it flips sides with the layout instead of being a one-off
+   left-to-right blue gradient that only existed for RTL. */
 [dir="rtl"] .sidebar-link-active {
-  background: linear-gradient(270deg, #2563eb, #3b82f6);
+  box-shadow: inset -3px 0 0 var(--sidebar-active-fg);
 }
 
 /* ---------- Topbar ---------- */
@@ -119,5 +122,5 @@
 [dir="rtl"] .stat-card::before {
   left: auto;
   right: 0;
-  border-radius: 3px 0 0 3px;
+  border-radius: var(--radius-xs) 0 0 var(--radius-xs);
 }

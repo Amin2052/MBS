@@ -58,7 +58,7 @@
     padding: 0 16px;
     border: 1px solid var(--border);
     border-radius: 10px;
-    background: var(--surface, #ffffff);
+    background: var(--surface);
     color: var(--foreground);
     font-size: 13px;
     font-weight: 600;
@@ -84,7 +84,7 @@
 }
 
 .export-btn:disabled:hover {
-    background: var(--surface, #ffffff);
+    background: var(--surface);
     border-color: var(--border);
     transform: none;
 }
@@ -159,7 +159,7 @@
     padding: 0 14px;
     border-radius: 12px;
     border: 1px solid var(--border);
-    background: var(--surface, #ffffff);
+    background: var(--surface);
     color: var(--foreground);
     font-size: 14px;
     outline: none;
@@ -177,7 +177,7 @@
     border: none;
     border-radius: 12px;
     background: var(--primary);
-    color: #fff;
+    color: var(--on-primary);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -201,7 +201,7 @@
     padding: 0 14px;
     border-radius: 12px;
     border: 1px solid var(--border);
-    background: var(--surface, #ffffff);
+    background: var(--surface);
     color: var(--foreground);
     font-size: 14px;
     font-weight: 600;
@@ -240,7 +240,7 @@
     padding: 0 14px;
     border-radius: 999px;
     border: 1px solid var(--border);
-    background: var(--surface, #ffffff);
+    background: var(--surface);
     color: var(--foreground);
     font-size: 13px;
     font-weight: 600;
@@ -255,7 +255,7 @@
 .quick-filter-btn.active {
     background: var(--primary);
     border-color: var(--primary);
-    color: #fff;
+    color: var(--on-primary);
 }
 
 .quick-filter-btn:focus-visible {
@@ -321,7 +321,7 @@
    ========================================================================== */
 
 .reports-section {
-    background: var(--surface, #ffffff);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 20px;
@@ -363,7 +363,7 @@
 }
 
 .reports-sales-card {
-    background: var(--surface, #ffffff);
+    background: var(--surface);
     padding: 20px;
     border-radius: 14px;
     border: 1px solid var(--border);
@@ -400,7 +400,7 @@
 }
 
 .chart-card {
-    background: var(--surface, #ffffff);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 16px;
@@ -490,7 +490,7 @@
 .reports-table {
     width: 100%;
     border-collapse: collapse;
-    background: var(--surface, #ffffff);
+    background: var(--surface);
 }
 
 .reports-table thead th {

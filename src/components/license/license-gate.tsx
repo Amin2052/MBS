@@ -7,6 +7,7 @@ import {
   type PropsWithChildren
 } from "react";
 import { useLicense } from "@/hooks/use-license";
+import { useLanguage } from "@/hooks/use-language";
 import mooralLogo from "@/assets/mooral-logo.png";
 import "@/components/auth/login-screen.css";
 import "./license-gate.css";
@@ -24,6 +25,7 @@ type Profile = {
 };
 
 export default function LicenseGate({ children }: PropsWithChildren): JSX.Element {
+  const { t } = useLanguage();
   const { status, loading, activateCompact } = useLicense();
   const [parts, setParts] = useState(["", "", "", "", ""]);
   const [licenseFile, setLicenseFile] = useState<string | null>(null);
@@ -218,21 +220,21 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
           <polygon points="110,50 170,80 170,140 110,170 50,140 50,80" stroke="url(#mbs-gg1-lic)" strokeWidth="1" />
           <defs>
             <linearGradient id="mbs-gg1-lic" x1="0" y1="0" x2="220" y2="220">
-              <stop stopColor="#7aa6ff" />
-              <stop offset="1" stopColor="#2f6fed" stopOpacity="0.2" />
+              <stop stopColor="var(--bronze)" />
+              <stop offset="1" stopColor="var(--primary)" stopOpacity="0.2" />
             </linearGradient>
           </defs>
         </svg>
       </div>
       <div className="mbs-geo mbs-g2">
         <svg viewBox="0 0 140 140" fill="none">
-          <circle cx="70" cy="70" r="68" stroke="#7aa6ff" strokeWidth="1" />
-          <circle cx="70" cy="70" r="42" stroke="#7aa6ff" strokeWidth="1" />
+          <circle cx="70" cy="70" r="68" stroke="var(--bronze)" strokeWidth="1" />
+          <circle cx="70" cy="70" r="42" stroke="var(--bronze)" strokeWidth="1" />
         </svg>
       </div>
       <div className="mbs-geo mbs-g3">
         <svg viewBox="0 0 90 90" fill="none">
-          <rect x="5" y="5" width="80" height="80" rx="16" stroke="#7aa6ff" strokeWidth="1" />
+          <rect x="5" y="5" width="80" height="80" rx="16" stroke="var(--bronze)" strokeWidth="1" />
         </svg>
       </div>
 
@@ -248,10 +250,10 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
           </div>
 
           <h1 className="mbs-headline">
-            Activate your<br /><span className="mbs-accent">workspace.</span>
+            {t("licenseGate.headline1")}<br /><span className="mbs-accent">{t("licenseGate.headlineAccent")}</span>
           </h1>
           <p className="mbs-subhead">
-            Enter the activation code and license file you received, or start a free 7-day trial to explore the full suite.
+            {t("licenseGate.subhead")}
           </p>
 
           <div className="mbs-feature-list">
@@ -264,8 +266,8 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
                 </svg>
               </div>
               <div className="mbs-feature-text">
-                <div className="mbs-t">Secure, offline activation</div>
-                <div className="mbs-d">Your license is verified and bound to this device only.</div>
+                <div className="mbs-t">{t("licenseGate.secureTitle")}</div>
+                <div className="mbs-d">{t("licenseGate.secureDesc")}</div>
               </div>
             </div>
 
@@ -276,15 +278,15 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
                 </svg>
               </div>
               <div className="mbs-feature-text">
-                <div className="mbs-t">Full ERP, unlocked</div>
-                <div className="mbs-d">Accounting, inventory, HR and reporting — all in one place.</div>
+                <div className="mbs-t">{t("licenseGate.erpTitle")}</div>
+                <div className="mbs-d">{t("licenseGate.erpDesc")}</div>
               </div>
             </div>
 
           </div>
 
           <div className="mbs-trust-strip">
-            <span>Business Ready</span><span className="mbs-sep" /><span>Role-Based Security</span><span className="mbs-sep" /><span>Audit Ready</span>
+            <span>{t("licenseGate.trustBusiness")}</span><span className="mbs-sep" /><span>{t("licenseGate.trustSecurity")}</span><span className="mbs-sep" /><span>{t("licenseGate.trustAudit")}</span>
           </div>
 
         </div>
@@ -292,10 +294,10 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
         <div className="mbs-card-side">
           <div className="mbs-card mbs-license-card">
 
-            <div className="mbs-card-title">Activation Wizard</div>
-            <div className="mbs-card-desc">Activate with a license code, or start a free trial.</div>
+            <div className="mbs-card-title">{t("licenseGate.wizardTitle")}</div>
+            <div className="mbs-card-desc">{t("licenseGate.wizardDesc")}</div>
 
-            <label className="mbs-field-label">Activation Code</label>
+            <label className="mbs-field-label">{t("licenseGate.activationCode")}</label>
             <div className="mbs-license-code-row">
               {parts.map((v, i) => (
                 <input
@@ -308,18 +310,18 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
                   onChange={(e) => setPart(i, e.target.value)}
                   onKeyDown={(e) => keyDown(i, e)}
                   onPaste={paste}
-                  aria-label={`Activation code group ${i + 1}`}
+                  aria-label={`${t("licenseGate.codeGroup")} ${i + 1}`}
                 />
               ))}
             </div>
 
-            <label className="mbs-field-label mbs-license-label-spaced">License File</label>
+            <label className="mbs-field-label mbs-license-label-spaced">{t("licenseGate.licenseFile")}</label>
             <div className="mbs-license-package">
               <button type="button" className="mbs-btn-secondary mbs-license-browse" onClick={browseLicenseFile}>
-                Browse
+                {t("licenseGate.browse")}
               </button>
               <span className={licenseFileName ? "mbs-license-file-loaded" : "mbs-license-file-empty"}>
-                {licenseFileName ?? "Select .mbslicense file"}
+                {licenseFileName ?? t("licenseGate.selectFile")}
               </span>
             </div>
 
@@ -332,19 +334,19 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
               disabled={busy || code.length !== 20 || !licenseFile}
               onClick={activate}
             >
-              {busy ? "Activating…" : "Activate License"}
+              {busy ? t("licenseGate.activating") : t("licenseGate.activateLicense")}
             </button>
 
             <div className="mbs-license-request-actions">
               <button type="button" className="mbs-license-trial-action" onClick={openTrial}>
-                Activate Trial
+                {t("licenseGate.activateTrial")}
               </button>
-              <button type="button" className="mbs-license-secondary-action" onClick={whatsapp}>Request via WhatsApp</button>
-              <button type="button" className="mbs-license-secondary-action" onClick={email}>Request via Email</button>
+              <button type="button" className="mbs-license-secondary-action" onClick={whatsapp}>{t("licenseGate.requestWhatsapp")}</button>
+              <button type="button" className="mbs-license-secondary-action" onClick={email}>{t("licenseGate.requestEmail")}</button>
             </div>
             {profile && (
               <button type="button" className="mbs-license-edit-profile" onClick={editSavedDetails}>
-                Edit saved details
+                {t("licenseGate.editSaved")}
               </button>
             )}
 
@@ -353,7 +355,7 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
                 <rect x="5" y="11" width="14" height="9" rx="2" strokeWidth="1.6" />
                 <path d="M8 11V8a4 4 0 0 1 8 0v3" strokeWidth="1.6" />
               </svg>
-              Secure Activation
+              {t("licenseGate.secureActivation")}
             </div>
 
           </div>
@@ -366,37 +368,37 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
           <div className="mbs-license-modal">
             <div className="mbs-license-modal-head">
               <div>
-                <span className="mbs-license-eyebrow">Free Trial</span>
-                <h2>{editOnly ? "Edit Activation Details" : "Activate 7-Day Trial"}</h2>
-                <p>{editOnly ? "These saved details are used automatically in future activation requests." : "This device is automatically registered with your trial."}</p>
+                <span className="mbs-license-eyebrow">{t("licenseGate.freeTrial")}</span>
+                <h2>{editOnly ? t("licenseGate.editDetailsTitle") : t("licenseGate.activateTrialTitle")}</h2>
+                <p>{editOnly ? t("licenseGate.editDetailsDesc") : t("licenseGate.trialDesc")}</p>
               </div>
               <button type="button" className="mbs-license-modal-close" onClick={() => setTrialOpen(false)}>×</button>
             </div>
 
             <div className="mbs-license-trial-form">
-              <label>Owner Full Name *
+              <label>{t("licenseGate.ownerName")} *
                 <input className="mbs-field-input" value={trialForm.ownerFullName} onChange={(e) => updateTrialField("ownerFullName", e.target.value)} autoFocus />
               </label>
-              <label>Company Name *
+              <label>{t("licenseGate.companyName")} *
                 <input className="mbs-field-input" value={trialForm.companyName} onChange={(e) => updateTrialField("companyName", e.target.value)} />
               </label>
-              <label>Personal Email *
+              <label>{t("licenseGate.personalEmail")} *
                 <input className="mbs-field-input" type="email" value={trialForm.email} onChange={(e) => updateTrialField("email", e.target.value)} />
               </label>
-              <label>Phone Number *
+              <label>{t("licenseGate.phoneNumber")} *
                 <input className="mbs-field-input" type="tel" value={trialForm.phone} onChange={(e) => updateTrialField("phone", e.target.value)} />
               </label>
             </div>
 
             {profile?.requestId && (
               <div className="mbs-license-trial-request-id">
-                Request ID: <strong>{profile.requestId}</strong>
+                {t("licenseGate.requestId")}: <strong>{profile.requestId}</strong>
               </div>
             )}
 
             <div className="mbs-license-modal-actions">
               <button type="button" className="mbs-btn-secondary" disabled={busy} onClick={() => setTrialOpen(false)}>
-                Discard
+                {t("licenseGate.discard")}
               </button>
               <button
                 type="button"
@@ -404,7 +406,9 @@ export default function LicenseGate({ children }: PropsWithChildren): JSX.Elemen
                 disabled={busy}
                 onClick={editOnly ? saveEditedDetails : activateTrial}
               >
-                {busy ? (editOnly ? "Saving…" : "Activating…") : (editOnly ? "Save Changes" : "Activate 7-Day Trial")}
+                {busy
+                  ? (editOnly ? t("licenseGate.saving") : t("licenseGate.activating"))
+                  : (editOnly ? t("licenseGate.saveChanges") : t("licenseGate.activateTrialTitle"))}
               </button>
             </div>
           </div>

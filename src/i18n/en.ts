@@ -66,7 +66,67 @@ const en = {
     resultTypeCustomer: "Customer",
     resultTypeOrder: "Order",
     resultTypeInventory: "Inventory",
-    resultTypeCertificate: "Certificate"
+    resultTypeCertificate: "Certificate",
+    notifications: "Notifications",
+    noNotifications: "No notifications yet",
+    viewAllNotifications: "View all",
+    toggleTheme: "Switch appearance"
+  },
+
+  shell: {
+    home: "Home",
+    workspace: "Workspace",
+    database: "Database",
+    connected: "Connected",
+    unavailable: "Unavailable",
+    online: "Online",
+    offline: "Offline",
+    ready: "Ready",
+    signedInAs: "Signed in as",
+    close: "Close"
+  },
+
+  // Activation gate. These strings were previously hardcoded English, which
+  // made the very first screen a user sees the only untranslated surface in
+  // the product. Keys mirror the order they appear on screen.
+  licenseGate: {
+    headline1: "Activate your",
+    headlineAccent: "workspace.",
+    subhead: "Enter the activation code and license file you received, or start a free 7-day trial to explore the full suite.",
+    secureTitle: "Secure, offline activation",
+    secureDesc: "Your license is verified and bound to this device only.",
+    erpTitle: "Full ERP, unlocked",
+    erpDesc: "Accounting, inventory, HR and reporting — all in one place.",
+    trustBusiness: "Business Ready",
+    trustSecurity: "Role-Based Security",
+    trustAudit: "Audit Ready",
+    wizardTitle: "Activation Wizard",
+    wizardDesc: "Activate with a license code, or start a free trial.",
+    activationCode: "Activation Code",
+    codeGroup: "Activation code group",
+    licenseFile: "License File",
+    browse: "Browse",
+    selectFile: "Select .mbslicense file",
+    activating: "Activating…",
+    activateLicense: "Activate License",
+    activateTrial: "Activate Trial",
+    requestWhatsapp: "Request via WhatsApp",
+    requestEmail: "Request via Email",
+    editSaved: "Edit saved details",
+    secureActivation: "Secure Activation",
+    freeTrial: "Free Trial",
+    editDetailsTitle: "Edit Activation Details",
+    activateTrialTitle: "Activate 7-Day Trial",
+    editDetailsDesc: "These saved details are used automatically in future activation requests.",
+    trialDesc: "This device is automatically registered with your trial.",
+    ownerName: "Owner Full Name",
+    companyName: "Company Name",
+    personalEmail: "Personal Email",
+    phoneNumber: "Phone Number",
+    requestId: "Request ID",
+    discard: "Discard",
+    saving: "Saving…",
+    saveChanges: "Save Changes"
   },
 
   invoices: {

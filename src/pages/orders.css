@@ -40,7 +40,7 @@
     justify-content: center;
     gap: 8px;
     background: var(--primary);
-    color: #fff;
+    color: var(--on-primary);
     border: none;
     padding: 12px 20px;
     border-radius: 12px;
@@ -232,17 +232,17 @@
 
 .action-edit:hover {
     background: var(--primary);
-    color: #fff;
+    color: var(--on-primary);
 }
 
 .action-approve:hover {
     background: var(--success);
-    color: #fff;
+    color: var(--on-success);
 }
 
 .action-delete:hover {
     background: var(--danger);
-    color: #fff;
+    color: var(--on-danger);
 }
 
 /* ==========================================================================
@@ -263,7 +263,7 @@
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, .45);
+    background: var(--overlay);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -408,7 +408,7 @@
     border: none;
     border-radius: 12px;
     background: var(--primary);
-    color: #fff;
+    color: var(--on-primary);
     font-weight: 600;
     font-size: 15px;
     cursor: pointer;
@@ -473,7 +473,7 @@
 }
 
 .add-order-line:hover {
-    background: rgba(37, 99, 235, .06);
+    background: var(--primary-soft);
     border-color: var(--primary);
     color: var(--primary-dark);
     transform: translateY(-1px);

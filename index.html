@@ -7,7 +7,9 @@
     <script>
       (function () {
         try {
-          var theme = localStorage.getItem("mooral.theme") || "system";
+          // Graphite Atelier (dark) is the default appearance. A previously
+          // stored preference of "light" or "system" is still honoured.
+          var theme = localStorage.getItem("mooral.theme") || "dark";
 
           var resolvedTheme = theme;
 
@@ -29,7 +31,7 @@
             rtlLanguages.indexOf(language) !== -1 ? "rtl" : "ltr"
           );
         } catch (error) {
-          document.documentElement.setAttribute("data-theme", "light");
+          document.documentElement.setAttribute("data-theme", "dark");
           document.documentElement.setAttribute("dir", "ltr");
         }
       })();

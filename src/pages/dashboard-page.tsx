@@ -636,10 +636,13 @@ export default function DashboardPage(): JSX.Element {
                 <Line
                   type="monotone"
                   dataKey="sales"
-                  stroke="#2563eb"
-                  strokeWidth={2.5}
-                  dot={{ r: 4, fill: "#2563eb", strokeWidth: 0 }}
-                  activeDot={{ r: 6 }}
+                  // Graphite Atelier: the trend line follows the theme accent
+                  // instead of the old hardcoded blue, so it stays correct in
+                  // both the dark and light palettes.
+                  stroke="var(--chart-line)"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: "var(--chart-line)", strokeWidth: 0 }}
+                  activeDot={{ r: 5 }}
                 />
               </LineChart>
             </ResponsiveContainer>

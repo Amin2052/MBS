@@ -154,9 +154,9 @@
 
     border-radius:50%;
 
-    background:var(--purple);
-    color:#ffffff;
-    border:2px solid #ffffff;
+    background:var(--primary);
+    color:var(--on-primary);
+    border:2px solid var(--border);
 
     cursor:pointer;
 
@@ -461,8 +461,8 @@
     border:none;
     border-radius:8px;
 
-    background:var(--purple-dark);
-    color:#ffffff;
+    background:var(--primary);
+    color:var(--on-primary);
 
     font-size:13px;
     font-weight:600;

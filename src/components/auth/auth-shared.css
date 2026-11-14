@@ -319,7 +319,7 @@
     cursor:pointer;
 
     background:var(--primary);
-    color:#fff;
+    color: var(--on-primary);
 
     transition:.2s;
 

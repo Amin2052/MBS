@@ -1,0 +1,670 @@
+/* ==========================================================================
+   GRAPHITE ATELIER — Shared Primitive Layer
+   ==========================================================================
+   One stylesheet for the controls every page uses, so that "no styling left
+   over from the old look" is a property of the product rather than something
+   each of the ~30 pages has to remember.
+
+   SPECIFICITY CONTRACT
+   --------------------
+   Baseline rules are wrapped in `:where(...)`, which contributes ZERO
+   specificity. That means:
+       .customers-toolbar input { ... }   (0,1,1)  -> wins, as before
+       :where(.content input)             (0,0,0)  -> only fills the gap
+   So this file can only *add* the missing look to controls a page never
+   styled; it cannot regress a page that already styles them. Component
+   classes below (.ga-*) are opt-in and normal-specificity.
+
+   Loaded once in src/main.tsx, after pages import their own CSS? No — page
+   CSS is imported by page modules (lazy), so it lands after this file in the
+   cascade anyway. Both directions are safe because of :where().
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Native control baseline
+   -------------------------------------------------------------------------- */
+
+/* Form controls do not inherit font by default in Chromium, which is why
+   unstyled inputs rendered in Arial while the rest of the UI used the app
+   face. Inheriting is the single highest-visibility typography fix. */
+:where(input, select, textarea, button, optgroup) {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+}
+
+:where(input, select, textarea) {
+  color: var(--foreground);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 11px;
+  line-height: 1.4;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+/* Placeholder must be dimmer than real input text but still >= 3:1 so users
+   can read the hint. --muted-light is the dimmest token that holds that. */
+:where(input, textarea)::placeholder {
+  color: var(--muted-light);
+  opacity: 1;
+}
+
+:where(input, select, textarea):hover:not(:disabled):not([readonly]) {
+  border-color: var(--border-strong);
+}
+
+:where(input, select, textarea):focus-visible,
+:where(input, select, textarea):focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+/* Read-only / disabled must be unmistakable but still legible. */
+:where(input, select, textarea, button):disabled {
+  color: var(--muted-light);
+  background-color: var(--surface-sunken);
+  border-color: var(--border-subtle);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+:where(input, select, textarea)[readonly] {
+  background-color: var(--surface-alt);
+  color: var(--muted);
+  cursor: default;
+}
+
+/* Files: the native button inside is the only styleable part. */
+:where(input[type="file"]) {
+  padding: 7px 9px;
+  cursor: pointer;
+}
+:where(input[type="file"])::file-selector-button {
+  margin-inline-end: 10px;
+  padding: 5px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+:where(input[type="file"])::file-selector-button:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary);
+}
+
+/* Checkboxes/radios/ranges: `accent-color` is the only reliable way to theme
+   them, and it fixes the "invisible blue glyph" defect in dark mode. */
+:where(input[type="checkbox"], input[type="radio"], input[type="range"], progress) {
+  accent-color: var(--primary);
+}
+
+:where(input[type="checkbox"], input[type="radio"]) {
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  vertical-align: -2px;
+}
+
+/* Chromium draws the calendar/clock glyph with currentColor; without this it
+   resolves to the default near-black and vanishes on dark inputs. */
+:where(input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"], input[type="week"]) {
+  color-scheme: inherit;
+}
+:where(input[type="date"])::-webkit-calendar-picker-indicator,
+:where(input[type="time"])::-webkit-calendar-picker-indicator,
+:where(input[type="datetime-local"])::-webkit-calendar-picker-indicator,
+:where(input[type="month"])::-webkit-calendar-picker-indicator,
+:where(input[type="week"])::-webkit-calendar-picker-indicator {
+  opacity: 0.62;
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+:where(input[type="date"])::-webkit-calendar-picker-indicator:hover,
+:where(input[type="time"])::-webkit-calendar-picker-indicator:hover,
+:where(input[type="datetime-local"])::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Number spinners: hide the always-visible stepper; keep keyboard stepping. */
+:where(.content input[type="number"]) {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+:where(.content input[type="number"])::-webkit-outer-spin-button,
+:where(.content input[type="number"])::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* Native select arrow colour must follow the theme, otherwise Chromium keeps
+   a dark arrow on dark surfaces. */
+:where(select) {
+  appearance: none;
+  padding-inline-end: 30px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% + 1px),
+    calc(100% - 11px) calc(50% + 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+[dir="rtl"] :where(select) {
+  background-position:
+    calc(0% + 16px) calc(50% + 1px),
+    calc(0% + 11px) calc(50% + 1px);
+}
+
+/* --------------------------------------------------------------------------
+   2. Focus, keyboard accessibility
+   -------------------------------------------------------------------------- */
+
+/* Only keyboard focus gets the ring — mouse clicks on buttons must not leave
+   a gold halo behind. This is the difference between "desktop software" and
+   "web page". */
+:where(a, button, [role="button"], [tabindex]):focus {
+  outline: none;
+}
+:where(a, button, [role="button"], [tabindex]):focus-visible,
+:where(.ga-btn):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+:where(button) {
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+/* Tactile press feedback, one pixel, no bounce. */
+:where(button):active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+
+/* --------------------------------------------------------------------------
+   3. Scrollbars
+   -------------------------------------------------------------------------- */
+
+/* Themed everywhere; page-specific scrollbars (e.g. .content) still override
+   where they set their own width/colour. */
+:where(*)::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+:where(*)::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+:where(*)::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+:where(*)::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+:where(*)::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   4. Tables — baseline for any table the page CSS has not styled
+   -------------------------------------------------------------------------- */
+
+:where(table) {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+}
+
+:where(thead th) {
+  background: var(--table-header-bg);
+  color: var(--table-header-fg);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  text-align: start;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--table-border);
+  white-space: nowrap;
+}
+
+:where(tbody td) {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--table-border);
+  font-size: var(--text-base);
+  vertical-align: middle;
+}
+
+:where(tbody tr:hover) {
+  background: var(--table-row-hover);
+}
+
+/* Row selection reads as gold tint + hairline, never a saturated fill. */
+:where(tbody tr[aria-selected="true"], tbody tr.is-selected, tbody tr.selected) {
+  background: var(--table-row-selected);
+  box-shadow: inset 2px 0 0 var(--primary);
+}
+
+/* --------------------------------------------------------------------------
+   5. Component utilities (opt-in)
+   -------------------------------------------------------------------------- */
+
+/* ---- Buttons ---------------------------------------------------------- */
+.ga-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 15px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  user-select: none;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+.ga-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.ga-btn--primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary-dark);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.ga-btn--primary:hover:not(:disabled) { background: var(--primary-light); }
+.ga-btn--primary:active:not(:disabled) { background: var(--primary-dark); }
+
+.ga-btn--secondary {
+  background: var(--surface-raised);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.ga-btn--secondary:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.ga-btn--ghost {
+  background: transparent;
+  color: var(--muted);
+  border-color: transparent;
+}
+.ga-btn--ghost:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--foreground);
+}
+
+.ga-btn--danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.ga-btn--danger:hover:not(:disabled) {
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+.ga-btn--icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  border-color: transparent;
+  border-radius: var(--radius-sm);
+}
+.ga-btn--icon:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--foreground);
+}
+
+.ga-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Busy state: the label stays, a ring spins in place of the leading icon. */
+.ga-btn[data-loading="true"] { pointer-events: none; opacity: 0.8; }
+.ga-btn[data-loading="true"]::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: ga-spin 700ms linear infinite;
+}
+@keyframes ga-spin { to { transform: rotate(360deg); } }
+
+/* ---- Cards ------------------------------------------------------------ */
+.ga-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.ga-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ga-card__title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--foreground-strong);
+}
+.ga-card__body { padding: 18px; }
+
+/* ---- Badges / status chips ------------------------------------------- */
+.ga-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ga-badge--accent {
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  background: var(--primary-soft);
+  color: var(--accent-strong);
+}
+.ga-badge--success {
+  border-color: color-mix(in srgb, var(--success) 40%, transparent);
+  background: var(--success-soft);
+  color: var(--success);
+}
+.ga-badge--warning {
+  border-color: color-mix(in srgb, var(--warning) 40%, transparent);
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.ga-badge--danger {
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* A status dot for "connected / synced / offline" style indicators. */
+.ga-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--muted-light);
+}
+.ga-dot--online { background: var(--success); box-shadow: 0 0 0 3px var(--success-soft); }
+.ga-dot--offline { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
+.ga-dot--pending { background: var(--warning); box-shadow: 0 0 0 3px var(--warning-soft); }
+
+/* ---- Empty / loading / error states ---------------------------------- */
+.ga-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 44px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.ga-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--muted-light);
+}
+.ga-empty__title {
+  color: var(--foreground);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+/* Skeleton shimmer for table/list loading — replaces "jumping" blank rows. */
+.ga-skeleton {
+  display: block;
+  height: 10px;
+  border-radius: var(--radius-xs);
+  background: linear-gradient(
+    90deg,
+    var(--surface-alt) 0%,
+    var(--surface-hover) 50%,
+    var(--surface-alt) 100%
+  );
+  background-size: 200% 100%;
+  animation: ga-shimmer 1.4s var(--ease-in-out) infinite;
+}
+@keyframes ga-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.ga-alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  border-inline-start: 2px solid var(--muted);
+  background: var(--surface-alt);
+  font-size: var(--text-sm);
+  color: var(--foreground);
+}
+.ga-alert--info { border-inline-start-color: var(--info); background: var(--info-soft); }
+.ga-alert--success { border-inline-start-color: var(--success); background: var(--success-soft); }
+.ga-alert--warning { border-inline-start-color: var(--warning); background: var(--warning-soft); }
+.ga-alert--danger { border-inline-start-color: var(--danger); background: var(--danger-soft); }
+
+/* ---- Tooltip (CSS-only, for title-like hints) ------------------------ */
+.ga-tip {
+  position: relative;
+}
+.ga-tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(3px);
+  padding: 5px 9px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-inverse);
+  color: var(--on-surface-inverse);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+  z-index: var(--z-tooltip);
+}
+.ga-tip:hover::after,
+.ga-tip:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---- Tabs ------------------------------------------------------------- */
+.ga-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+}
+.ga-tab {
+  position: relative;
+  padding: 9px 14px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+.ga-tab:hover { color: var(--foreground); }
+.ga-tab[aria-selected="true"] {
+  color: var(--accent-strong);
+  font-weight: var(--weight-semibold);
+}
+.ga-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 8px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--primary);
+}
+
+/* ---- Breadcrumb ------------------------------------------------------- */
+.ga-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  min-width: 0;
+}
+.ga-breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: var(--radius-xs);
+  padding: 1px 3px;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+.ga-breadcrumb a:hover { color: var(--foreground); }
+.ga-breadcrumb__sep { color: var(--border-strong); }
+.ga-breadcrumb__current {
+  color: var(--foreground);
+  font-weight: var(--weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[dir="rtl"] .ga-breadcrumb__sep { transform: scaleX(-1); }
+
+/* ---- Modal shell ------------------------------------------------------ */
+.ga-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--overlay);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.ga-modal {
+  position: relative;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  width: min(560px, calc(100vw - 48px));
+  max-height: calc(100vh - 80px);
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.ga-modal--sm { width: min(420px, calc(100vw - 48px)); }
+.ga-modal--lg { width: min(860px, calc(100vw - 48px)); }
+.ga-modal--xl { width: min(1100px, calc(100vw - 48px)); }
+.ga-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+}
+.ga-modal__title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--foreground-strong);
+}
+.ga-modal__body {
+  padding: 20px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.ga-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 13px 20px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-alt);
+}
+
+/* --------------------------------------------------------------------------
+   6. Route-level loading
+   -------------------------------------------------------------------------- */
+
+.mbs-route-loading {
+  display: grid;
+  place-items: center;
+  min-height: 45vh;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   7. Print: previews and documents must not inherit app chrome
+   -------------------------------------------------------------------------- */
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}

@@ -14,6 +14,7 @@ import AppRouter from "@/router";
 import "./styles/app.css";
 import "./styles/layout.css";
 import "./styles/themes.css";
+import "./styles/atelier.css";
 import "./styles/search.css";
 import "./styles/rtl.css";
 

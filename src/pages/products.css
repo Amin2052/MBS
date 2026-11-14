@@ -68,7 +68,7 @@
 
     background:var(--primary);
 
-    color:white;
+    color: var(--on-primary);
 
     border:none;
 
@@ -468,7 +468,7 @@
     background:var(--primary);
 
 
-    color:#fff;
+    color: var(--on-primary);
 
 
 }
@@ -526,7 +526,7 @@ padding:40px;
     inset:0;
 
 
-    background:rgba(15,23,42,.45);
+    background:var(--overlay);
 
 
     display:flex;
@@ -785,7 +785,7 @@ padding:40px;
     background:var(--primary);
 
 
-    color:white;
+    color: var(--on-primary);
 
 
     font-weight:600;

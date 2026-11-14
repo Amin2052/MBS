@@ -16,6 +16,11 @@ tests/.artifacts/
 *.log
 AUDIT_LOG.md.local
 
+# Test runner output
+playwright-report/
+test-results/
+tests/main/.bundle/
+
 # Local databases and backups (never commit real business data)
 *.sqlite
 *.sqlite3

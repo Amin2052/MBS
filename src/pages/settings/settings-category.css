@@ -204,8 +204,8 @@
 
 .save-settings{
 
-    background:var(--purple);
-    color:#fff;
+    background:var(--primary);
+    color:var(--on-primary);
     border:none;
     padding:10px 22px;
     border-radius:8px;
@@ -397,8 +397,8 @@
 
 .db-action-button{
 
-    background:var(--purple);
-    color:#fff;
+    background:var(--primary);
+    color:var(--on-primary);
     border:none;
     padding:10px 18px;
     border-radius:8px;
@@ -510,7 +510,7 @@
 
 .logo-select-button:hover{
 
-    background:rgba(79,70,229,.08);
+    background:var(--primary-soft);
 
 }
 
@@ -534,7 +534,7 @@
 
 .logo-select-button.danger:hover{
 
-    background:rgba(220,38,38,.08);
+    background:var(--danger-soft);
 
 }
 

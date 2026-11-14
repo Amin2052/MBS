@@ -1,7 +1,12 @@
 import {
+  Bell,
+  ChevronRight,
+  LogOut,
+  Moon,
   Search,
+  Sun,
   UserCircle,
-  LogOut
+  X
 } from "lucide-react";
 
 import {
@@ -12,11 +17,15 @@ import {
 } from "react";
 
 import {
+  NavLink,
+  useLocation,
   useNavigate
 } from "react-router-dom";
 
 import { useLanguage } from "@/hooks/use-language";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
+import { NAVIGATION_ITEMS } from "@/constants/navigation";
 import { getMyProfilePhoto, onProfilePhotoChanged } from "@/services/auth-service";
 
 
@@ -56,6 +65,31 @@ const RESULT_TYPE_KEYS: Record<ResultType, string> = {
   certificate: "topbar.resultTypeCertificate"
 };
 
+// Sub-pages that are not themselves navigation entries (settings sections,
+// account screens) still need a real localized workspace title. These reuse
+// the exact keys those pages already render in their own headers, so the
+// header can never disagree with the page body.
+const NESTED_TITLE_KEYS: Record<string, string> = {
+  "/settings/company-profile": "settingsHub.companyProfile",
+  "/settings/financial-invoice": "settingsHub.financialInvoice",
+  "/settings/certificate-settings": "settingsHub.certificate",
+  "/settings/localization": "settingsHub.localization",
+  "/settings/user-management": "settingsHub.userManagement",
+  "/settings/finance-accounting": "settingsHub.financeAccounting",
+  "/settings/inventory-settings": "settingsHub.inventoryWarehouse",
+  "/settings/sales-purchase": "settingsHub.salesPurchase",
+  "/settings/hr-payroll": "settingsHub.hrPayroll",
+  "/settings/security-settings": "settingsHub.securityPrivacy",
+  "/settings/notifications": "settingsHub.notifications",
+  "/settings/integrations": "settingsHub.integrationsApis",
+  "/settings/document-templates": "settingsHub.documentTemplates",
+  "/settings/database-settings": "settingsHub.database",
+  "/settings/license-settings": "settingsHub.licenseActivation",
+  "/settings/about": "settingsHub.about",
+  "/profile": "profile.title",
+  "/change-password": "changePassword.title"
+};
+
 type SearchResult = {
   type: ResultType;
   key: string;
@@ -64,17 +98,63 @@ type SearchResult = {
   onSelect: () => void;
 };
 
+/**
+ * The subset of a notification row the header panel renders. Declared locally
+ * (rather than reaching for the global IPC type) because the panel is purely
+ * presentational: it never mutates a notification.
+ */
+type HeaderNotification = {
+  id?: number;
+  module: string;
+  action: string;
+  message: string;
+  created_at?: string;
+};
+
 
 
 export default function Topbar(): JSX.Element {
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { t } = useLanguage();
   const { user, logout, hasPermission } = useAuth();
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Graphite Atelier: the workspace header names where you are. Derived from
+  // the existing navigation table so the label can never drift from the
+  // sidebar, and localized through the same `nav.*` keys.
+  const currentSection = useMemo(() => {
+    return (
+      NAVIGATION_ITEMS.find(item => item.path === location.pathname) ??
+      NAVIGATION_ITEMS.find(
+        item => item.path !== "/" && location.pathname.startsWith(item.path)
+      )
+    );
+  }, [location.pathname]);
+
+  const nestedTitleKey = NESTED_TITLE_KEYS[location.pathname];
+  const currentTitle = nestedTitleKey
+    ? t(nestedTitleKey)
+    : currentSection
+      ? t(`nav.${currentSection.id}`)
+      : t("shell.home");
+  // A section page shows a two-level crumb; a sub-page (e.g. a settings view)
+  // adds the section as an intermediate crumb so the trail reads
+  // Home / Settings / <current>.
+  const isNestedPage = Boolean(nestedTitleKey);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<HeaderNotification[]>([]);
+  const [notificationsState, setNotificationsState] =
+    useState<"idle" | "loading" | "ready" | "error">("idle");
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
   // Topbar avatar: fetches its own copy on mount (covers page refresh /
   // re-login / a fresh session picking this up on load) and also listens
@@ -189,6 +269,13 @@ export default function Topbar(): JSX.Element {
         setProfileMenuOpen(false);
       }
 
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target as Node)
+      ) {
+        setNotificationsOpen(false);
+      }
+
     }
 
     document.addEventListener("mousedown", handleOutsideClick);
@@ -198,6 +285,58 @@ export default function Topbar(): JSX.Element {
     };
 
   }, []);
+
+  // Keyboard: Ctrl+K focuses global search, Escape closes any open header
+  // popover. Ctrl+K is chosen over a bare "/" so it cannot fire while a
+  // person is typing an amount into an invoice line.
+  useEffect(() => {
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+        return;
+      }
+
+      if (event.key === "Escape") {
+        setProfileMenuOpen(false);
+        setNotificationsOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+
+  }, []);
+
+  // Notifications are loaded lazily, the first time the panel is opened, so
+  // the header does not add an IPC round-trip to every page load.
+  useEffect(() => {
+
+    if (!notificationsOpen || notificationsState === "loading") return;
+    if (notificationsState === "ready") return;
+
+    let cancelled = false;
+    setNotificationsState("loading");
+
+    window.mooral.notifications.get()
+      .then((rows) => {
+        if (cancelled) return;
+        setNotifications(Array.isArray(rows) ? (rows as HeaderNotification[]).slice(0, 6) : []);
+        setNotificationsState("ready");
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error("Notification load error:", error);
+        setNotificationsState("error");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+
+  }, [notificationsOpen, notificationsState]);
 
 
   async function handleLogout(): Promise<void> {
@@ -379,115 +518,237 @@ export default function Topbar(): JSX.Element {
 
     <header className="topbar">
 
-      <div className="search-box topbar-search">
+      <div className="topbar-context">
 
-        <Search size={18} />
+        <nav className="ga-breadcrumb" aria-label={t("shell.workspace")}>
 
-        <input
-          type="text"
-          placeholder={t("topbar.searchPlaceholder")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+          <NavLink to="/">{t("shell.home")}</NavLink>
 
-        {
-          search &&
+          {currentSection && location.pathname !== "/" && (
+            <>
+              <ChevronRight className="ga-breadcrumb__sep" size={12} aria-hidden="true" />
+              {isNestedPage ? (
+                <NavLink to={currentSection.path}>{t(`nav.${currentSection.id}`)}</NavLink>
+              ) : (
+                <span className="ga-breadcrumb__current">{currentTitle}</span>
+              )}
+            </>
+          )}
 
-          <div className="search-results">
+          {isNestedPage && (
+            <>
+              <ChevronRight className="ga-breadcrumb__sep" size={12} aria-hidden="true" />
+              <span className="ga-breadcrumb__current">{currentTitle}</span>
+            </>
+          )}
 
-            {
-              results.length > 0 ?
+        </nav>
 
-              results.map((result) => (
-
-                <div
-                  key={result.key}
-                  className="search-item"
-                  onClick={() => result.onSelect()}
-                >
-
-                  <div className="search-item-header">
-                    <strong>{result.title}</strong>
-                    <span className="search-item-badge">
-                      {t(RESULT_TYPE_KEYS[result.type])}
-                    </span>
-                  </div>
-
-                  <span>{result.subtitle}</span>
-
-                </div>
-
-              ))
-
-              :
-
-              <div className="search-empty">
-                {t("topbar.noMatchingResults")}
-              </div>
-
-            }
-
-          </div>
-
-        }
+        <h1 className="topbar-title">{currentTitle}</h1>
 
       </div>
 
-      <div className="topbar-actions">
+      <div className="topbar-tools">
+
+        <div className="search-box topbar-search">
+
+          <Search size={16} aria-hidden="true" />
+
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder={t("topbar.searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label={t("topbar.searchPlaceholder")}
+          />
+
+          {
+            search &&
+
+            <div className="search-results">
+
+              {
+                results.length > 0 ?
+
+                results.map((result) => (
+
+                  <button
+                    type="button"
+                    key={result.key}
+                    className="search-item"
+                    onClick={() => result.onSelect()}
+                  >
+
+                    <div className="search-item-header">
+                      <strong>{result.title}</strong>
+                      <span className="search-item-badge">
+                        {t(RESULT_TYPE_KEYS[result.type])}
+                      </span>
+                    </div>
+
+                    <span>{result.subtitle}</span>
+
+                  </button>
+
+                ))
+
+                :
+
+                <div className="search-empty">
+                  {t("topbar.noMatchingResults")}
+                </div>
+
+              }
+
+            </div>
+
+          }
+
+        </div>
+
+        <button
+          type="button"
+          className="topbar-icon-btn ga-tip"
+          onClick={toggleTheme}
+          data-tip={t("topbar.toggleTheme")}
+          aria-label={t("topbar.toggleTheme")}
+        >
+          {resolvedTheme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+        </button>
+
+        <div className="topbar-popover-wrapper" ref={notificationsRef}>
+
+          <button
+            type="button"
+            className="topbar-icon-btn"
+            onClick={() => setNotificationsOpen(prev => !prev)}
+            aria-label={t("topbar.notifications")}
+            aria-expanded={notificationsOpen}
+            aria-haspopup="menu"
+          >
+            <Bell size={17} />
+          </button>
+
+          {notificationsOpen && (
+
+            <div className="topbar-popover topbar-notifications" role="menu">
+
+              <div className="topbar-popover-header">
+                <strong>{t("topbar.notifications")}</strong>
+                <button
+                  type="button"
+                  className="ga-btn ga-btn--icon"
+                  onClick={() => setNotificationsOpen(false)}
+                  aria-label={t("shell.close")}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+
+              {notificationsState === "loading" && (
+                <div className="topbar-notifications-body">
+                  <span className="ga-skeleton" style={{ width: "82%" }} />
+                  <span className="ga-skeleton" style={{ width: "64%" }} />
+                  <span className="ga-skeleton" style={{ width: "73%" }} />
+                </div>
+              )}
+
+              {notificationsState === "error" && (
+                <div className="topbar-notifications-empty">
+                  {t("shell.unavailable")}
+                </div>
+              )}
+
+              {notificationsState === "ready" && notifications.length === 0 && (
+                <div className="topbar-notifications-empty">
+                  {t("topbar.noNotifications")}
+                </div>
+              )}
+
+              {notificationsState === "ready" && notifications.length > 0 && (
+                <div className="topbar-notifications-body">
+                  {notifications.map((item, index) => (
+                    <div className="topbar-notification-row" key={item.id ?? index}>
+                      <span className="topbar-notification-module">{item.module}</span>
+                      <span className="topbar-notification-message">{item.message}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="topbar-popover-footer"
+                onClick={() => {
+                  setNotificationsOpen(false);
+                  navigate("/");
+                }}
+              >
+                {t("topbar.viewAllNotifications")}
+              </button>
+
+            </div>
+
+          )}
+
+        </div>
 
         <div className="profile-menu-wrapper" ref={profileMenuRef}>
 
           <button
+            type="button"
             className="profile-btn"
             onClick={() => setProfileMenuOpen(prev => !prev)}
+            aria-expanded={profileMenuOpen}
+            aria-haspopup="menu"
+            aria-label={t("topbar.profile")}
           >
 
             {avatarPhoto ? (
-              <img className="topbar-avatar-photo" src={avatarPhoto} alt="Profile" />
+              <img className="topbar-avatar-photo" src={avatarPhoto} alt="" />
             ) : (
-              <UserCircle size={28} />
+              <UserCircle size={26} strokeWidth={1.6} aria-hidden="true" />
             )}
 
             <div className="profile-identity-chip">
-  <strong>
-    {user
-      ? `${t(USER_TYPE_KEYS[user.user_type] ?? "settingsUserManagement.employee")} - ${user.full_name?.trim() || user.username}`
-      : t("topbar.admin")
-    }
-  </strong>
-</div>
+              <strong>
+                {user
+                  ? `${t(USER_TYPE_KEYS[user.user_type] ?? "settingsUserManagement.employee")} - ${user.full_name?.trim() || user.username}`
+                  : t("topbar.admin")
+                }
+              </strong>
+            </div>
 
           </button>
 
           {profileMenuOpen ? (
 
-  <div className="profile-dropdown">
+            <div className="profile-dropdown" role="menu">
 
-  <button 
-  className="profile-dropdown-item"
-  onClick={() => {
-    setProfileMenuOpen(false);
-    navigate("/profile");
-  }}
->
-  {t("topbar.profile")}
-</button>
+              <button
+                type="button"
+                className="profile-dropdown-item"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  navigate("/profile");
+                }}
+              >
+                {t("topbar.profile")}
+              </button>
 
+              <button
+                type="button"
+                className="profile-dropdown-item"
+                onClick={handleLogout}
+              >
+                <LogOut size={14} />
+                {t("topbar.logout")}
+              </button>
 
-  <button 
-    className="profile-dropdown-item"
-    onClick={handleLogout}
-  >
+            </div>
 
-    <LogOut size={14} />
-
-    {t("topbar.logout")}
-
-  </button>
-
-</div>
-
-) : null}
+          ) : null}
 
         </div>
 

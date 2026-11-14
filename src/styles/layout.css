@@ -1,384 +1,501 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+/* ==========================================================================
+   GRAPHITE ATELIER — Application Shell
+   ==========================================================================
+   Structure is unchanged from the original app shell:
+     .app-layout > .sidebar + .app-main > (.topbar + .content + .statusbar)
+   Only the visual language is new. Sizes are tuned for a Windows desktop
+   window between 1280x720 and 1920x1080 (see the breakpoints at the end).
+   ========================================================================== */
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 html,
 body,
-#root{
-
-    width:100%;
-    height:100%;
-
-    overflow:hidden;
-
-    font-family:Segoe UI,Arial,sans-serif;
-
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-sans);
 }
 
+.app-layout {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
 
+  background: var(--background);
+  background-image: var(--app-background-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 
-/* MAIN APP LAYOUT (Requirement 5: main frame + sidebar + content shell).
-   The background image / soft wash below is adapted from the Generator
-   project's visual reference (Requirement 7): a subtle background image
-   behind translucent surfaces, without altering MBS's own component
-   logic or theme tokens. Falls back to "none" when no background asset
-   is configured, so existing installs are unaffected. */
-
-.app-layout{
-
-    display:flex;
-
-    width:100%;
-
-    height:100vh;
-
-    overflow:hidden;
-
-    background:var(--background);
-    background-image:var(--app-background-image, none);
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-
-    color:var(--foreground);
-
+  color: var(--foreground);
+  font-size: var(--text-base);
 }
 
+/* --------------------------------------------------------------------------
+   SIDEBAR
+   -------------------------------------------------------------------------- */
 
+.sidebar {
+  width: 244px;
+  min-width: 244px;
+  max-width: 244px;
+  height: 100%;
 
-/* FIXED SIDEBAR — Generator-style translucent surface (Requirement 2).
-   Visual language (color, blur, spacing, active/hover treatment) is
-   adapted from Generator/src/styles/app.css (.gen-nav / .gen-nav button),
-   using the --sidebar-* tokens defined per-theme in themes.css. Markup,
-   navigation, and permission filtering in sidebar.tsx are unchanged. */
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
 
-.sidebar{
-
-    width:220px;
-
-    min-width:220px;
-
-    max-width:220px;
-
-
-    height:100%;
-
-
-    background:var(--sidebar);
-    color:var(--sidebar-fg);
-
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-
-
-    display:flex;
-
-    flex-direction:column;
-
-
-    flex-shrink:0;
-
-
-    overflow:hidden;
-
-
-    border-right:1px solid var(--sidebar-border);
-
+  background: var(--sidebar);
+  color: var(--sidebar-fg);
+  border-inline-end: 1px solid var(--sidebar-border);
 }
 
+/* ---- brand ---- */
 
-
-/* SIDEBAR HEADER */
-
-.sidebar-header{
-
-    padding:22px;
-
-    flex-shrink:0;
-
-    border-bottom:1px solid var(--sidebar-border);
-
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 17px 16px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--sidebar-border);
 }
 
-
-.sidebar-header h1{
-
-    font-size:20px;
-
-    font-weight:750;
-
-    letter-spacing:-.2px;
-
-    color:var(--sidebar-fg);
-
+/* The supplied brand asset is a full lockup (mark + wordmark) on a white
+   square. At tile size the wordmark is illegible and the white square reads
+   as a dark blob, so the tile is treated as a small "app icon" plate: a warm
+   off-white surface with the artwork scaled to the mark itself. The product
+   name is already set as text immediately beside it. */
+.sidebar-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--brand-plate);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
-
-.sidebar-header span{
-
-    color:var(--sidebar-fg-muted);
-
-    font-size:12px;
-
+.sidebar-brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  /* Clip to the brand mark's bounding box in the supplied lockup, then scale
+     that region to the plate (see login-screen.css for the same treatment). */
+  clip-path: inset(24% 31% 44% 31%);
+  transform: scale(2.8);
+  transform-origin: 50% 40%;
 }
 
-
-
-/* NAV AREA */
-
-.sidebar-nav{
-
-    padding:14px 10px;
-
-    flex:1;
-
-
-    overflow-y:auto;
-
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
 }
 
-
-
-.sidebar-nav ul{
-
-    list-style:none;
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:4px;
-
+.sidebar-brand-text strong {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
+  color: var(--sidebar-hover-fg);
 }
 
-
-
-/* MENU LINK */
-
-.sidebar-link{
-
-    display:block;
-
-    margin:0;
-
-    padding:9px 12px;
-
-
-    border-radius:8px;
-
-    font-size:13px;
-    font-weight:550;
-
-    color:var(--sidebar-fg-muted);
-
-
-    text-decoration:none;
-
-
-    transition:background-color .18s ease, color .18s ease;
-
+.sidebar-brand-text span {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--sidebar-fg-muted);
 }
 
+/* ---- section label ---- */
 
-
-.sidebar-link:hover{
-
-    background:var(--sidebar-hover-bg);
-
-    color:var(--sidebar-hover-fg);
-
+.sidebar-section-label {
+  padding: 16px 18px 6px;
+  flex-shrink: 0;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--sidebar-section-fg);
 }
 
+/* ---- navigation ---- */
 
-
-.sidebar-link-active{
-
-    position:relative;
-
-    background:var(--sidebar-active-bg);
-
-    color:var(--sidebar-active-fg);
-
-    font-weight:650;
-
-    box-shadow:inset 3px 0 0 var(--sidebar-active-fg);
-
+.sidebar-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 12px;
 }
 
+.sidebar-nav ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: 9px;
 
-/* REMOVE SIDEBAR SCROLLBAR */
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--sidebar-fg-muted);
+  text-decoration: none;
 
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.sidebar-link-icon {
+  flex-shrink: 0;
+  opacity: 0.72;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.sidebar-link-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-link:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-hover-fg);
+}
+
+.sidebar-link:hover .sidebar-link-icon {
+  opacity: 1;
+}
+
+/* Active destination: a gold rule on the leading edge, a warm tinted fill and
+   gold type. No glow, no gradient. */
+.sidebar-link-active,
+.sidebar-link-active:hover {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-fg);
+  font-weight: var(--weight-semibold);
+  box-shadow: inset 3px 0 0 var(--sidebar-active-fg);
+}
+
+.sidebar-link-active .sidebar-link-icon {
+  opacity: 1;
+  color: var(--sidebar-active-fg);
+}
+
+/* Focus must be visible even when the fill is subtle. */
+.sidebar-link:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 3px 0 0 var(--sidebar-active-fg),
+    0 0 0 1px var(--primary),
+    0 0 0 3px var(--primary-ring);
+}
+
+/* Keep the nav rail clean: no OS scrollbar furniture. */
 .sidebar,
-.sidebar *{
-
-    scrollbar-width:none;
-    -ms-overflow-style:none;
-
+.sidebar * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-
 
 .sidebar::-webkit-scrollbar,
-.sidebar *::-webkit-scrollbar{
-
-    width:0;
-    height:0;
-    display:none;
-
+.sidebar *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
+/* ---- footer ---- */
 
-
-/* MAIN AREA — large content area to the right of the main sidebar. Given
-   a soft translucent surface so the Generator-inspired background wash
-   (Requirement 7) reads through on the app shell, while individual page
-   content keeps its own opaque surfaces and stays fully readable. */
-
-.app-main{
-
-    flex:1;
-
-
-    min-width:0;
-
-
-    height:100%;
-
-
-    display:flex;
-
-    flex-direction:column;
-
-
-    background:var(--app-main-surface, var(--background));
-
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--sidebar-border);
+  font-size: var(--text-2xs);
+  color: var(--sidebar-fg-muted);
 }
 
-
-
-/* TOP BAR */
-
-.topbar{
-
-    height:72px;
-
-    min-height:72px;
-
-
-    background:var(--surface);
-
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:space-between;
-
-
-    padding:0 30px;
-
-
-    flex-shrink:0;
-
-    border-bottom:1px solid var(--border);
-
-    box-shadow:var(--shadow-sm);
-
+.sidebar-footer-text {
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-
-
-.topbar-title{
-
-    font-size:22px;
-
-    font-weight:700;
-
+.sidebar-footer-version {
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-light);
 }
 
+/* --------------------------------------------------------------------------
+   MAIN WORKSPACE
+   -------------------------------------------------------------------------- */
 
+.app-main {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
 
-/* PAGE CONTENT */
+  display: flex;
+  flex-direction: column;
 
-.content{
-
-    flex:1;
-
-
-    min-width:0;
-
-
-    overflow-y:auto;
-    overflow-x:hidden;
-
-
-    padding:30px;
-
+  background: var(--app-main-surface, transparent);
 }
 
-/* Global main-content scrollbar (Requirement 3): a themed, visible
-   scrollbar for page-level scrolling, kept visually distinct from and
-   independent of any in-table scrollbars declared elsewhere. */
-.content::-webkit-scrollbar{
-    width:10px;
+/* ---- top bar ---- */
+
+.topbar {
+  height: 64px;
+  min-height: 64px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  padding: 0 24px;
+
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
-.content::-webkit-scrollbar-track{
-    background:transparent;
+.topbar-context {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
 }
 
-.content::-webkit-scrollbar-thumb{
-    background:var(--border);
-    border-radius:8px;
+.topbar-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--foreground-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.content::-webkit-scrollbar-thumb:hover{
-    background:var(--muted);
+.topbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
+/* ---- page content ---- */
 
-/* ==========================================================================
+.content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 26px 28px;
+}
+
+.content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+/* --------------------------------------------------------------------------
+   STATUS BAR
+   -------------------------------------------------------------------------- */
+
+.statusbar {
+  flex-shrink: 0;
+  height: 26px;
+  min-height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 0 14px;
+
+  background: var(--statusbar);
+  color: var(--statusbar-fg);
+  border-top: 1px solid var(--statusbar-border);
+
+  font-size: var(--text-2xs);
+  line-height: 1;
+  user-select: none;
+}
+
+.statusbar-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.statusbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusbar-item svg {
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.statusbar-item--muted {
+  color: var(--muted-light);
+}
+
+.statusbar-value {
+  color: var(--foreground);
+  font-weight: var(--weight-medium);
+}
+
+/* --------------------------------------------------------------------------
    TABLE SCROLL CONTAINERS
    --------------------------------------------------------------------------
    Standard scroll behaviour for data tables across the app: header stays
-   fixed/sticky, only the row body scrolls, and the vertical scrollbar
-   sits on the right of the row area (never the left). Horizontal
-   overflow (wide tables) scrolls at the bottom of the same container.
-   Individual pages opt in by giving their existing "*-table-body" /
-   "*-table" row-container element the "table-scroll-body" class; this is
-   additive and only applies where a page already needs scrolling.
-   ========================================================================== */
+   fixed/sticky, only the row body scrolls, and the vertical scrollbar sits on
+   the right of the row area (never the left). Horizontal overflow (wide
+   tables) scrolls at the bottom of the same container. Individual pages opt in
+   by giving their existing "*-table-body" / "*-table" row-container element
+   the "table-scroll-body" class; this is additive and only applies where a
+   page already needs scrolling.
+   -------------------------------------------------------------------------- */
 
-.table-scroll-body{
-    overflow-y:auto;
-    overflow-x:auto;
-    direction:ltr;
+.table-scroll-body {
+  overflow-y: auto;
+  overflow-x: auto;
+  direction: ltr;
+  scrollbar-gutter: stable;
 }
 
-.table-scroll-body::-webkit-scrollbar{
-    width:8px;
-    height:8px;
+.table-scroll-body::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
 }
 
-.table-scroll-body::-webkit-scrollbar-track{
-    background:transparent;
+.table-scroll-body::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.table-scroll-body::-webkit-scrollbar-thumb{
-    background:var(--border);
-    border-radius:8px;
+.table-scroll-body::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-pill);
 }
 
-.table-scroll-body::-webkit-scrollbar-thumb:hover{
-    background:var(--muted);
+.table-scroll-body::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 [class$="-table-head"],
-.table-head{
-    position:sticky;
-    top:0;
-    z-index:2;
+.table-head {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+/* --------------------------------------------------------------------------
+   DESKTOP BREAKPOINTS
+   --------------------------------------------------------------------------
+   The application is desktop-first: it never becomes a mobile layout. The
+   rail narrows and the gutters tighten so 1280x720 keeps a usable content
+   column instead of scrolling horizontally.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1520px) {
+  .sidebar {
+    width: 232px;
+    min-width: 232px;
+    max-width: 232px;
+  }
+
+  .content {
+    padding: 22px 22px 26px;
+  }
+}
+
+@media (max-width: 1380px) {
+  .sidebar {
+    width: 216px;
+    min-width: 216px;
+    max-width: 216px;
+  }
+
+  .sidebar-brand-text strong {
+    font-size: 14px;
+  }
+
+  .topbar {
+    padding: 0 18px;
+    gap: 12px;
+  }
+
+  .content {
+    padding: 18px 18px 22px;
+  }
+
+  .statusbar {
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 1300px) {
+  .sidebar-section-label {
+    padding: 12px 16px 4px;
+  }
+
+  .sidebar-link {
+    padding: 7px 9px;
+    font-size: var(--text-sm);
+  }
 }

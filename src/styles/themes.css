@@ -1,149 +1,390 @@
-:root[data-theme="light"] {
-  /* Tells the browser which palette its own native controls (date/time
-     picker icon, <select> dropdown list, checkboxes, scrollbars, etc.)
-     should render in. Without this, Chromium defaults every native
-     control to a light appearance regardless of --theme, which is why
-     things like the date-field calendar icon were rendering as a
-     near-black glyph that disappeared against a dark input background
-     in Dark Mode. This only affects browser-drawn chrome, not any of
-     MBS's own --variable-based colors below. */
-  color-scheme: light;
+/* ==========================================================================
+   GRAPHITE ATELIER — Design Tokens
+   ==========================================================================
+   Premium dark desktop business software: deep graphite surfaces, a single
+   restrained metallic-gold accent, warm-white type, muted silver secondary
+   type, and hairline graphite borders.
 
-  /* Premium light-ERP palette: soft cool-gray/blue page background,
-     slightly-contrasting sidebar, clean white cards, visible-but-subtle
-     borders, navy typography. Replaces the previous near-white, low-
-     contrast set (kept as comments where useful for reference). */
-  --background: #f4f7fb;
-  --background-strong: #eaf0f8;
-  --surface: #ffffff;
-  --surface-hover: #f3f6fb;
-  --surface-alt: #fafcfe;
+   HOW THIS FILE WORKS
+   -------------------
+   Every existing page/component stylesheet in MBS is already written against
+   the shared `--*` custom properties defined here (--background, --surface,
+   --border, --sidebar*, --foreground, --muted, --primary, --success, ...).
+   Re-authoring those values is therefore what re-skins the entire product:
+   no page needs to be rewritten to inherit Graphite Atelier. Pages keep
+   owning their own layout; this file owns colour, depth, radius, motion and
+   the type scale.
 
-  --sidebar: #eef2f8;
-  --sidebar-border: rgba(30, 58, 95, 0.1);
-  --sidebar-fg: #33415c;
-  --sidebar-fg-muted: #647089;
-  --sidebar-active-bg: rgba(37, 99, 235, 0.12);
-  --sidebar-active-fg: #1d4ed8;
-  --sidebar-hover-bg: rgba(37, 99, 235, 0.07);
-  --sidebar-hover-fg: #1e40af;
+   Two themes are defined:
+     :root[data-theme="dark"]   → Graphite Atelier (default)
+     :root[data-theme="light"]  → Atelier Daylight (warm ivory + bronze)
 
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-  --primary-soft: #e3ecfd;
+   Rules respected here:
+     * Light mode stays fully usable (it is a before-work-hours palette, not
+       an afterthought): every foreground/background pair below clears
+       WCAG AA for body text, and large/UI text clears 3:1.
+     * Gold is an accent, never a wash. It appears on active navigation, the
+       primary button fill, focus rings, KPI rules and chart strokes only.
+     * No neon, no glowing borders, no multi-stop rainbow gradients.
+     * `--on-primary` exists because a metallic-gold fill needs graphite
+       lettering: white-on-gold is ~2.2:1 and would fail AA. Any rule that
+       paints `var(--primary)` behind text uses `var(--on-primary)`.
+   ========================================================================== */
 
-  --foreground: #172033;
-  --foreground-strong: #0f172a;
-  --muted: #5b6a85;
-  --muted-light: #8b96ab;
+:root {
+  /* ---------------------------------------------------------------- type */
+  /* Segoe UI is the Windows system face and the correct choice for an
+     installed desktop product: it renders Bangla and Arabic through the
+     system fallbacks below without shipping web fonts. */
+  --font-sans:
+    "Segoe UI Variable Text",
+    "Segoe UI",
+    "Inter",
+    system-ui,
+    -apple-system,
+    "Noto Sans Bengali",
+    "Noto Sans Arabic",
+    Tahoma,
+    Arial,
+    sans-serif;
 
-  --border: #d7e0ee;
-  --border-strong: #c1cee2;
+  --font-display:
+    "Segoe UI Variable Display",
+    "Segoe UI Semibold",
+    "Segoe UI",
+    "Inter",
+    system-ui,
+    sans-serif;
 
-  --success: #16a34a;
-  --success-dark: #15803d;
-  --success-soft: #dcfce7;
+  /* Accounting data: tabular figures so columns of money line up. */
+  --font-numeric: "Cascadia Mono", "Consolas", var(--font-sans);
 
-  --warning: #d97706;
-  --warning-dark: #b45309;
-  --warning-soft: #fef3c7;
+  --text-2xs: 10.5px;
+  --text-xs: 11.5px;
+  --text-sm: 12.5px;
+  --text-base: 13.5px;
+  --text-md: 15px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 27px;
+  --text-3xl: 34px;
 
-  --danger: #dc2626;
-  --danger-dark: #b91c1c;
-  --danger-soft: #fee2e2;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
 
-  --purple: #7c3aed;
-  --purple-dark: #6d28d9;
-  --purple-soft: #ede9fe;
+  --tracking-tight: -0.014em;
+  --tracking-wide: 0.06em;
 
-  --shadow-sm: 0 1px 2px rgba(23, 32, 51, 0.06);
-  --shadow: 0 4px 16px rgba(23, 32, 51, 0.08), 0 1px 3px rgba(23, 32, 51, 0.06);
-  --shadow-lg: 0 12px 32px rgba(23, 32, 51, 0.12), 0 2px 6px rgba(23, 32, 51, 0.06);
+  /* -------------------------------------------------------------- spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
 
+  /* --------------------------------------------------------------- radius */
+  /* One geometry across the product: 10px controls, 14px cards, 18px
+     overlays. Consistent card corners are a large part of the "engineered"
+     feel; mixed radii read as accidental. */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
   --radius: 14px;
+  --radius-md: 10px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
 
-  /* Requirement 7 — app-shell background wash adapted from the Generator
-     project's visual reference (Generator/src/styles/app.css .gen-shell /
-     .gen-nav / .gen-main). Uses the same light, mostly-transparent overlay
-     ratio as the Generator shell so the technical/blueprint background is
-     actually visible behind translucent surfaces, instead of being hidden
-     behind a near-opaque wash. Page-level content (cards, tables, forms)
-     keeps its own opaque --surface background for readability. */
-  --app-background-image: linear-gradient(rgba(244, 247, 251, 0.68), rgba(244, 247, 251, 0.68)), url("/license-background.png");
-  /* Was rgba(..., 0.93) -- the .app-main panel sits on top of the
-     background image and covers almost the entire viewport (everything
-     right of the 220px sidebar), so a 93%-opaque wash on top of the
-     .app-layout gradient's own 86%-opaque wash left only ~7% of the
-     image visible, i.e. effectively invisible -- while Dark Mode's
-     equivalent wash was only 58% opaque, so its image read through
-     clearly. Lowered to the same order of transparency as Dark Mode
-     so the image is visible in Light Mode too. Page content itself is
-     unaffected: cards/tables/modals sit on their own fully-opaque
-     --surface backgrounds, not directly on this wash. */
-  --app-main-surface: rgba(244, 247, 251, 0.25);
+  /* --------------------------------------------------------------- motion */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 260ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ------------------------------------------------------------- z-index */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 50;
+  --z-titlebar: 60;
+  --z-overlay: 900;
+  --z-modal: 1000;
+  --z-context-menu: 1100;
+  --z-toast: 1200;
+  --z-tooltip: 1300;
 }
+
+/* ==========================================================================
+   GRAPHITE ATELIER — default (dark)
+   ========================================================================== */
 
 :root[data-theme="dark"] {
-  /* See the light-mode color-scheme comment above -- same fix, dark
-     variant, so native controls (date picker icon, select list,
-     scrollbars, checkboxes) render correctly against dark surfaces. */
+  /* Native Chromium chrome (date-picker glyph, <select> popup, checkbox
+     marks, scrollbars) follows this, so native widgets stop rendering as
+     near-black glyphs on a dark surface. */
   color-scheme: dark;
 
-  --background: #0f172a;
-  --background-strong: #0b1322;
-  --surface: #1e293b;
-  --surface-hover: #273549;
-  --surface-alt: #24324a;
+  /* Surfaces: five steps of graphite. Depth comes from these layers plus
+     hairline borders, never from heavy drop shadows. */
+  --background: #12151a;
+  --background-strong: #0c0e12;
+  --surface: #191d23;
+  --surface-raised: #1f242b;
+  --surface-hover: #23282f;
+  --surface-alt: #16191f;
+  --surface-sunken: #0f1216;
+  --surface-inverse: #ece7dd;
 
-  --sidebar: rgba(2, 6, 23, 0.58);
-  --sidebar-border: rgba(148, 163, 184, 0.18);
-  --sidebar-fg: #cbd5e1;
-  --sidebar-fg-muted: #94a3b8;
-  --sidebar-active-bg: rgba(59, 130, 246, 0.22);
-  --sidebar-active-fg: #93c5fd;
-  --sidebar-hover-bg: rgba(59, 130, 246, 0.14);
-  --sidebar-hover-fg: #bfdbfe;
+  /* Sidebar: near-black graphite, one step darker than the workspace so the
+     content area reads as the lit surface. */
+  /* Light plate behind the brand mark (the supplied artwork is dark ink on
+     a white square; a token keeps that plate intentional in both palettes). */
+  --brand-plate: #faf8f3;
 
-  --primary: #3b82f6;
-  --primary-dark: #2563eb;
-  --primary-soft: rgba(59, 130, 246, 0.18);
+  --sidebar: #0d1013;
+  --sidebar-border: #23272e;
+  --sidebar-fg: #d5d0c6;
+  --sidebar-fg-muted: #8d939b;
+  --sidebar-active-bg: rgba(201, 162, 74, 0.13);
+  --sidebar-active-fg: #e2c489;
+  --sidebar-hover-bg: rgba(236, 231, 221, 0.045);
+  --sidebar-hover-fg: #f0ece2;
+  --sidebar-section-fg: #6c737c;
 
-  --foreground: #f8fafc;
-  --foreground-strong: #ffffff;
-  --muted: #94a3b8;
-  --muted-light: #64748b;
+  /* Accent: metallic gold. #c9a24a on #12151a is ~7.4:1. */
+  --primary: #c9a24a;
+  --primary-dark: #a8832f;
+  --primary-light: #dcc07c;
+  --primary-soft: rgba(201, 162, 74, 0.14);
+  --primary-ring: rgba(201, 162, 74, 0.32);
+  /* Graphite lettering for gold fills — 8.9:1, and the reason white text is
+     banned on --primary. */
+  --on-primary: #171307;
 
-  --border: #334155;
-  --border-strong: #46586f;
+  --accent: #c9a24a;
+  --accent-strong: #e2c489;
+  --accent-soft: rgba(201, 162, 74, 0.12);
+  --on-accent: #171307;
 
-  --success: #22c55e;
-  --success-dark: #16a34a;
-  --success-soft: rgba(34, 197, 94, 0.18);
+  --bronze: #a8804f;
+  --bronze-soft: rgba(168, 128, 79, 0.16);
 
-  --warning: #f59e0b;
-  --warning-dark: #d97706;
-  --warning-soft: rgba(245, 158, 11, 0.18);
+  /* Type */
+  --foreground: #ece7dd;
+  --foreground-strong: #f8f4ea;
+  --on-surface-inverse: #14161a;
+  --muted: #9aa1a9;
+  --muted-light: #737a83;
 
-  --danger: #ef4444;
-  --danger-dark: #dc2626;
-  --danger-soft: rgba(239, 68, 68, 0.18);
+  /* Hairlines */
+  --border: #2a2f37;
+  --border-strong: #3a414b;
+  --border-subtle: #22262d;
 
-  --purple: #8b5cf6;
-  --purple-dark: #7c3aed;
-  --purple-soft: rgba(139, 92, 246, 0.18);
+  /* Status: restrained, desaturated, never fluorescent. */
+  --success: #74ae83;
+  --success-dark: #5c9170;
+  --success-soft: rgba(116, 174, 131, 0.14);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --warning: #cc9c52;
+  --warning-dark: #a97c34;
+  --warning-soft: rgba(204, 156, 82, 0.14);
 
-  --radius: 14px;
+  --danger: #c96f66;
+  --danger-dark: #a8564e;
+  --danger-soft: rgba(201, 111, 102, 0.14);
 
-  /* Dark-mode counterpart of the Generator-style background wash above:
-     same low-opacity overlay approach, tuned to the dark palette so the
-     blueprint background stays visible instead of near-opaque. */
-  --app-background-image: linear-gradient(rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.55)), url("/license-background.png");
-  --app-main-surface: rgba(15, 23, 42, 0.58);
+  --info: #7d9cb5;
+  --info-soft: rgba(125, 156, 181, 0.14);
+
+  /* Ink for text sitting ON a signal-coloured fill. In the dark palette the
+     status colours are light, muted earth tones, so their fills take dark
+     graphite lettering — the same logic as `--on-primary` on gold, and the
+     reason a hardcoded `color:#fff` badge was failing AA here. */
+  --on-danger: #17100f;
+  --on-success: #0f1512;
+  --on-warning: #171208;
+  --on-info: #0f1418;
+
+  /* Kept for pages that already reference --purple (e.g. legacy KPI icon
+     tints); re-tuned to a muted bronze-violet so it belongs to the palette. */
+  --purple: #a98a6f;
+  --purple-dark: #8d6f56;
+  --purple-soft: rgba(169, 138, 111, 0.14);
+
+  /* Depth: cool, tight, low-opacity. */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.32);
+  --shadow: 0 10px 26px rgba(0, 0, 0, 0.36), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 22px 52px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.34);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+  /* Interaction */
+  --focus-ring: 0 0 0 1px var(--primary), 0 0 0 4px var(--primary-ring);
+  --overlay: rgba(6, 8, 10, 0.66);
+  --selection-bg: rgba(201, 162, 74, 0.28);
+  --selection-fg: #f8f4ea;
+
+  /* Shell chrome */
+  --titlebar: #0b0d10;
+  --titlebar-fg: #cfcabf;
+  --titlebar-border: #1e2228;
+  --statusbar: #0b0d10;
+  --statusbar-fg: #8d939b;
+  --statusbar-border: #1e2228;
+
+  /* Data tables */
+  --table-header-bg: #171b21;
+  --table-header-fg: #a7aeb6;
+  --table-row-hover: rgba(236, 231, 221, 0.035);
+  --table-row-selected: rgba(201, 162, 74, 0.1);
+  --table-border: #242932;
+  --table-zebra: rgba(255, 255, 255, 0.014);
+
+  /* Scrollbars */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #333a44;
+  --scrollbar-thumb-hover: #47505c;
+
+  /* Charts */
+  --chart-grid: #262b33;
+  --chart-axis: #8d939b;
+  --chart-line: #c9a24a;
+  --chart-line-soft: rgba(201, 162, 74, 0.22);
+
+  /* Workspace wash: a single low-contrast graphite gradient with one faint
+     warm glow at the top-left, replacing the old blueprint image. Cards sit
+     on their own opaque surfaces, so readability is unaffected. */
+  --app-background-image:
+    radial-gradient(1200px 620px at 8% -10%, rgba(201, 162, 74, 0.055), transparent 62%),
+    linear-gradient(160deg, #14171c 0%, #12151a 42%, #0e1114 100%);
+  --app-main-surface: transparent;
 }
+
+/* ==========================================================================
+   ATELIER DAYLIGHT (light) — warm ivory, bronze accent, fully usable
+   ========================================================================== */
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --background: #f5f2ea;
+  --background-strong: #eae5d9;
+  --surface: #fffefb;
+  --surface-raised: #ffffff;
+  --surface-hover: #f4f0e6;
+  --surface-alt: #faf7f0;
+  --surface-sunken: #efeade;
+  --surface-inverse: #17191d;
+
+  --brand-plate: #fffdf8;
+
+  --sidebar: #efeadf;
+  --sidebar-border: #ddd5c4;
+  --sidebar-fg: #3d3a33;
+  --sidebar-fg-muted: #6f6a5e;
+  --sidebar-active-bg: rgba(138, 106, 47, 0.12);
+  --sidebar-active-fg: #7a5c22;
+  --sidebar-hover-bg: rgba(138, 106, 47, 0.07);
+  --sidebar-hover-fg: #5d4718;
+  --sidebar-section-fg: #8b8474;
+
+  /* Bronze-leaning gold so it holds AA on white (#8a6a2f ≈ 5.3:1). */
+  --primary: #8a6a2f;
+  --primary-dark: #6f5423;
+  --primary-light: #a8832f;
+  --primary-soft: #f3ebd8;
+  --primary-ring: rgba(138, 106, 47, 0.26);
+  --on-primary: #fffdf7;
+
+  --accent: #8a6a2f;
+  --accent-strong: #6f5423;
+  --accent-soft: #f6efe0;
+  --on-accent: #fffdf7;
+
+  --bronze: #96683c;
+  --bronze-soft: #f6ebe0;
+
+  --foreground: #23211c;
+  --foreground-strong: #12110e;
+  --on-surface-inverse: #f8f4ea;
+  --muted: #5f5a50;
+  --muted-light: #857e70;
+
+  --border: #e0d8c8;
+  --border-strong: #c9bfa9;
+  --border-subtle: #eae3d5;
+
+  --success: #2f7a4a;
+  --success-dark: #24613a;
+  --success-soft: #e2f2e6;
+
+  --warning: #9a6512;
+  --warning-dark: #7d500a;
+  --warning-soft: #fbeed3;
+
+  --danger: #b23a30;
+  --danger-dark: #8f2c24;
+  --danger-soft: #fae3e0;
+
+  --info: #3c6480;
+  --info-soft: #e6eef3;
+
+  /* In the light palette the signal colours are deep, so their fills keep
+     near-white lettering. */
+  --on-danger: #fffdf8;
+  --on-success: #f7fdf8;
+  --on-warning: #fffdf5;
+  --on-info: #f6fafc;
+
+  --purple: #6f5a8a;
+  --purple-dark: #5b4872;
+  --purple-soft: #ede8f4;
+
+  --shadow-sm: 0 1px 2px rgba(35, 33, 28, 0.07);
+  --shadow: 0 10px 26px rgba(35, 33, 28, 0.08), 0 1px 3px rgba(35, 33, 28, 0.06);
+  --shadow-lg: 0 22px 52px rgba(35, 33, 28, 0.14), 0 2px 6px rgba(35, 33, 28, 0.07);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  --focus-ring: 0 0 0 1px var(--primary), 0 0 0 4px var(--primary-ring);
+  --overlay: rgba(35, 33, 28, 0.42);
+  --selection-bg: rgba(138, 106, 47, 0.2);
+  --selection-fg: #12110e;
+
+  --titlebar: #e7e1d3;
+  --titlebar-fg: #403c33;
+  --titlebar-border: #d8d0be;
+  --statusbar: #e7e1d3;
+  --statusbar-fg: #6f6a5e;
+  --statusbar-border: #d8d0be;
+
+  --table-header-bg: #f7f2e7;
+  --table-header-fg: #6b6455;
+  --table-row-hover: rgba(138, 106, 47, 0.055);
+  --table-row-selected: rgba(138, 106, 47, 0.1);
+  --table-border: #e8e0d0;
+  --table-zebra: rgba(35, 33, 28, 0.012);
+
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #cfc5b1;
+  --scrollbar-thumb-hover: #b3a78f;
+
+  --chart-grid: #e4dccb;
+  --chart-axis: #6f6a5e;
+  --chart-line: #8a6a2f;
+  --chart-line-soft: rgba(138, 106, 47, 0.2);
+
+  --app-background-image:
+    radial-gradient(1100px 560px at 10% -12%, rgba(138, 106, 47, 0.07), transparent 60%),
+    linear-gradient(160deg, #f7f4ed 0%, #f5f2ea 46%, #efeade 100%);
+  --app-main-surface: transparent;
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
 
 * {
   margin: 0;
@@ -161,13 +402,45 @@ body,
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family:
-    "Inter",
-    "Segoe UI",
-    Roboto,
-    Arial,
-    sans-serif;
-
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Muted, theme-aware text selection instead of Chromium's default blue. */
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-fg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--foreground-strong);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.25;
+}
+
+/* Money, quantities, IDs: tabular figures everywhere numbers are compared
+   down a column. Declared once here rather than per page. */
+.table-scroll-body,
+table,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Respect the OS "reduce motion" setting: shipped behaviour, not an option. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

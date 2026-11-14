@@ -78,7 +78,7 @@ ADD BUTTON
 
     background:var(--primary);
 
-    color:white;
+    color: var(--on-primary);
 
     cursor:pointer;
 
@@ -655,7 +655,7 @@ ACTION BUTTON
     background:var(--primary);
 
 
-    color:white;
+    color: var(--on-primary);
 
 
 }
@@ -764,7 +764,7 @@ MODAL OVERLAY
 
     inset:0;
 
-    background:rgba(15,23,42,.45);
+    background:var(--overlay);
 
     display:flex;
 
@@ -1106,7 +1106,7 @@ MODAL FOOTER
     background:var(--primary);
 
 
-    color:white;
+    color: var(--on-primary);
 
 
     cursor:pointer;

@@ -10,7 +10,7 @@
 .print-preview-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -116,7 +116,7 @@
 }
 
 .print-preview-icon-btn:hover:not(:disabled) {
-  background: var(--surface-hover, rgba(148, 163, 184, 0.18));
+  background: var(--surface-hover);
 }
 
 .print-preview-icon-btn:disabled {
@@ -153,12 +153,12 @@
 }
 
 .print-preview-btn-secondary:hover {
-  background: var(--surface-hover, rgba(148, 163, 184, 0.18));
+  background: var(--surface-hover);
 }
 
 .print-preview-btn-primary {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--on-primary);
 }
 
 .print-preview-btn-primary:hover:not(:disabled) {
@@ -271,7 +271,7 @@
 }
 
 .print-preview-ghost-btn:hover:not(:disabled) {
-  background: rgba(37, 99, 235, 0.08);
+  background: var(--primary-soft);
 }
 
 .print-preview-ghost-btn:focus-visible {
@@ -280,7 +280,7 @@
 }
 
 .print-preview-ghost-btn:active:not(:disabled) {
-  background: rgba(37, 99, 235, 0.14);
+  background: var(--primary-soft);
 }
 
 .print-preview-ghost-btn:disabled {
@@ -315,7 +315,7 @@
 
 .print-preview-toggle-btn.active {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--on-primary);
 }
 
 .print-preview-radio-row,
@@ -450,15 +450,15 @@
 }
 
 .print-preview-state-error {
-  color: var(--danger, #dc2626);
+  color: var(--danger);
 }
 
 .print-preview-error-icon {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--danger, #dc2626);
-  color: #ffffff;
+  background: var(--danger);
+  color: var(--on-danger);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -468,8 +468,8 @@
 
 .print-preview-inline-error {
   padding: 10px 20px;
-  background: rgba(220, 38, 38, 0.1);
-  color: var(--danger, #dc2626);
+  background: var(--danger-soft);
+  color: var(--danger);
   font-size: 13px;
   border-top: 1px solid var(--border);
 }

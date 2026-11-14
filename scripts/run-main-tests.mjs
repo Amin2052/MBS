@@ -11,18 +11,34 @@
  * with esbuild and executed inside a real (offscreen) Electron app
  * instance via `electron <runner> --no-sandbox`.
  *
+ * QA FIX (Windows support): this script previously shelled out to `npx`
+ * (which `spawnSync` cannot resolve on Windows without a shell) and fell
+ * back to `xvfb-run` whenever DISPLAY was unset — so on the product's own
+ * target platform (Windows) the suite could not run at all. It now invokes
+ * esbuild and Electron through their resolved module paths, which is
+ * platform-independent, and only reaches for xvfb on Linux.
+ *
  * Usage: node scripts/run-main-tests.mjs
  */
 import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+const require = createRequire(import.meta.url);
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const entriesDir = path.join(root, "tests", "main");
 const bundleDir = path.join(entriesDir, ".bundle");
 
 fs.mkdirSync(bundleDir, { recursive: true });
+
+/* Resolve tool paths without relying on PATH or npx. */
+const esbuildBin = path.join(root, "node_modules", "esbuild", "bin", "esbuild");
+const electronBin = require("electron"); // module export is the binary path
+
+const isWindows = process.platform === "win32";
 
 const entries = fs
   .readdirSync(entriesDir)
@@ -42,9 +58,9 @@ for (const entry of entries) {
 
   console.log(`\n--- Building ${entry} ---`);
   execFileSync(
-    "npx",
+    process.execPath,
     [
-      "esbuild",
+      esbuildBin,
       entryPath,
       "--bundle",
       "--platform=node",
@@ -73,20 +89,19 @@ app.whenReady().then(() => {
 
   console.log(`--- Running ${entry} ---`);
   try {
-    // Electron needs a display to construct even an offscreen/hidden
-    // BrowserWindow. Use the existing DISPLAY when one is already
-    // available (developer machine); otherwise fall back to xvfb-run
-    // for headless/CI environments.
-    const hasDisplay = !!process.env.DISPLAY;
-    const command = hasDisplay ? "npx" : "xvfb-run";
-    const args = hasDisplay
-      ? ["electron", runnerPath, "--no-sandbox"]
-      : ["-a", "npx", "electron", runnerPath, "--no-sandbox"];
+    // Windows/macOS always have a window server. On Linux, fall back to
+    // xvfb-run only when no DISPLAY is present (CI / headless).
+    const needsXvfb = process.platform === "linux" && !process.env.DISPLAY;
+    const command = needsXvfb ? "xvfb-run" : electronBin;
+    const args = needsXvfb
+      ? ["-a", electronBin, runnerPath, "--no-sandbox"]
+      : [runnerPath, "--no-sandbox"];
 
     execFileSync(command, args, { cwd: root, stdio: "inherit" });
   } catch (e) {
     hadFailure = true;
     console.error(`--- ${entry} FAILED ---`);
+    if (isWindows && e && e.message) console.error(e.message);
   }
 }
 
