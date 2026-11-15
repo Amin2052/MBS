@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from "electron";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { registerIpc } from "./ipc/register";
 
@@ -69,9 +70,16 @@ function createWindow(): void {
   // external URL, or a compromised/renderer-injected navigation).
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 
+  // Only this app's own renderer may load. Allowing any file:// URL (as the
+  // first version did) would let an injected page navigate to an arbitrary
+  // local HTML file and keep the privileged preload bridge attached.
+  const rendererFileUrl = pathToFileURL(
+    path.join(__dirname, "../renderer/index.html")
+  ).toString();
+
   mainWindow.webContents.on("will-navigate", (event, url) => {
     const isDevServer = Boolean(process.env.ELECTRON_RENDERER_URL) && url.startsWith(process.env.ELECTRON_RENDERER_URL!);
-    const isOwnFile = url.startsWith("file://");
+    const isOwnFile = url === rendererFileUrl || url.startsWith(`${rendererFileUrl}#`);
     if (!isDevServer && !isOwnFile) {
       event.preventDefault();
     }

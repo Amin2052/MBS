@@ -46,10 +46,13 @@ export function generateNewLicense(input: GenerateLicenseInput & { notes?: strin
 
     const signed = buildAndSignLicense(input);
 
+    // Store exactly what was signed. buildAndSignLicense() trims the input
+    // into its own payload, so using the raw input here used to save names
+    // and machine IDs that differ from the signed license by whitespace.
     const blob: LicenseRecordBlob = {
-      customerName: input.customerName,
-      companyName: input.companyName,
-      machineFingerprint: input.machineFingerprint,
+      customerName: signed.payload.customerName,
+      companyName: signed.payload.companyName,
+      machineFingerprint: signed.payload.machineFingerprint,
       notes,
       signedLicense: signed
     };
@@ -59,8 +62,8 @@ export function generateNewLicense(input: GenerateLicenseInput & { notes?: strin
         signed.payload.licenseId,
         "issued",
         signed.payload.licenseType,
-        input.relationship ?? "original",
-        input.supersedesLicenseId ?? null,
+        signed.payload.relationship ?? "original",
+        signed.payload.supersedesLicenseId ?? null,
         blob
       );
     } catch (error) {
@@ -150,7 +153,10 @@ export function renewLicense(originalLicenseId: string, newExpirationDate: strin
     machineFingerprint: original.data.machineFingerprint,
     supersedesLicenseId: originalLicenseId,
     relationship: "renewal",
-    businessMode: resolveBusinessMode(original.data.signedLicense.payload)
+    businessMode: resolveBusinessMode(original.data.signedLicense.payload),
+    // A renewal continues the same commercial terms: without this, renewing
+    // a cloud-entitled license silently issued one with no cloud access.
+    licensedCloudConfig: original.data.signedLicense.payload.licensedCloudConfig
   };
 
   const result = generateNewLicense({ ...input, notes });

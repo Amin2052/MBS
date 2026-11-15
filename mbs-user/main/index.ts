@@ -104,9 +104,11 @@ function broadcast(channel: string, payload: unknown): void {
   }
 }
 
-function errorPayload(error: unknown): { success: false; error: string; code?: string; status?: number; offline?: boolean; forbidden?: boolean } {
+function errorPayload(error: unknown): { success: false; error: string; code?: string; status?: number; offline?: boolean; forbidden?: boolean; conflict?: boolean } {
   if (error instanceof RevisionConflictError) {
-    return { success: false, error: error.message, code: "revision_conflict", status: 409 };
+    // `conflict` is the flag the renderer acts on to reload the list; the
+    // code alone was returned, so a conflict left the stale row on screen.
+    return { success: false, error: error.message, code: "revision_conflict", status: 409, conflict: true };
   }
   if (error instanceof ApiError) {
     return {
@@ -139,8 +141,12 @@ function startMonitor(): void {
 
 async function refreshSession(): Promise<EmployeeSession | null> {
   if (!session) return null;
+  const token = session.token;
   try {
-    const next = await client().permissions(session.token);
+    const next = await client().permissions(token);
+    // If the user signed out (or signed in as someone else) while this
+    // request was in flight, do not resurrect the old session from it.
+    if (!session || session.token !== token) return null;
     session = {
       ...session,
       user: next.user,

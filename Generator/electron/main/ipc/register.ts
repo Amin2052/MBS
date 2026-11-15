@@ -1,6 +1,5 @@
 import { ipcMain, dialog, app } from "electron";
 import path from "node:path";
-import fs from "node:fs";
 
 import {
   isVaultInitialized,
@@ -181,9 +180,8 @@ function requireUnlocked(): void {
     }
 
     try {
-      // Remove any stale file at the destination first — better-sqlite3's
-      // backup() expects to create the file itself.
-      if (fs.existsSync(result.filePath)) fs.unlinkSync(result.filePath);
+      // backupDatabaseTo() writes to a side file and only then replaces the
+      // destination, so a failed backup never costs the previous one.
       await backupDatabaseTo(result.filePath);
       return { success: true, filePath: result.filePath };
     } catch {

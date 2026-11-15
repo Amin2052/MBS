@@ -39,6 +39,12 @@ function money(value: unknown): string {
   return amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// The view to land on after signing in. `nav` in the component still reflects
+// the pre-login session, so it is derived from the new session instead.
+function firstViewFor(viewSession: SessionView): ViewKey {
+  return NAV.find(item => !item.permission || hasPermission(viewSession, item.permission))?.key ?? "dashboard";
+}
+
 function StatusPill({ value }: { value: unknown }): JSX.Element {
   const label = cellText(value);
   const tone = label.toLowerCase();
@@ -203,7 +209,7 @@ export default function App(): JSX.Element {
       setSession(result.session);
       setPassword("");
       setConnection({ online: true, detail: "Connected to the central server." });
-      setView(nav[0]?.key ?? "dashboard");
+      setView(firstViewFor(result.session));
       await window.mbsUser.connection.check();
     } finally {
       setLoggingIn(false);

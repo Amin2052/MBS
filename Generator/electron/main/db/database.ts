@@ -279,9 +279,27 @@ export function getDashboardCounts(): { total: number; active: number; expired: 
  * file. Returns the destination path on success.
  */
 export async function backupDatabaseTo(destinationPath: string): Promise<string> {
+
   const database = getDb();
-  await database.backup(destinationPath);
+
+  // Write a complete backup to a side file first, then swap it in. Deleting
+  // the destination up front (as this used to) destroyed the previous backup
+  // even if the new one then failed halfway.
+  const partialPath = `${destinationPath}.partial-${process.pid}-${Date.now()}`;
+
+  try {
+    await database.backup(partialPath);
+    if (fs.existsSync(destinationPath)) fs.unlinkSync(destinationPath);
+    fs.renameSync(partialPath, destinationPath);
+  } catch (error) {
+    if (fs.existsSync(partialPath)) {
+      try { fs.unlinkSync(partialPath); } catch { /* best effort cleanup */ }
+    }
+    throw error;
+  }
+
   return destinationPath;
+
 }
 
 /**
@@ -299,6 +317,24 @@ export async function restoreDatabaseFrom(sourcePath: string): Promise<{ license
 
   if (!fs.existsSync(sourcePath)) {
     throw new Error("Backup file not found.");
+  }
+
+  const target = dbPath();
+
+  // Restoring "from" the live database would delete it and then try to copy
+  // the (now deleted) source over itself, leaving no database at all. The
+  // file picker starts in Documents, but users can browse to the userData
+  // folder, so this is a reachable mistake, not a theoretical one.
+  const resolvesToLiveDatabase = (() => {
+    try {
+      return fs.realpathSync(sourcePath) === fs.realpathSync(target);
+    } catch {
+      return path.resolve(sourcePath) === path.resolve(target);
+    }
+  })();
+
+  if (resolvesToLiveDatabase) {
+    throw new Error("That is the live license database, not a backup file. Choose a backup made with Backup database.");
   }
 
   let candidate: Database.Database;
@@ -340,7 +376,6 @@ export async function restoreDatabaseFrom(sourcePath: string): Promise<{ license
     db = null;
   }
 
-  const target = dbPath();
   for (const suffix of ["", "-wal", "-shm"]) {
     const p = target + suffix;
     if (fs.existsSync(p)) fs.unlinkSync(p);
