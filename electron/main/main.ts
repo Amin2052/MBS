@@ -4001,7 +4001,13 @@ function createWindow(): void {
     show:false,
 
 
-    backgroundColor:"#ffffff",
+    // The renderer's default appearance is Graphite Atelier (dark) -- see
+    // the inline theme script in index.html -- and it paints #12151a
+    // (--background). Matching that here keeps the native window from
+    // flashing white for the moment between the window appearing and the
+    // first renderer frame. A user who has explicitly picked the light
+    // theme sees this tone for that same brief moment instead.
+    backgroundColor:"#12151a",
 
 
     autoHideMenuBar:true,
