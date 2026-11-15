@@ -469,7 +469,16 @@ const ar: TranslationDictionary = {
     exportFailed: "تعذر تصدير هذه الشهادة. يرجى المحاولة مرة أخرى.",
     exportFailedPrefix: "تعذر تصدير هذه الشهادة: ",
     saveFailed: "تعذر حفظ هذه الشهادة. يرجى المحاولة مرة أخرى.",
-    deleteFailed: "تعذر حذف هذه الشهادة. يرجى المحاولة مرة أخرى."
+    deleteFailed: "تعذر حذف هذه الشهادة. يرجى المحاولة مرة أخرى.",
+    customerOrProduct: "العميل / المنتج",
+    newEmployeeCertificate: "شهادة موظف جديدة",
+    editCertificate: "تعديل الشهادة",
+    statusActive: "نشط",
+    statusExpired: "منتهي",
+    statusRevoked: "ملغى",
+    loadingCertificates: "جارٍ تحميل الشهادات…",
+    noEmployeeCertificates: "لم يتم العثور على شهادات موظفين.",
+    noProductCertificates: "لم يتم العثور على شهادات منتجات."
   },
 
   settingsAbout: {

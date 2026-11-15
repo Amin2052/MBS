@@ -62,6 +62,14 @@ const PRODUCT_CERT_TYPES = [
 
 const STATUS_OPTIONS = ["Active", "Expired", "Revoked"];
 
+// The status values double as data (they are stored and filtered on), so the
+// dropdowns keep the English value and only the label goes through i18n.
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  Active: "certificates.statusActive",
+  Expired: "certificates.statusExpired",
+  Revoked: "certificates.statusRevoked"
+};
+
 // Employee Certificates are entirely owned by the Employee module (see
 // employees-page.tsx) -- this page never generates, synchronizes, or
 // decides which Employee Certificates exist. It only displays and
@@ -1093,7 +1101,9 @@ export default function CertificatesPage(): JSX.Element {
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="All">{t("certificates.allStatus")}</option>
           {STATUS_OPTIONS.map(status => (
-            <option key={status} value={status}>{status}</option>
+            <option key={status} value={status}>
+              {STATUS_LABEL_KEYS[status] ? t(STATUS_LABEL_KEYS[status]) : status}
+            </option>
           ))}
         </select>
 
@@ -1103,7 +1113,11 @@ export default function CertificatesPage(): JSX.Element {
 
         <div className="certificate-row certificate-row-header">
           <span>{t("certificates.certificateNo")}</span>
-          <span>{activeCategory === "Employee" ? "Employee" : "Customer / Product"}</span>
+          <span>
+            {activeCategory === "Employee"
+              ? t("certificates.employee")
+              : t("certificates.customerOrProduct")}
+          </span>
           <span>{t("certificates.type")}</span>
           <span>{t("certificates.issueDate")}</span>
           <span>{t("certificates.status")}</span>
@@ -1111,11 +1125,15 @@ export default function CertificatesPage(): JSX.Element {
         </div>
 
         {isLoading && (
-          <div className="certificate-empty">Loading certificates…</div>
+          <div className="certificate-empty">{t("certificates.loadingCertificates")}</div>
         )}
 
         {!isLoading && filteredCertificates.length === 0 && (
-          <div className="certificate-empty">No {activeCategory.toLowerCase()} certificates found.</div>
+          <div className="certificate-empty">
+            {activeCategory === "Employee"
+              ? t("certificates.noEmployeeCertificates")
+              : t("certificates.noProductCertificates")}
+          </div>
         )}
 
         {!isLoading && paginatedCertificates.map(cert => (
@@ -1203,7 +1221,13 @@ export default function CertificatesPage(): JSX.Element {
         <div className="certificate-modal-overlay">
           <div className="certificate-modal" onClick={(e) => e.stopPropagation()}>
 
-            <h2>{editId ? "Edit" : "New"} {activeCategory} Certificate</h2>
+            <h2>
+              {editId
+                ? t("certificates.editCertificate")
+                : activeCategory === "Product"
+                  ? t("certificates.newProductCertificate")
+                  : t("certificates.newEmployeeCertificate")}
+            </h2>
 
             <div className="form-group">
               <label>{t("certificates.certificateType")}</label>
@@ -1482,7 +1506,9 @@ export default function CertificatesPage(): JSX.Element {
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                 >
                   {STATUS_OPTIONS.map(status => (
-                    <option key={status} value={status}>{status}</option>
+                    <option key={status} value={status}>
+                      {STATUS_LABEL_KEYS[status] ? t(STATUS_LABEL_KEYS[status]) : status}
+                    </option>
                   ))}
                 </select>
               )}

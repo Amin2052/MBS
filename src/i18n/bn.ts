@@ -469,7 +469,16 @@ const bn: TranslationDictionary = {
     exportFailed: "এই সার্টিফিকেট এক্সপোর্ট করা যায়নি। আবার চেষ্টা করুন।",
     exportFailedPrefix: "এই সার্টিফিকেট এক্সপোর্ট করা যায়নি: ",
     saveFailed: "এই সার্টিফিকেট সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
-    deleteFailed: "এই সার্টিফিকেট মুছে ফেলা যায়নি। আবার চেষ্টা করুন।"
+    deleteFailed: "এই সার্টিফিকেট মুছে ফেলা যায়নি। আবার চেষ্টা করুন।",
+    customerOrProduct: "গ্রাহক / পণ্য",
+    newEmployeeCertificate: "নতুন কর্মী সনদ",
+    editCertificate: "সনদ সম্পাদনা করুন",
+    statusActive: "সক্রিয়",
+    statusExpired: "মেয়াদোত্তীর্ণ",
+    statusRevoked: "বাতিল",
+    loadingCertificates: "সনদ লোড হচ্ছে…",
+    noEmployeeCertificates: "কোনো কর্মী সনদ পাওয়া যায়নি।",
+    noProductCertificates: "কোনো পণ্য সনদ পাওয়া যায়নি।"
   },
 
   settingsAbout: {

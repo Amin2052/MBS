@@ -470,7 +470,16 @@ const en = {
     exportFailed: "Could not export this certificate. Please try again.",
     exportFailedPrefix: "Could not export this certificate: ",
     saveFailed: "Could not save this certificate. Please try again.",
-    deleteFailed: "Could not delete this certificate. Please try again."
+    deleteFailed: "Could not delete this certificate. Please try again.",
+    customerOrProduct: "Customer / Product",
+    newEmployeeCertificate: "New Employee Certificate",
+    editCertificate: "Edit Certificate",
+    statusActive: "Active",
+    statusExpired: "Expired",
+    statusRevoked: "Revoked",
+    loadingCertificates: "Loading certificates…",
+    noEmployeeCertificates: "No employee certificates found.",
+    noProductCertificates: "No product certificates found."
   },
 
   settingsAbout: {
