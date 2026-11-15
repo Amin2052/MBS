@@ -342,7 +342,7 @@ catch(error){
 
   console.error("Failed to save customer:", error);
 
-  window.alert(
+  setFormError(
     t("customers.saveFailed")
   );
 

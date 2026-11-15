@@ -229,6 +229,10 @@ export default function CertificatesPage(): JSX.Element {
   const [showModal, setShowModal] = useState(false);
 
   useEscapeKey(showModal, () => setShowModal(false));
+
+  // Validation used to fire native window.alert() calls, which blocked the
+  // window and ignored the app's language. The dialog reports them inline.
+  const [formError, setFormError] = useState<string | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<CertificateForm>(emptyForm("Employee"));
 
@@ -418,6 +422,7 @@ export default function CertificatesPage(): JSX.Element {
     setForm(base);
     setShowProductOptions(false);
     setProductSearchTerm("");
+    setFormError(null);
     setShowModal(true);
 
   }
@@ -463,6 +468,7 @@ export default function CertificatesPage(): JSX.Element {
       sku_snapshot: cert.sku_snapshot || ""
     });
 
+    setFormError(null);
     setShowModal(true);
 
   }
@@ -557,18 +563,20 @@ export default function CertificatesPage(): JSX.Element {
 
   async function saveCertificate() {
 
+    setFormError(null);
+
     if (!form.title.trim()) {
-      window.alert(t("certificates.titleRequired"));
+      setFormError(t("certificates.titleRequired"));
       return;
     }
 
     if (activeCategory === "Product" && !form.customer_id) {
-      window.alert(t("certificates.selectCustomerRequired"));
+      setFormError(t("certificates.selectCustomerRequired"));
       return;
     }
 
     if (activeCategory === "Product" && !form.product_id) {
-      window.alert(t("certificates.selectProductRequired"));
+      setFormError(t("certificates.selectProductRequired"));
       return;
     }
 
@@ -642,7 +650,7 @@ export default function CertificatesPage(): JSX.Element {
 
       console.error("Failed to save certificate:", error);
 
-      window.alert(
+      setFormError(
         error instanceof Error
           ? error.message
           : t("certificates.saveFailed")
@@ -1480,13 +1488,17 @@ export default function CertificatesPage(): JSX.Element {
               )}
             </div>
 
+            {formError && (
+              <p className="form-error" role="alert">{formError}</p>
+            )}
+
             <div className="certificate-modal-actions">
               <button className="cancel-btn" onClick={() => setShowModal(false)} disabled={isSubmitting}>
                 <X size={16} />
                 {t("common.cancel")}
               </button>
               <button className="save-btn" onClick={saveCertificate} disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save Certificate"}
+                {isSubmitting ? t("common.saving") : t("certificates.saveCertificate")}
               </button>
             </div>
 
