@@ -19,7 +19,7 @@ export default function SettingsComingSoon({ items }: SettingsComingSoonProps): 
 
       <p>{t("settingsShared.comingSoonDescription")}</p>
 
-      <ul>
+      <ul className="settings-coming-soon-list">
         {items.map(item => (
           <li key={item}>{item}</li>
         ))}

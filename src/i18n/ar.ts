@@ -648,7 +648,10 @@ const ar: TranslationDictionary = {
     paymentTerms: "شروط الدفع",
     savedConfirmation: "تم حفظ إعدادات المالية والفواتير.",
     invoiceFormat: "تنسيق الفاتورة",
-    invoiceOptions: "خيارات الفاتورة"
+    invoiceOptions: "خيارات الفاتورة",
+    numberingTitle: "الترقيم والضريبة",
+    numberingDescription: "كيفية تكوين أرقام الفواتير ونسبة الضريبة الافتراضية المطبقة على الفواتير الجديدة.",
+    paymentTermsDescription: "النص المطبوع على الفواتير الذي يوضح موعد استحقاق الدفع."
   },
 
   settingsHrPayroll: {

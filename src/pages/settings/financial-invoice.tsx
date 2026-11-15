@@ -95,34 +95,54 @@ export default function FinancialInvoicePage(): JSX.Element {
       description={t("settingsFinancialInvoice.description")}
     >
 
-      <div className="form-grid">
+      <div className="settings-section">
 
-        <div className="form-group">
-          <label>{t("settingsFinancialInvoice.invoicePrefix")}</label>
-          <input
-            value={settings.invoicePrefix}
-            onChange={(e) => updateField("invoicePrefix", e.target.value)}
-          />
-        </div>
+        <h3>{t("settingsFinancialInvoice.numberingTitle")}</h3>
+        <p className="settings-section-description">
+          {t("settingsFinancialInvoice.numberingDescription")}
+        </p>
 
-        <div className="form-group">
-          <label>{t("settingsFinancialInvoice.taxRate")}</label>
-          <input
-            type="number"
-            value={settings.taxRate === 0 ? "" : settings.taxRate}
-            onChange={(e) => updateField("taxRate", e.target.value === "" ? 0 : Number(e.target.value))}
-          />
+        <div className="form-grid">
+
+          <div className="form-group">
+            <label htmlFor="invoice-prefix">{t("settingsFinancialInvoice.invoicePrefix")}</label>
+            <input
+              id="invoice-prefix"
+              value={settings.invoicePrefix}
+              onChange={(e) => updateField("invoicePrefix", e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="invoice-tax-rate">{t("settingsFinancialInvoice.taxRate")}</label>
+            <input
+              id="invoice-tax-rate"
+              type="number"
+              value={settings.taxRate === 0 ? "" : settings.taxRate}
+              onChange={(e) => updateField("taxRate", e.target.value === "" ? 0 : Number(e.target.value))}
+            />
+          </div>
+
         </div>
 
       </div>
 
-      <div className="form-group">
-        <label>{t("settingsFinancialInvoice.paymentTerms")}</label>
-        <textarea
-          rows={3}
-          value={settings.paymentTerms}
-          onChange={(e) => updateField("paymentTerms", e.target.value)}
-        />
+      <div className="settings-section">
+
+        <h3>{t("settingsFinancialInvoice.paymentTerms")}</h3>
+        <p className="settings-section-description">
+          {t("settingsFinancialInvoice.paymentTermsDescription")}
+        </p>
+
+        <div className="form-group">
+          <textarea
+            rows={3}
+            aria-label={t("settingsFinancialInvoice.paymentTerms")}
+            value={settings.paymentTerms}
+            onChange={(e) => updateField("paymentTerms", e.target.value)}
+          />
+        </div>
+
       </div>
 
       <div className="settings-actions">
@@ -141,8 +161,13 @@ export default function FinancialInvoicePage(): JSX.Element {
         <div className="settings-save-confirmation">{t("settingsFinancialInvoice.savedConfirmation")}</div>
       )}
 
-      <div style={{ marginTop: 28, borderTop: "1px solid #e5e7eb", paddingTop: 20 }}>
-        <SettingsComingSoon items={[t("settingsFinancialInvoice.invoiceFormat"), t("settingsFinancialInvoice.invoiceOptions")]} />
+      <div className="settings-section">
+        <SettingsComingSoon
+          items={[
+            t("settingsFinancialInvoice.invoiceFormat"),
+            t("settingsFinancialInvoice.invoiceOptions")
+          ]}
+        />
       </div>
 
     </SettingsShell>

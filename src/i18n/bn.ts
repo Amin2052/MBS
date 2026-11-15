@@ -648,7 +648,10 @@ const bn: TranslationDictionary = {
     paymentTerms: "পেমেন্ট শর্তাবলী",
     savedConfirmation: "আর্থিক ও চালান সেটিংস সংরক্ষিত হয়েছে।",
     invoiceFormat: "চালান ফরম্যাট",
-    invoiceOptions: "চালান অপশন"
+    invoiceOptions: "চালান অপশন",
+    numberingTitle: "নম্বরিং ও কর",
+    numberingDescription: "চালান নম্বর কীভাবে তৈরি হয় এবং নতুন চালানে প্রযোজ্য ডিফল্ট কর হার।",
+    paymentTermsDescription: "চালানে মুদ্রিত পেমেন্ট পরিশোধের সময়সীমা সম্পর্কিত লেখা।"
   },
 
   settingsHrPayroll: {

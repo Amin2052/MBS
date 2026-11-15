@@ -649,7 +649,10 @@ const en = {
     paymentTerms: "Payment Terms",
     savedConfirmation: "Financial & invoice settings saved.",
     invoiceFormat: "Invoice Format",
-    invoiceOptions: "Invoice Options"
+    invoiceOptions: "Invoice Options",
+    numberingTitle: "Numbering & Tax",
+    numberingDescription: "How invoice numbers are formed, and the default tax rate applied to new invoices.",
+    paymentTermsDescription: "The wording printed on invoices describing when payment is due."
   },
 
   settingsHrPayroll: {
