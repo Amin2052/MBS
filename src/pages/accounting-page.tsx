@@ -173,6 +173,13 @@ export default function AccountingPage(){
         useState(false);
 
 
+    // Validation and save failures belong inside the dialog, next to
+    // the fields, in the same inline pattern as the other data-entry
+    // dialogs -- no native alert() boxes.
+    const [formError,setFormError] =
+        useState<string|null>(null);
+
+
 
     // Accounting access now comes from the real Permission Engine
     // (src/auth/permission-engine.ts) rather than the local
@@ -236,6 +243,9 @@ export default function AccountingPage(){
         });
 
 
+        setFormError(null);
+
+
         setShowModal(true);
 
 
@@ -257,6 +267,9 @@ export default function AccountingPage(){
         setEditingId(
             transaction.id ?? null
         );
+
+
+        setFormError(null);
 
 
         setForm(transaction);
@@ -288,14 +301,17 @@ export default function AccountingPage(){
         }
 
 
+        setFormError(null);
+
+
         try{
 
 
             if(form.amount <= 0){
 
 
-                alert(
-                    "Amount must be greater than 0"
+                setFormError(
+                    t("accounting.amountInvalid")
                 );
 
 
@@ -309,8 +325,8 @@ export default function AccountingPage(){
             if(!form.category.trim()){
 
 
-                alert(
-                    "Category required"
+                setFormError(
+                    t("accounting.categoryRequired")
                 );
 
 
@@ -324,8 +340,8 @@ export default function AccountingPage(){
             if(!form.description.trim()){
 
 
-                alert(
-                    "Description required"
+                setFormError(
+                    t("accounting.descriptionRequired")
                 );
 
 
@@ -387,10 +403,10 @@ export default function AccountingPage(){
             );
 
 
-            alert(
+            setFormError(
                 error instanceof Error
                     ? error.message
-                    : "Transaction save failed. Please try again."
+                    : t("accounting.saveFailed")
             );
 
 
@@ -453,7 +469,7 @@ export default function AccountingPage(){
             alert(
                 error instanceof Error
                     ? error.message
-                    : "Could not delete this transaction. Please try again."
+                    : t("accounting.deleteFailed")
             );
 
         }
@@ -1908,6 +1924,11 @@ export default function AccountingPage(){
 
 
 
+                        {formError && (
+                            <p className="form-error" role="alert">{formError}</p>
+                        )}
+
+
                         <div className="modal-footer">
 
 
@@ -1956,13 +1977,9 @@ export default function AccountingPage(){
 
 
 
-                                {
-
-                                    isSubmitting
-
+                                {                                    isSubmitting
                                     ?
-
-                                    "Saving..."
+                                    t("common.saving")
 
                                     :
 

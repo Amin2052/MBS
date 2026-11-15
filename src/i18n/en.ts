@@ -348,7 +348,12 @@ const en = {
     action: "Action",
     noTransactionsFound: "No Transactions Found",
     clear: "Clear",
-    viewOnly: "View only"
+    viewOnly: "View only",
+    amountInvalid: "Amount must be greater than 0",
+    categoryRequired: "Category required",
+    descriptionRequired: "Description required",
+    saveFailed: "Transaction save failed. Please try again.",
+    deleteFailed: "Could not delete this transaction. Please try again."
   },
 
   employees: {

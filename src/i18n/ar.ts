@@ -347,7 +347,12 @@ const ar: TranslationDictionary = {
     action: "الإجراء",
     noTransactionsFound: "لم يتم العثور على معاملات",
     clear: "مسح",
-    viewOnly: "عرض فقط"
+    viewOnly: "عرض فقط",
+    amountInvalid: "يجب أن يكون المبلغ أكبر من 0",
+    categoryRequired: "الفئة مطلوبة",
+    descriptionRequired: "الوصف مطلوب",
+    saveFailed: "تعذّر حفظ المعاملة. حاول مرة أخرى.",
+    deleteFailed: "تعذّر حذف هذه المعاملة. حاول مرة أخرى."
   },
 
   employees: {

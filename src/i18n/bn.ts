@@ -347,7 +347,12 @@ const bn: TranslationDictionary = {
     action: "কার্যক্রম",
     noTransactionsFound: "কোনো লেনদেন পাওয়া যায়নি",
     clear: "মুছুন",
-    viewOnly: "শুধুমাত্র দেখা"
+    viewOnly: "শুধুমাত্র দেখা",
+    amountInvalid: "পরিমাণ শূন্যের চেয়ে বেশি হতে হবে",
+    categoryRequired: "বিভাগ আবশ্যক",
+    descriptionRequired: "বিবরণ আবশ্যক",
+    saveFailed: "লেনদেন সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
+    deleteFailed: "এই লেনদেন মুছে ফেলা যায়নি। আবার চেষ্টা করুন।"
   },
 
   employees: {
