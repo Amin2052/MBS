@@ -47,7 +47,9 @@ async function main() {
   const workerTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "mbs-reset-sync-worker-"));
   const shim = createD1Shim(path.join(workerTmpDir, "worker.sqlite"));
   const repoRoot = process.cwd();
-  for (const migration of ["0001_mbs_core_schema", "0002_workspace_isolation", "0004_sync_cursor_columns", "0005_sync_tombstones"]) {
+  // 0003 recreates company_settings per workspace; without it the old
+  // `CHECK (id = 1)` singleton schema rejects this workspace's settings row.
+  for (const migration of ["0001_mbs_core_schema", "0002_workspace_isolation", "0003_workspace_unique_constraints", "0004_sync_cursor_columns", "0005_sync_tombstones"]) {
     shim.raw.exec(fs.readFileSync(path.join(repoRoot, `cloudflare/migrations/${migration}.sql`), "utf8"));
   }
   const ADMIN_KEY = "test-only-admin-key";

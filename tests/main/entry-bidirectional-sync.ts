@@ -47,7 +47,12 @@ async function main() {
   const workerTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "mbs-bidi-sync-worker-"));
   const shim = createD1Shim(path.join(workerTmpDir, "worker.sqlite"));
   const repoRoot = process.cwd();
-  for (const migration of ["0001_mbs_core_schema", "0002_workspace_isolation", "0004_sync_cursor_columns", "0005_sync_tombstones"]) {
+  // 0003 is not optional: it recreates company_settings (and the globally
+  // unique business keys) per workspace. Skipping it left the worker schema
+  // with the old `CHECK (id = 1)` singleton, so every company_settings upsert
+  // for this test's own workspace failed and was reported as a record error on
+  // each sync cycle -- noise the real, fully migrated database never produces.
+  for (const migration of ["0001_mbs_core_schema", "0002_workspace_isolation", "0003_workspace_unique_constraints", "0004_sync_cursor_columns", "0005_sync_tombstones"]) {
     shim.raw.exec(fs.readFileSync(path.join(repoRoot, `cloudflare/migrations/${migration}.sql`), "utf8"));
   }
   const ADMIN_KEY = "test-only-admin-key";
