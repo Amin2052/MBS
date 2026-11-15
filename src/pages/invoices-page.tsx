@@ -1140,7 +1140,7 @@ export default function InvoicesPage(): JSX.Element {
 
     const itemsRows = (invoice.items || []).map(item => `
       <tr>
-        <td>${escapeHtml(item.product_name)}<span class="unit">Item</span></td>
+        <td>${escapeHtml(item.product_name)}</td>
         <td>${escapeHtml(String(item.quantity))} pcs</td>
         <td>${escapeHtml(formatFullAmount(item.price))}</td>
         <td>${escapeHtml(formatFullAmount(item.total))}</td>
