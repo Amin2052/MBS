@@ -19,6 +19,8 @@ import { formatDateShort } from "@/utils/date-format";
 import type { CompanySettings } from "@/types/company-settings";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { confirmAction } from "@/components/confirm/confirm-store";
+import { toast } from "@/components/toast/toast-store";
 import { renderEmployeeCertificateHtml } from "@/pdf/templates/employee-certificate-template";
 import { renderProductCertificateHtml } from "@/pdf/templates/product-certificate-template";
 import { MOORAL_LOGO_DATA_URL } from "@/assets/mooral-logo-data-url";
@@ -677,7 +679,14 @@ export default function CertificatesPage(): JSX.Element {
 
   async function removeCertificate(id: number) {
 
-    if (!window.confirm(t("certificates.confirmDelete"))) return;
+    const confirmed = await confirmAction({
+      title: t("common.delete"),
+      message: t("certificates.confirmDelete"),
+      confirmLabel: t("common.delete"),
+      tone: "danger"
+    });
+
+    if (!confirmed) return;
 
     try {
 
@@ -693,7 +702,7 @@ export default function CertificatesPage(): JSX.Element {
 
       console.error("Failed to delete certificate:", error);
 
-      window.alert(
+      toast.error(
         error instanceof Error
           ? error.message
           : t("certificates.deleteFailed")
@@ -1005,7 +1014,7 @@ export default function CertificatesPage(): JSX.Element {
     catch (error) {
 
       console.error("Failed to print certificate:", error);
-      window.alert(t("forgotPassword.printPreviewFailed"));
+      toast.error(t("forgotPassword.printPreviewFailed"));
 
     }
 
@@ -1024,7 +1033,7 @@ export default function CertificatesPage(): JSX.Element {
 
       if (!result?.success && !result?.cancelled) {
 
-        window.alert(
+        toast.error(
           result?.error
             ? `${t("certificates.exportFailedPrefix")}${result.error}`
             : t("certificates.exportFailed")
@@ -1042,7 +1051,7 @@ export default function CertificatesPage(): JSX.Element {
     catch (error) {
 
       console.error("Failed to export certificate PDF:", error);
-      window.alert(t("certificates.exportFailed"));
+      toast.error(t("certificates.exportFailed"));
 
     }
 

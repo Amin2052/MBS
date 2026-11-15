@@ -22,6 +22,8 @@ import {
 
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { confirmAction } from "@/components/confirm/confirm-store";
+import { toast } from "@/components/toast/toast-store";
 
 import "./customers.css";
 
@@ -369,13 +371,14 @@ setShowModal(false);
 async function deleteCustomer(id:number){
 
 
-if(
+const confirmed = await confirmAction({
+  title: t("common.delete"),
+  message: t("customers.confirmDelete"),
+  confirmLabel: t("common.delete"),
+  tone: "danger"
+});
 
-!window.confirm(
-t("customers.confirmDelete")
-)
-
-)
+if(!confirmed)
 
 return;
 
@@ -393,7 +396,7 @@ catch(error){
 
 console.error("Failed to delete customer:", error);
 
-window.alert(
+toast.error(
   t("customers.deleteFailed")
 );
 

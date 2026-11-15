@@ -19,6 +19,7 @@ import {
 
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { toast } from "@/components/toast/toast-store";
 
 import {
   listUsers,
@@ -209,7 +210,7 @@ export default function UserManagementPage(): JSX.Element {
       await reloadAll();
     }
     else {
-      alert(result.error ?? t("settingsUserManagement.failedToCreateAdministrator"));
+      toast.error(result.error ?? t("settingsUserManagement.failedToCreateAdministrator"));
     }
 
   }
@@ -232,7 +233,7 @@ export default function UserManagementPage(): JSX.Element {
           setCredentialContext(buildRowCredentialContext(row, result.temporaryPassword));
         }
         else if (!result.success) {
-          alert(result.error ?? t("settingsUserManagement.failedToResetPassword"));
+          toast.error(result.error ?? t("settingsUserManagement.failedToResetPassword"));
         }
 
       }
@@ -242,7 +243,7 @@ export default function UserManagementPage(): JSX.Element {
     }
     catch (error) {
 
-      alert(error instanceof Error ? error.message : t("settingsUserManagement.actionFailed"));
+      toast.error(error instanceof Error ? error.message : t("settingsUserManagement.actionFailed"));
 
     }
 
@@ -255,7 +256,7 @@ export default function UserManagementPage(): JSX.Element {
       const result = await window.mooral.users.changePermissionProfile({ userId, permissionProfileId });
 
       if (!result.success) {
-        alert(result.error ?? t("settingsUserManagement.failedToChangeProfile"));
+        toast.error(result.error ?? t("settingsUserManagement.failedToChangeProfile"));
       }
 
       await reloadAll();
@@ -263,7 +264,7 @@ export default function UserManagementPage(): JSX.Element {
     }
     catch (error) {
 
-      alert(error instanceof Error ? error.message : t("settingsUserManagement.actionFailed"));
+      toast.error(error instanceof Error ? error.message : t("settingsUserManagement.actionFailed"));
 
     }
 
@@ -278,7 +279,7 @@ export default function UserManagementPage(): JSX.Element {
       await reloadAll();
     }
     else {
-      alert(result.error ?? t("settingsUserManagement.failedToGenerateResetCode"));
+      toast.error(result.error ?? t("settingsUserManagement.failedToGenerateResetCode"));
     }
 
   }
@@ -291,7 +292,7 @@ export default function UserManagementPage(): JSX.Element {
       await reloadAll();
     }
     else {
-      alert(result.error ?? t("settingsUserManagement.failedToSendUsername"));
+      toast.error(result.error ?? t("settingsUserManagement.failedToSendUsername"));
     }
 
   }
@@ -389,7 +390,7 @@ export default function UserManagementPage(): JSX.Element {
               await reloadAll();
             }
             catch (error) {
-              alert(error instanceof Error ? error.message : t("settingsUserManagement.failedToDeleteProfile"));
+              toast.error(error instanceof Error ? error.message : t("settingsUserManagement.failedToDeleteProfile"));
             }
 
           }}
@@ -425,7 +426,7 @@ export default function UserManagementPage(): JSX.Element {
               await reloadAll();
             }
             else {
-              alert(result.error ?? t("settingsUserManagement.failedToCreateLogin"));
+              toast.error(result.error ?? t("settingsUserManagement.failedToCreateLogin"));
             }
 
           }}
@@ -1382,7 +1383,7 @@ function CredentialsModal({
     catch (error) {
 
       console.error("Failed to print credentials:", error);
-      window.alert(t("forgotPassword.printPreviewFailed"));
+      toast.error(t("forgotPassword.printPreviewFailed"));
 
     }
     finally {
@@ -1404,7 +1405,7 @@ function CredentialsModal({
       const result = await exportCredentialsPdf(html, `${credential.username}-credentials.pdf`);
 
       if (!result.success && !result.cancelled) {
-        window.alert(result.error ?? t("settingsUserManagement.couldNotSavePdf"));
+        toast.error(result.error ?? t("settingsUserManagement.couldNotSavePdf"));
       }
 
     }
@@ -1621,7 +1622,7 @@ function AuditLogTab(): JSX.Element {
     }
     catch (error) {
 
-      alert(error instanceof Error ? error.message : t("settingsUserManagement.failedToExportAuditLog"));
+      toast.error(error instanceof Error ? error.message : t("settingsUserManagement.failedToExportAuditLog"));
 
     }
 

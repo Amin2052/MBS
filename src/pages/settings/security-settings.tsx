@@ -3,6 +3,7 @@ import { ShieldCheck, Lock, CheckCircle2, AlertTriangle, Monitor, LogOut, Info }
 
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { toast } from "@/components/toast/toast-store";
 import { getSecurityPolicy, setSecurityPolicy } from "@/services/owner-control-service";
 
 import SettingsShell from "./settings-shell";
@@ -57,7 +58,7 @@ export default function SecuritySettingsPage(): JSX.Element {
     }
     catch (error) {
 
-      alert(error instanceof Error ? error.message : t("settingsSecurity.endSessionFailed"));
+      toast.error(error instanceof Error ? error.message : t("settingsSecurity.endSessionFailed"));
 
     }
 

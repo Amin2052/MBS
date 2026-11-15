@@ -33,6 +33,8 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useCurrency } from "@/hooks/use-currency";
 import { useLanguage } from "@/hooks/use-language";
+import { confirmAction } from "@/components/confirm/confirm-store";
+import { toast } from "@/components/toast/toast-store";
 
 
 // Product is declared globally in src/types/electron.d.ts
@@ -360,12 +362,12 @@ useEscapeKey(showModal, () => setShowModal(false));
     const stockValue = Number(form.stock);
 
     if(Number.isNaN(priceValue) || priceValue < 0){
-      window.alert(t("products.priceInvalid"));
+      setFormError(t("products.priceInvalid"));
       return;
     }
 
     if(Number.isNaN(stockValue) || stockValue < 0){
-      window.alert(t("products.stockInvalid"));
+      setFormError(t("products.stockInvalid"));
       return;
     }
 
@@ -418,7 +420,7 @@ useEscapeKey(showModal, () => setShowModal(false));
 
       console.error("Failed to save product:", error);
 
-      window.alert(
+      toast.error(
         t("products.saveFailed")
       );
 
@@ -451,16 +453,14 @@ useEscapeKey(showModal, () => setShowModal(false));
 
 
 
-    if(
+    const confirmed = await confirmAction({
+      title: t("common.delete"),
+      message: t("products.confirmDelete"),
+      confirmLabel: t("common.delete"),
+      tone: "danger"
+    });
 
-      !window.confirm(
-
-        t("products.confirmDelete")
-
-      )
-
-    )
-
+    if(!confirmed)
       return;
 
 
@@ -479,7 +479,7 @@ useEscapeKey(showModal, () => setShowModal(false));
 
       console.error("Failed to delete product:", error);
 
-      window.alert(
+      toast.error(
         t("products.deleteFailed")
       );
 

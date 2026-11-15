@@ -1,0 +1,56 @@
+/* ---------- Confirm dialog ----------
+
+   Native confirm() replacement. Reuses the design system's modal shell; only
+   the stacking position and the message typography are specific to it. */
+
+.confirm-backdrop {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: var(--z-modal);
+  animation: confirm-backdrop-in 140ms ease-out both;
+}
+
+.confirm-dialog {
+  /* The backdrop already provides the overlay layer. */
+  z-index: var(--z-modal);
+  max-height: none;
+  animation: confirm-dialog-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.confirm-message {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--foreground);
+  /* Backup/restore warnings are long and may contain line breaks. */
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+@keyframes confirm-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes confirm-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-backdrop,
+  .confirm-dialog {
+    animation: none;
+  }
+}

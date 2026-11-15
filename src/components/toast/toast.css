@@ -1,0 +1,164 @@
+/* ---------- Toast stack ----------
+
+   Replaces native alert() boxes. Sits on the already-reserved --z-toast layer
+   so a message stays readable while a dialog is open. Positioned with logical
+   properties, so Arabic puts the stack on the left without a separate rule. */
+
+.toast-viewport {
+  position: fixed;
+  inset-block-end: 24px;
+  inset-inline-end: 24px;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 32px));
+  /* The stack itself must never eat clicks meant for the page behind it. */
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  padding-inline-start: 14px;
+  border: 1px solid var(--border);
+  border-inline-start: 3px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--foreground);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  pointer-events: auto;
+  animation: toast-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.toast-leaving {
+  animation: toast-out 180ms ease-in both;
+}
+
+.toast-icon {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.toast-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.toast-title {
+  margin: 0 0 2px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.toast-message {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  /* Long paths and error strings must wrap rather than widen the stack. */
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+}
+
+/* A message that is only a sentence keeps the full width for reading. */
+.toast:not(:has(.toast-title)) .toast-message {
+  margin-block-start: 1px;
+}
+
+.toast-dismiss {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.toast-dismiss:hover {
+  background: var(--surface-hover);
+  color: var(--foreground);
+}
+
+.toast-dismiss:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.toast-success {
+  border-inline-start-color: var(--success);
+}
+
+.toast-success .toast-icon {
+  color: var(--success);
+}
+
+.toast-error {
+  border-inline-start-color: var(--danger);
+}
+
+.toast-error .toast-icon {
+  color: var(--danger);
+}
+
+.toast-warning {
+  border-inline-start-color: var(--warning);
+}
+
+.toast-warning .toast-icon {
+  color: var(--warning);
+}
+
+.toast-info {
+  border-inline-start-color: var(--primary);
+}
+
+.toast-info .toast-icon {
+  color: var(--primary);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .toast-leaving {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .toast-viewport {
+    inset-block-end: 16px;
+    inset-inline: 16px;
+    width: auto;
+  }
+}

@@ -12,6 +12,7 @@ import {
 import { formatDateTime } from "@/utils/date-format";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { confirmAction } from "@/components/confirm/confirm-store";
 import { exportBusinessData, importBusinessData } from "@/services/owner-control-service";
 import ErpResetPanel from "@/components/settings/erp-reset-panel";
 
@@ -209,7 +210,12 @@ export default function DatabaseSettingsPage(): JSX.Element {
 
   async function handleRestore() {
 
-    const confirmed = window.confirm(t("settingsDatabase.restoreConfirm"));
+    const confirmed = await confirmAction({
+      title: t("settingsDatabase.restoreFromBackup"),
+      message: t("settingsDatabase.restoreConfirm"),
+      confirmLabel: t("settingsDatabase.restoreFromBackup"),
+      tone: "danger"
+    });
 
     if (!confirmed) {
       return;

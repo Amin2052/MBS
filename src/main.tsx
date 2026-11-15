@@ -10,6 +10,8 @@ import LicenseGate from "@/components/license/license-gate";
 import { AuthProvider } from "@/providers/auth-provider";
 import AuthGate from "@/components/auth/auth-gate";
 import AppRouter from "@/router";
+import ToastViewport from "@/components/toast/toast-viewport";
+import ConfirmDialog from "@/components/confirm/confirm-dialog";
 
 import "./styles/app.css";
 import "./styles/layout.css";
@@ -31,6 +33,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                     <AppRouter />
                   </AuthGate>
                 </AuthProvider>
+                <ConfirmDialog />
+                <ToastViewport />
               </LicenseGate>
             </LicenseProvider>
           </CurrencyProvider>

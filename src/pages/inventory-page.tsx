@@ -7,6 +7,7 @@ import "./inventory.css";
 import { formatNumber } from "../utils/format-number";
 import { useCurrency } from "@/hooks/use-currency";
 import { useLanguage } from "@/hooks/use-language";
+import { toast } from "@/components/toast/toast-store";
 
 // Product and InventoryTransaction are declared globally in
 // src/types/electron.d.ts (previously this file redeclared local
@@ -275,7 +276,7 @@ export default function InventoryPage(){
 
     if(quantity === "" || Number(quantity) <= 0){
 
-      window.alert(t("inventory.invalidQuantity"));
+      toast.warning(t("inventory.invalidQuantity"));
 
       return;
 
@@ -306,7 +307,7 @@ export default function InventoryPage(){
 
       console.error("Failed to record stock in:", error);
 
-      window.alert(t("inventory.stockInFailed"));
+      toast.error(t("inventory.stockInFailed"));
 
       return;
 
@@ -349,7 +350,7 @@ export default function InventoryPage(){
 
     if(quantity === "" || Number(quantity) <= 0){
 
-      window.alert(t("inventory.invalidQuantity"));
+      toast.warning(t("inventory.invalidQuantity"));
 
       return;
 
@@ -377,7 +378,7 @@ export default function InventoryPage(){
 
       console.error("Failed to record stock out:", error);
 
-      window.alert(t("inventory.stockOutFailed"));
+      toast.error(t("inventory.stockOutFailed"));
 
       return;
 

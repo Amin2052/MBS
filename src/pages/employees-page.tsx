@@ -19,6 +19,8 @@ import { formatNumber } from "@/utils/format-number";
 import { useCurrency } from "@/hooks/use-currency";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { confirmAction } from "@/components/confirm/confirm-store";
+import { toast } from "@/components/toast/toast-store";
 
 import {
   EMPLOYEE_DEPARTMENTS,
@@ -835,7 +837,14 @@ export default function EmployeesPage(): JSX.Element {
 
   async function removeEmployee(id: number) {
 
-    if (!window.confirm(t("employees.confirmDelete"))) return;
+    const confirmed = await confirmAction({
+      title: t("common.delete"),
+      message: t("employees.confirmDelete"),
+      confirmLabel: t("common.delete"),
+      tone: "danger"
+    });
+
+    if (!confirmed) return;
 
     try {
 
@@ -851,7 +860,7 @@ export default function EmployeesPage(): JSX.Element {
 
       console.error("Failed to delete employee:", error);
 
-      window.alert(
+      toast.error(
         error instanceof Error
           ? error.message
           : t("employees.deleteFailed")

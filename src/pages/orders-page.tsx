@@ -28,6 +28,8 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useCurrency } from "@/hooks/use-currency";
 import { useLanguage } from "@/hooks/use-language";
+import { confirmAction } from "@/components/confirm/confirm-store";
+import { toast } from "@/components/toast/toast-store";
 import { getCompanySettings } from "@/services/company-settings-service";
 
 // Customer, Product and Order are declared globally in
@@ -512,7 +514,14 @@ export default function OrdersPage(): JSX.Element {
   }
 
   async function deleteOrder(id: number) {
-    if (!window.confirm(t("orders.confirmDelete"))) return;
+    const confirmed = await confirmAction({
+      title: t("common.delete"),
+      message: t("orders.confirmDelete"),
+      confirmLabel: t("common.delete"),
+      tone: "danger"
+    });
+
+    if (!confirmed) return;
 
     try {
       await window.mooral.orders.delete(id);
@@ -520,7 +529,7 @@ export default function OrdersPage(): JSX.Element {
       await loadProducts();
     } catch (error) {
       console.error("Failed to delete order:", error);
-      window.alert(
+      toast.error(
         error instanceof Error
           ? error.message
           : t("orders.deleteFailed")

@@ -581,7 +581,7 @@ const en = {
     restoreDescription: "Replace the current database with the contents of a previously created backup file. The application will restart automatically once the restore completes.",
     restoring: "Restoring…",
     restoreFromBackup: "Restore From Backup",
-    restoreConfirm: "Restoring will REPLACE all current data (products, customers, orders, invoices, certificates, everything) with the contents of the backup file you choose. A safety copy of your current database will be made automatically first, but this action cannot be undone from within the app. The application will restart after a successful restore.\n\nContinue?",
+    restoreConfirm: "Restoring will REPLACE all current data (products, customers, orders, invoices, certificates, everything) with the contents of the backup file you choose. A safety copy of your current database will be made automatically first, but this action cannot be undone from within the app. The application will restart after a successful restore.",
     toolsTitle: "Database Tools",
     toolsDescription: "Maintenance utilities for the local database file.",
     optimizing: "Optimizing…",

@@ -18,6 +18,7 @@ import "./product-details.css";
 
 import { useCurrency } from "@/hooks/use-currency";
 import { useLanguage } from "@/hooks/use-language";
+import { confirmAction } from "@/components/confirm/confirm-store";
 import { formatNumber } from "@/utils/format-number";
 import { formatDateTime } from "@/utils/date-format";
 
@@ -46,7 +47,14 @@ export default function ProductDetailsPage(): JSX.Element {
   async function deleteProduct(){
     if(!product) return;
     if(product.id === undefined) return;
-    if(!window.confirm(t("productDetails.confirmDelete"))) return;
+    const confirmed = await confirmAction({
+      title: t("common.delete"),
+      message: t("productDetails.confirmDelete"),
+      confirmLabel: t("common.delete"),
+      tone: "danger"
+    });
+
+    if(!confirmed) return;
     await window.mooral.products.delete(product.id);
     navigate("/products");
   }

@@ -22,6 +22,8 @@ import "./invoices.css";
 
 
 import { useLanguage } from "@/hooks/use-language";
+import { confirmAction } from "@/components/confirm/confirm-store";
+import { toast } from "@/components/toast/toast-store";
 import { formatDateShort } from "@/utils/date-format";
 import { formatNumber } from "@/utils/format-number";
 import { useCurrency } from "@/hooks/use-currency";
@@ -970,11 +972,14 @@ export default function InvoicesPage(): JSX.Element {
   async function removeInvoice(id:number){
 
 
-    if(
-      !window.confirm(
-        t("invoices.confirmDelete")
-      )
-    )
+    const confirmed = await confirmAction({
+      title: t("common.delete"),
+      message: t("invoices.confirmDelete"),
+      confirmLabel: t("common.delete"),
+      tone: "danger"
+    });
+
+    if(!confirmed)
       return;
 
 
@@ -992,7 +997,7 @@ export default function InvoicesPage(): JSX.Element {
 
       console.error("Failed to delete invoice:", error);
 
-      window.alert(
+      toast.error(
         error instanceof Error
           ? error.message
           : t("invoices.deleteFailed")
@@ -1266,7 +1271,7 @@ export default function InvoicesPage(): JSX.Element {
       await buildInvoiceHtml(invoice);
 
     if(!html){
-      window.alert(t("invoices.printingUnavailable"));
+      toast.warning(t("invoices.printingUnavailable"));
       return;
     }
 
@@ -1324,7 +1329,7 @@ export default function InvoicesPage(): JSX.Element {
         await buildInvoiceHtml(invoice, false);
 
       if(!html){
-        window.alert(t("invoices.pdfExportUnavailable"));
+        toast.warning(t("invoices.pdfExportUnavailable"));
         return;
       }
 
@@ -1344,7 +1349,7 @@ export default function InvoicesPage(): JSX.Element {
         // Only alert on a genuine failure -- cancelling the save
         // dialog is a normal, silent no-op.
         if(!result?.cancelled){
-          window.alert(
+          toast.error(
             result?.error
               ? `${t("invoices.exportFailedPrefix")}${result.error}`
               : t("invoices.exportFailed")
@@ -1360,7 +1365,7 @@ export default function InvoicesPage(): JSX.Element {
 
       console.error("Failed to export invoice PDF:", error);
 
-      window.alert(t("invoices.exportFailed"));
+      toast.error(t("invoices.exportFailed"));
 
     }
 

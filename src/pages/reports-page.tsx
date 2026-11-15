@@ -33,6 +33,7 @@ import { MOORAL_LOGO_DATA_URL } from "@/assets/mooral-logo-data-url";
 import { useCurrency } from "@/hooks/use-currency";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { toast } from "@/components/toast/toast-store";
 import { formatNumber as formatStockK } from "@/utils/format-number";
 import * as XLSX from "xlsx";
 import { showPrintPreview, buildPrintDocumentLabel } from "@/utils/print-window";
@@ -1244,11 +1245,11 @@ export default function ReportsPage(): JSX.Element {
       });
 
       if (!result?.success && !result?.cancelled) {
-        window.alert(result?.error ? `${t("reports.exportFailedPrefix")}${result.error}` : t("reports.exportFailedGeneric"));
+        toast.error(result?.error ? `${t("reports.exportFailedPrefix")}${result.error}` : t("reports.exportFailedGeneric"));
       }
     } catch (err) {
       console.error("Failed to export report PDF:", err);
-      window.alert(err instanceof Error ? err.message : t("reports.exportFailedGeneric"));
+      toast.error(err instanceof Error ? err.message : t("reports.exportFailedGeneric"));
     } finally {
       isExportingRef.current = false;
       setExportingFormat(null);
@@ -1268,7 +1269,7 @@ export default function ReportsPage(): JSX.Element {
       });
     } catch (err) {
       console.error("Failed to print report:", err);
-      window.alert(err instanceof Error ? err.message : t("reports.printPreviewFailed"));
+      toast.error(err instanceof Error ? err.message : t("reports.printPreviewFailed"));
     } finally {
       isExportingRef.current = false;
       setExportingFormat(null);

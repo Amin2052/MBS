@@ -4,6 +4,7 @@ import { DEFAULT_COMPANY_SETTINGS } from "@/constants/company-settings";
 
 import type { CompanySettings } from "@/types/company-settings";
 import { useLanguage } from "@/hooks/use-language";
+import { confirmAction } from "@/components/confirm/confirm-store";
 
 import SettingsShell from "./settings-shell";
 
@@ -125,7 +126,12 @@ export default function CompanyProfilePage(): JSX.Element {
 
   async function handleRemoveLogo() {
 
-    const confirmed = window.confirm(t("settingsCompanyProfile.removeLogoConfirm"));
+    const confirmed = await confirmAction({
+      title: t("settingsCompanyProfile.removeLogo"),
+      message: t("settingsCompanyProfile.removeLogoConfirm"),
+      confirmLabel: t("settingsCompanyProfile.removeLogo"),
+      tone: "danger"
+    });
 
     if (!confirmed) {
       return;

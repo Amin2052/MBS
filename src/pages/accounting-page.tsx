@@ -37,6 +37,7 @@ interface Summary {
 
 import { useCurrency } from "../hooks/use-currency";
 import { useLanguage } from "../hooks/use-language";
+import { toast } from "@/components/toast/toast-store";
 
 import { formatDateShort } from "../utils/date-format";
 import { formatNumber } from "../utils/format-number";
@@ -466,7 +467,7 @@ export default function AccountingPage(){
                 error
             );
 
-            alert(
+            toast.error(
                 error instanceof Error
                     ? error.message
                     : t("accounting.deleteFailed")
