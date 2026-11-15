@@ -124,7 +124,7 @@ says otherwise.
 | F26 | `database:getInfo` is owner/administrator-only, but the status bar called it for every role — an Employee would have seen a false red "Unavailable" dot. | Medium | Fixed — the indicator is only rendered for roles allowed to read it | `status-bar.tsx` |
 | F27 | **Saving an empty Add Customer / Add Product dialog did nothing at all.** Both handlers opened with a bare `if(!form.name) return;` — no message, no border, no toast, dialog simply stayed open. This is the worst kind of validation failure: the click appears ignored. | High | Fixed — inline `.form-error` with `role="alert"`, cleared on open/submit, 3-locale messages | `customers-page.tsx`, `products-page.tsx`, `atelier.css`, `i18n/*` |
 | F28 | **Escape did not close any create/edit dialog.** All 7 dialogs (customers, products, orders, invoices ×2, accounting, employees, certificates) were mouse-only, so a keyboard user had to tab to the × button. | High (accessibility) | Fixed — shared `useEscapeKey` hook wired into all 7 | `src/hooks/use-escape-key.ts` + 6 pages |
-| F29 | The Employees dialog heading was hardcoded English (`{editId ? "Edit" : "New"} Employee`) inside an otherwise fully translated dialog. | Medium | Fixed — `common.new` / `common.edit` + `employees.employee` | `employees-page.tsx`, `i18n/*` |
+| F29 | The Employees dialog heading was hardcoded English (`{editId ? "Edit" : "New"} Employee`) inside an otherwise fully translated dialog. | Medium | Fixed — `common.new` / `common.edit` + `employees.employee`. **The last key was never added to any locale**, so the heading shipped as the raw key; corrected in F40 and by composition at F29's site (see F40). | `employees-page.tsx`, `i18n/*` |
 | F30 | Orders validated with native `window.alert()` calls carrying hardcoded English ("Select Customer.", "Select a product for every line.", …), and its submit button read "Saving..." / "Save Order" as literals. | Medium | Fixed — 4 alerts became inline `role="alert"` messages + `orders.customerRequired/productRequired/duplicateProduct/quantityInvalid` (and the dialog now reports a save failure inline instead of blocking the window). Same treatment for Employees' save validation. | `orders-page.tsx`, `employees-page.tsx`, `i18n/*` |
 | F33 | The New/Edit Employee dialog reported its validation by native `alert()` even though `validateForm()` already returned a translated string. | Medium | Fixed — inline message; the button's "Saving..." literal now uses `common.saving` | `employees-page.tsx`, `i18n/*` |
 | F34 | Five secondary dialogs in Employees (profile-photo picker failure, contract extension date checks, extension reason) still use native `alert()` for errors and date validation. | Low | Fixed — photo-picker failure and the save failure now reuse the dialog's `formError`; the Extend Contract dialog has its own `extendError` (cleared on open/submit) covering the missing-date, before-start and missing-reason paths. Verified in the running app: all three render `role="alert"` inline and no native dialog fires. The only remaining `alert()` in the page is the delete-failure path, which has no dialog surface to host a message. | `employees-page.tsx` |
@@ -133,6 +133,16 @@ says otherwise.
 | F37 | The Invoices edit dialog validated with native `alert()` (`validationCustomer`, `validationItems`) and its save failure did too, with no inline surface. | Medium | Fixed — `formError` in the dialog with the shared `role="alert"` message before the save button, cleared on open and on submit, reusing the existing `invoices.validation*/saveFailed` keys. Verified in the running app: the dialog opens from a row, saves and closes with 0 native dialogs and 0 renderer errors. The two validation branches are **not reachable through the UI** — the customer field and the item row are read-only in this dialog, so they only guard legacy/imported rows; they are kept as defensive checks and now report inline. | `invoices-page.tsx` |
 | F35 | The Certificates create dialog validated with native `alert()` calls and its submit button read "Saving..." / "Save Certificate" as English literals. | Medium | Fixed — inline `role="alert"` message reusing the existing `certificates.titleRequired/selectCustomerRequired/selectProductRequired/saveFailed` keys, cleared on open/submit; button labels from `common.saving` / `certificates.saveCertificate`. Verified in the running app (title branch; the customer/product branches sit behind a read-only Title that is only generated once a product is chosen). | `certificates-page.tsx` |
 | F36 | The Accounting transaction dialog validated with bare `alert()` and **hardcoded English** ("Amount must be greater than 0", "Category required", "Description required"), its save failure did too, and the submit button read "Saving...". It had no i18n keys and no inline error surface at all. | Medium | Fixed — inline `role="alert"` message above the modal footer, cleared when either dialog opens and on submit; new `accounting.amountInvalid/categoryRequired/descriptionRequired/saveFailed/deleteFailed` keys × 3 locales; submit label uses `common.saving`. The delete failure keeps a native alert (there is no surface for it on the page — same as Customers/Employees deletes) but is now translated. Verified in the running app: empty submit → "Amount must be greater than 0", amount 500 → "Category required", both inline with `role="alert"`, 0 native dialogs. | `accounting-page.tsx` |
+| F38 | **The app still spoke through the operating system.** 37 `window.alert()` calls across 11 files delivered validation, save failures and "feature unavailable" messages as OS dialogs with hardcoded English, and 9 `window.confirm()` calls blocked the renderer for every delete. Those dialogs are modal to the *window*, sit outside the app's language, theme and focus order, and on Electron can be suppressed entirely by the host. | High | Fixed — a single global toast surface (`src/components/toast/`) reached through a module store: success/error/warning/info variants, `role="status"`/`role="alert"` (assertive for errors), 4-visible cap, per-variant durations (4.5/5/7/9 s), hover-pause, dismiss button, `--z-toast` layer, translated ×3, one `<ToastViewport/>` mounted in `main.tsx`. Delete confirmations use a promise-based `confirmAction()` + `<ConfirmDialog/>` built on the existing design-system modal shell: `role="alertdialog"`, Cancel focused by default, Escape/backdrop cancel, Tab trapped, body scroll restored. Alert→toast mapping was decided per call site: input validation stays inline in the dialog or becomes `toast.warning`, genuine failures become `toast.error`, unavailable print/PDF becomes `toast.warning`. Verified in the running app: 0 native dialogs raised across the interaction pass, 0 renderer errors. | 11 pages + `src/components/toast/*`, `src/components/confirm/*`, `src/main.tsx`, `i18n/*` |
+| F39 | **Reports showed a populated workspace as empty for its first second.** The 12 executive KPI cards render from state initialised to 0, and the page only paints its loading state on the sales-trend table, so a workspace with 50 products and ৳351.55K billed read "Total Sales ৳0.00 … Total Products 0" until the IPC payload arrived — worse than a spinner, because it looks like real data. | Medium | Fixed — the cards show "—" until the first load resolves (the grid carries `aria-busy`), and a later refresh keeps the previous numbers instead of blanking them. Measured before/after in the running app: 0 for ~1 s, then ৳507.7K / ৳351.55K / 15 / 50 once loaded; now "—" then the real values, with no renderer errors. | `reports-page.tsx` |
+| F40 | The New/Edit Employee dialog heading shipped as the literal string **"New employees.employee"** in every language: F29's fix interpolated `t("employees.employee")`, a key that exists in no locale, and the i18n helper correctly falls back to the key. Every non-English user also got the wrong word order for free. | Medium | Fixed — dedicated `employees.newEmployeeTitle` / `editEmployeeTitle` keys × 3 locales (bn "নতুন কর্মচারী" / "কর্মচারী সম্পাদনা", ar "موظف جديد" / "تعديل الموظف"), used at the heading. Verified in the interaction capture: the dialog now reads "New Employee". | `employees-page.tsx`, `i18n/{en,bn,ar}.ts` |
+| F41 | **Toast copy inherited the shell's direction, not its own.** In the Arabic UI an English message rendered as ".Customer saved successfully" — the neutral full stop was relocated to the visual left by the RTL paragraph, exactly the class of bug F23 fixed in table cells but not in the new overlay. | Medium | Fixed — `unicode-bidi: plaintext` + `text-align: start` on `.toast-title` and `.toast-message`, so each message takes the direction of its own first strong character. Verified against an ar/light capture of all four variants: the same strings now read with the stop at the end while Arabic copy still renders RTL. | `src/components/toast/toast.css` |
+| F42 | Both cloud-sync entries replay migrations 0001/0002/0004/0005 into their D1 shim but **skipped 0003**, the migration that recreates `company_settings` per workspace. The harness therefore ran against the retired `CHECK (id = 1)` singleton schema, so this workspace's own settings upsert failed on every cycle and was counted as a record error (12 occurrences in one run) — noise a fully migrated database never produces, and 0003 itself was left untested. | Medium (coverage) | Fixed — 0003 added in order to both harnesses. `--only=bidirectional-sync` and `--only=reset-sync-safety` now pass with **0** `CHECK constraint failed` lines. | `tests/main/entry-bidirectional-sync.ts`, `tests/main/entry-reset-sync-safety.ts` |
+| F43 | The runner's per-entry bound produced false **TIMEOUT** results for the two cloud entries, although the same entries finish standalone in 108–170 s. A timeout report reads as a hang and sends the reader hunting for a deadlock that does not exist. | Medium (test infra) | **Diagnosed and fixed** — not a hang and not a regression: with `MBS_SYNC_TRACE=1` added to the sync cycle, the first cloud cycle is ~200 HTTP requests at ~800 ms each under load (a loopback control in plain Node does 3 ms/request), i.e. CPU-bound on the Worker's **scrypt** API-key verification — same code, same cost, just slower as the machine got busier. Bound raised to 600 s with the measurement recorded in the script, and the trace switch left in (opt-in, silent by default) for the next reader. | `scripts/run-main-tests.mjs`, `cloud-sync-manager.ts` |
+| F47 | **Every Worker request re-derives the workspace API key with scrypt (N=16384, r=8, p=1)** — `resolveWorkspaceForApiKey()` → `verifyPassword()`. Correct for storage, but it means a sync of ~200 records costs ~200 scrypt operations, and it sits directly against Cloudflare Workers' CPU-time limit per request (10 ms on the free plan, 30 s on paid). Locally it measured ~800 ms/request while the machine was busy. | High (production risk, unresolved) | **Reported, not changed** — fixing it means an auth-design change (cache the verified key in the Worker isolate, or verify a cheap keyed HMAC of the supplied key and store that instead of scrypt), which is outside a UI/audit pass and needs its own migration + review. Recorded with the measurement so it is not rediscovered the hard way in production. | `cloudflare/worker/index.js` |
+| F44 | `entry-bidirectional-sync` aborted once with an unhandled `fetch failed` (`ECONNRESET`) on a **harness** read of its own local Worker while all 12 entries were running, having passed three times standalone. | Low (test flake) | Fixed — those harness reads go through a helper that retries once on a network-level error and logs the retry. HTTP failures and every assertion stay fatal, so a genuinely broken worker or missing row still fails the entry. | `tests/main/entry-bidirectional-sync.ts` |
+| F45 | The Invoices page subtitle promises "Create and manage customer invoices", but the page has no create action at all — invoices are generated from completed orders, and the row icon opens an edit-only dialog. | Low | **Reported, not changed** — this is product copy, not a defect: either the subtitle should be reworded in 3 locales or order→invoice creation should be surfaced here. Recorded so the decision is deliberate (see also F32). | `invoices-page.tsx`, `i18n/*` |
+| F46 | Financial & Invoice was the last settings page still rendering the "coming soon" placeholder, with unbound field labels and an inline `#e5e7eb` paint — the only remaining unfinished module surface in the app. | Medium | Fixed — real `Numbering & Tax` and `Payment Terms` sections with bound inputs (invoice prefix, tax rate, payment-terms textarea) and tokens only, in the same shell as the other 18 settings pages. The two options that genuinely do not exist yet (invoice format/options) stay in a dashed "planned" panel rather than being implied to work. No new behaviour: the page writes only the settings it already owned. | `src/pages/settings/financial-invoice.tsx`, `settings-category.css`, `i18n/*` |
 
 Non-findings worth recording:
 - **0 undefined CSS variables** and **0 theme gaps** across all 16k CSS lines (the token layer is complete).
@@ -146,10 +156,15 @@ Non-findings worth recording:
 | Check | Result |
 |-------|--------|
 | `npm run typecheck` | PASS |
-| `npm run build` | PASS |
-| `npm run test:main` | 256 PASS / 2 FAIL (F14), 9 of 11 entry suites fully green |
-| `npm run test:e2e` | 6/6 PASS |
-| `npm run release:check` | PASS |
+| `npm run build` | PASS (electron-vite, 17.3 s) |
+| `npm run test:main` | **12/12 entry suites green, 296 PASS assertions, 0 FAIL, 0 TIMEOUT** — `backup-restore 4.1s`, `bidirectional-sync 208.8s`, `cloud-multiuser 22.5s`, `database-fk-integrity 6.3s`, `ipc-security 4.8s`, `license-mode-switch 2.6s`, `license-verification 1.9s`, `messaging-authorization 10.5s`, `order-invoice 44.7s`, `reset-sync-safety 385.2s`, `security-stress 21.2s`, `worker-tenant-isolation 2.6s` (F14 and F43 both closed; the two cloud entries are CPU-bound on the Worker's per-request scrypt, see F47) |
+| `npm run test:e2e` | 6/6 PASS (chromium + firefox + webkit) |
+| `npm run release:check` | PASS (signing configuration OK) |
+| `node scripts/verify-release.mjs` | PASS — build output present, built main really links `better-sqlite3`, shipped Worker has the endpoints the client calls. Before F15's fix this script checked the removed `server/` layout and could not pass at all. |
+| `npm run verify:online` | PASS — `wrangler.toml` binds D1 as `DB`, routes `/v1/*` to the Worker, no hardcoded workspace id, `/v1/data/*` and `/health` exposed, 5 migration files shipped |
+| `npm run dist:win` | **PASS** — electron-vite build + electron-builder 24.13.3 produced `dist/Mooral Business Suite Setup 0.1.11.exe` (91 MB) and its blockmap, with `better-sqlite3` rebuilt against Electron 31.7.7 for win32-x64. This is the packaging verification F15 asked for; the previous warning ("no installer in dist/") is gone. |
+| `entry-security-stress` (new) | PASS in 21.2 s: injection literals through real repositories, hostile search strings, salted password hashes, post-logout session denial, a 300-product / 300-customer / 150-order dataset loaded through the real IPC data layer, integrity check clean |
+| `scripts/qa/capture-dialogs-toasts.mjs` (new) | 4 captures: 4 stacked toasts in en/dark and ar/light (proves the bidi fix and the 4-toast cap with overflow queue), and the new `role="alertdialog"` confirm in en/dark and ar/light. 0 renderer errors, 0 native dialogs. |
 | `scripts/qa/css-audit.mjs` | 0 errors (0 undefined vars, 0 theme gaps, 0 hardcoded colours) |
 | `scripts/qa/smoke-electron.mjs` | App boots, renders, **0 console errors, 0 page errors** |
 | `scripts/qa/capture-shell.mjs` | 24 screenshots: 4 window sizes × 3 languages × 2 themes, 0 renderer errors |
@@ -157,6 +172,7 @@ Non-findings worth recording:
 | `scripts/qa/happy-path.mjs` | Requires the QA renderer server (`npx vite --config scripts/qa/vite.qa.config.mjs`) — an unpackaged Electron run loads `localhost:5173`, so without it the app opens no window. Write path verified end to end: a filled Add Customer and Add Product dialog saves, the row appears in the list, and it is still there after a full reload (proves it reached SQLite over IPC). Empty submits create nothing. Theme choice persists across reload. **0 failed assertions, 0 renderer errors.** |
 | Ad-hoc Playwright checks against the running app (not committed) | Orders Save with no customer: inline `role="alert"` message, no native dialog. Extend Contract: missing date / before-start / missing reason each render inline, valid submit closes the dialog, no native dialog. Certificates (Product tab): empty submit shows "Certificate title is required." inline and leaves the dialog open. All three showed **0 native dialogs**. |
 | `scripts/qa/interact-routes.mjs` | Interaction pass: 6 create dialogs opened, submitted empty, dismissed; shell controls exercised. **0 renderer errors.** Result: 2 silent-validation defects found and fixed, Escape found broken everywhere and fixed, theme toggle / Ctrl+K / notification popover / profile menu verified working |
+| Native-dialog sweep | **0 `alert()`, 0 `confirm()`, 0 `prompt()` left in `src/`** (37 alerts replaced by toasts, 9 confirms by the in-app confirm dialog). Verified by grep and by the interaction pass, which records every `dialog` event the renderer fires: none. |
 
 Captures are in `qa-screenshots/<WxH>/<lang>/<theme>/shell.png` and
 `qa-screenshots/routes/<WxH>/<lang>/<theme>/<route>.png`.
@@ -174,23 +190,38 @@ Captures are in `qa-screenshots/<WxH>/<lang>/<theme>/shell.png` and
 
 These parts of the brief were **not** executed and must not be reported as complete:
 
-1. ~~Route-by-route authenticated walk~~ — **now done** (`capture-routes.mjs`): every route
-   was reached and captured. ~~Interaction~~ — **partially done** (`interact-routes.mjs`):
-   the Customers, Products, Orders, Employees, Accounting and Invoices dialogs were opened,
-   submitted empty and dismissed with Escape, and the shell controls were exercised.   Still
-   uncovered: editing, deletion and the delete-confirmation dialogs, and the
-   Invoices/Certificates create dialogs (F32). Happy-path creation for Customers and
-   Products — including persistence across a reload — is now covered by `happy-path.mjs`.
-2. **Hand-redesign of all 11 modules and 19 settings subpages.** They inherit the new tokens
-   automatically and were verified to render, but their individual layouts were not
-   re-authored page by page.
-3. **Stress test** (50k customers / 200k orders / 1M ledger rows, long-task measurement).
-4. **Load test** (1,000 parallel reads, 200 parallel invoice creations).
-5. **Penetration test** beyond the existing `entry-ipc-security` suite (injection, path
-   traversal, XSS/XLSX-formula, brute-force, secret grep).
-6. **Human-error clicking test** (double submits, empty/oversized input, focus traps, offline flips).
-7. **Per-page 4-size screenshots in all 18 combinations for every route.** Done for 30 routes at
-   the canonical size and for 7 key routes across 2 sizes × 3 languages × 2 themes; the full
-   18-combination sweep for every one of the 30 routes was not run.
+1. ~~Route-by-route authenticated walk~~ — **done** (`capture-routes.mjs`): all 30 routes
+   reached and captured, 0 renderer errors, 0 empty renders.
+2. ~~Interaction, delete-confirmation and dialog coverage~~ — **done** (`interact-routes.mjs`,
+   `capture-dialogs-toasts.mjs`): create dialogs opened / submitted empty / dismissed, the
+   new confirm dialog captured in en/dark and ar/light, toasts captured in both directions.
+   Edit flows and the Invoices/Certificates create dialogs (F32/F45) remain **not** covered
+   by an automated click-through.
+3. ~~Stress and load testing~~ — **done at harness scale, not at production scale**
+   (`entry-security-stress.ts`): 300 products / 300 customers / 150 orders through the real
+   IPC data layer, plus hostile input. The 50k-customer / 200k-order / 1M-ledger dataset in
+   the brief was **not** generated; nothing here should be quoted as a production-scale
+   performance number.
+4. ~~Penetration testing beyond `entry-ipc-security`~~ — **partially done**: injection
+   literals, hostile search, salted hashes, post-logout denial and cross-workspace isolation
+   are now asserted. Still not done: path traversal under real file writes, XSS/XLSX-formula
+   payloads, brute-force timing, and a secret grep over the built installer.
+5. **Human-error clicking** (double submits, oversized paste, keyboard-only tab traps, offline
+   flips) is only partly covered: Escape/Tab handling and empty submits are; double-submit and
+   offline transition are not.
+6. **Hand-redesign of the other 10 modules and 18 settings subpages.** They inherit the new
+   tokens and were verified to render, but their individual layouts were not re-authored page
+   by page. Only `financial-invoice.tsx` was rebuilt (it was the last page still showing
+   `SettingsComingSoon`).
+7. **Per-page 4-size screenshots in all 18 combinations for every route.** Done for 30 routes
+   at the canonical size and for 7 key routes across 2 sizes × 3 languages × 2 themes (199
+   images); the full 18-combination sweep for every one of the 30 routes was not run.
+8. **Installer smoke test on a clean machine.** The installer is now built and its contents are
+   verified (`dist:win` PASS, `verify-release` PASS with no warnings); installing it on a fresh
+   Windows profile and walking the first-launch flow was not done. Code signing is not
+   configured, so the shipped `.exe` is unsigned and SmartScreen will warn.
+9. **Cloudflare-side verification against the real deployed Worker.** Everything cloud-related was
+   proved against the shipped Worker code running in-process (real D1 shim, real HTTP server).
+   `wrangler deploy`, the production D1 database and the live domain were not exercised.
 
-The tooling for 1 and 7 now exists and is verified (`scripts/qa/capture-routes.mjs`).
+The tooling for 1 and 7 exists and is verified (`scripts/qa/capture-routes.mjs`).
