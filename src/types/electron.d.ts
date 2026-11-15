@@ -1337,6 +1337,9 @@ settings: {
 
     uploadLogo(): Promise<string | null>;
 
+    /** Saves a logo the user reviewed and approved in the renderer. */
+    saveLogo(dataUrl:string): Promise<string | null>;
+
     removeLogo(): Promise<{ success: boolean }>;
 
 };

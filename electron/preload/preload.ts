@@ -668,6 +668,13 @@ settings: {
     ),
 
 
+  saveLogo: (dataUrl:string) =>
+    ipcRenderer.invoke(
+      "settings:saveLogo",
+      dataUrl
+    ),
+
+
   removeLogo: () =>
     ipcRenderer.invoke(
       "settings:removeLogo"

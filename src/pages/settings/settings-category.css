@@ -542,8 +542,8 @@
 
 .logo-preview-box{
 
-    width:140px;
-    height:140px;
+    width:160px;
+    height:160px;
 
     display:flex;
     align-items:center;
@@ -565,6 +565,113 @@
     height:100%;
     object-fit:contain;
     object-position:center;
+    padding:8px;
+
+}
+
+
+
+/* The native picker is triggered by the styled button; keep the input out
+   of the layout without hiding it from assistive tech. */
+.logo-file-input{
+
+    display:none;
+
+}
+
+
+
+/* Approve-before-save review of the auto-fitted logo. */
+.logo-review{
+
+    margin-top:14px;
+    display:flex;
+    gap:18px;
+    align-items:center;
+    max-width:560px;
+    padding:16px;
+    border:1px solid var(--border-strong);
+    border-radius:12px;
+    background:var(--surface-hover);
+
+}
+
+
+
+.logo-review-preview{
+
+    width:120px;
+    height:120px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--border-strong);
+    border-radius:10px;
+    background:var(--surface);
+    overflow:hidden;
+
+}
+
+
+
+.logo-review-preview img{
+
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    object-position:center;
+    padding:6px;
+
+}
+
+
+
+.logo-review-body{
+
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+
+}
+
+
+
+.logo-review-body p{
+
+    margin:0;
+
+}
+
+
+
+.logo-review-meta{
+
+    color:var(--text-muted);
+    font-size:0.85em;
+    line-height:1.5;
+
+}
+
+
+
+.logo-review-actions{
+
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:6px;
+
+}
+
+
+
+@media (max-width:720px){
+
+    .logo-review{
+        flex-direction:column;
+        align-items:flex-start;
+    }
 
 }
 

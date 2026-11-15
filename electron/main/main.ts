@@ -3806,6 +3806,52 @@ ipcMain.handle(
   }
 );
 
+// Saves a logo the user has already reviewed and approved in the renderer
+// (see src/utils/logo-image.ts, which fits it to the square logo frame).
+// Only a PNG data URL is accepted, the payload is size-capped and the PNG
+// signature is checked before it reaches the image pipeline.
+ipcMain.handle(
+  "settings:saveLogo",
+  (_event, dataUrl: unknown) => {
+
+    const prefix = "data:image/png;base64,";
+
+    if (typeof dataUrl !== "string" || !dataUrl.startsWith(prefix)) {
+      return null;
+    }
+
+    const base64 = dataUrl.slice(prefix.length);
+
+    if (!base64 || base64.length > 8 * 1024 * 1024) {
+      return null;
+    }
+
+    const fileBuffer = Buffer.from(base64, "base64");
+    const PNG_SIGNATURE = "89504e470d0a1a0a";
+
+    if (
+      fileBuffer.length < 8 ||
+      fileBuffer.subarray(0, 8).toString("hex") !== PNG_SIGNATURE
+    ) {
+      return null;
+    }
+
+    try {
+
+      return saveCompanyLogoFromBuffer(fileBuffer);
+
+    }
+    catch (error) {
+
+      console.error("Saving reviewed logo failed", error);
+
+      return null;
+
+    }
+
+  }
+);
+
 ipcMain.handle(
   "settings:removeLogo",
   () => {

@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
 import { DEFAULT_COMPANY_SETTINGS } from "@/constants/company-settings";
 
 import type { CompanySettings } from "@/types/company-settings";
 import { useLanguage } from "@/hooks/use-language";
 import { confirmAction } from "@/components/confirm/confirm-store";
+import { prepareLogoFile, type PreparedLogo } from "@/utils/logo-image";
 
 import SettingsShell from "./settings-shell";
 
@@ -15,8 +16,14 @@ export default function CompanyProfilePage(): JSX.Element {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isPreparingLogo, setIsPreparingLogo] = useState(false);
+  const [isSavingLogo, setIsSavingLogo] = useState(false);
   const [isRemovingLogo, setIsRemovingLogo] = useState(false);
+  // A picked logo is only previewed here; nothing is stored until the user
+  // approves the fitted result.
+  const [pendingLogo, setPendingLogo] = useState<PreparedLogo | null>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
   const [savedMessage, setSavedMessage] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -95,30 +102,78 @@ export default function CompanyProfilePage(): JSX.Element {
 
   }
 
-  async function handleUploadLogo() {
+  async function handleLogoFileSelected(event: ChangeEvent<HTMLInputElement>) {
 
-    setIsUploadingLogo(true);
+    const file = event.target.files?.[0];
+
+    // Reset so picking the same file again still fires onChange.
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    setLogoError(null);
+    setIsPreparingLogo(true);
 
     try {
 
-      const preview = await window.mooral.settings.uploadLogo();
+      // Fit the image to the square logo frame before the user sees it, so
+      // the preview is exactly what will be stored and printed.
+      const prepared = await prepareLogoFile(file);
+      setPendingLogo(prepared);
+
+    }
+    catch (error) {
+
+      console.error("Failed to prepare logo", error);
+      setLogoError(t("settingsCompanyProfile.logoInvalid"));
+
+    }
+    finally {
+
+      setIsPreparingLogo(false);
+
+    }
+
+  }
+
+  async function handleApproveLogo() {
+
+    if (!pendingLogo) {
+      return;
+    }
+
+    setLogoError(null);
+    setIsSavingLogo(true);
+
+    try {
+
+      const preview = await window.mooral.settings.saveLogo(pendingLogo.dataUrl);
 
       if (preview) {
 
         setLogoPreview(preview);
         setSettings(prev => ({ ...prev, hasLogo: true, logoPath: "stored-in-database" }));
+        setPendingLogo(null);
+
+      }
+      else {
+
+        setLogoError(t("settingsCompanyProfile.logoInvalid"));
 
       }
 
     }
     catch (error) {
 
-      console.error("Failed to upload logo", error);
+      console.error("Failed to save logo", error);
+      setLogoError(t("settingsCompanyProfile.logoInvalid"));
 
     }
     finally {
 
-      setIsUploadingLogo(false);
+      setIsSavingLogo(false);
 
     }
 
@@ -237,13 +292,21 @@ export default function CompanyProfilePage(): JSX.Element {
 
           <div className="logo-actions">
 
+            <input
+              ref={logoFileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="logo-file-input"
+              onChange={(event) => void handleLogoFileSelected(event)}
+            />
+
             <button
               type="button"
               className="logo-select-button"
-              onClick={handleUploadLogo}
-              disabled={isUploadingLogo || isRemovingLogo}
+              onClick={() => logoFileInputRef.current?.click()}
+              disabled={isPreparingLogo || isSavingLogo || isRemovingLogo}
             >
-              {isUploadingLogo ? t("settingsCompanyProfile.uploading") : t("settingsCompanyProfile.uploadLogo")}
+              {isPreparingLogo ? t("settingsCompanyProfile.preparingLogo") : t("settingsCompanyProfile.uploadLogo")}
             </button>
 
             {logoPreview && (
@@ -251,7 +314,7 @@ export default function CompanyProfilePage(): JSX.Element {
                 type="button"
                 className="logo-select-button danger"
                 onClick={handleRemoveLogo}
-                disabled={isUploadingLogo || isRemovingLogo}
+                disabled={isPreparingLogo || isSavingLogo || isRemovingLogo}
               >
                 {isRemovingLogo ? t("settingsCompanyProfile.removing") : t("settingsCompanyProfile.removeLogo")}
               </button>
@@ -264,6 +327,57 @@ export default function CompanyProfilePage(): JSX.Element {
         <p className="settings-section-description logo-preview-note">
           {t("settingsCompanyProfile.logoRecommendation")}
         </p>
+
+        {pendingLogo && (
+          <div className="logo-review" role="dialog" aria-label={t("settingsCompanyProfile.logoReviewTitle")}>
+
+            <div className="logo-review-preview">
+              <img src={pendingLogo.dataUrl} alt="" />
+            </div>
+
+            <div className="logo-review-body">
+
+              <strong>{t("settingsCompanyProfile.logoReviewTitle")}</strong>
+              <p>{t("settingsCompanyProfile.logoReviewHint")}</p>
+
+              <p className="logo-review-meta">
+                {t("settingsCompanyProfile.logoReviewOriginal")}: {pendingLogo.originalWidth} × {pendingLogo.originalHeight} px
+                <br />
+                {t("settingsCompanyProfile.logoReviewFitted")}: {pendingLogo.fittedWidth} × {pendingLogo.fittedHeight} px
+              </p>
+
+              <div className="logo-review-actions">
+
+                <button
+                  type="button"
+                  className="logo-select-button"
+                  onClick={() => void handleApproveLogo()}
+                  disabled={isSavingLogo}
+                >
+                  {isSavingLogo ? t("settingsCompanyProfile.uploading") : t("settingsCompanyProfile.logoApprove")}
+                </button>
+
+                <button
+                  type="button"
+                  className="logo-select-button"
+                  onClick={() => setPendingLogo(null)}
+                  disabled={isSavingLogo}
+                >
+                  {t("settingsCompanyProfile.logoChooseAnother")}
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {logoError && (
+          <div className="settings-error-message" role="alert" aria-live="assertive">
+            {logoError}
+          </div>
+        )}
 
       </div>
 
