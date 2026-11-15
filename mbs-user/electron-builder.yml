@@ -1,0 +1,35 @@
+# MBS-user installer — deliberately separate from the main application's
+# package.json build block: different appId, productName, shortcut, output
+# directory and version (mbs-user/package.json). Installing or uninstalling
+# MBS-user never writes to the main MBS installation directory.
+appId: com.mooral.mbsuser
+productName: MBS-user
+copyright: Mooral Business Suite
+
+directories:
+  output: ../dist-user
+
+# Pinned to the Electron version the repository already uses; MBS-user has no
+# native modules, so there is nothing to rebuild.
+electronVersion: 31.7.7
+npmRebuild: false
+asar: true
+
+files:
+  - out/**/*
+  - package.json
+  - "!**/*.map"
+
+win:
+  target:
+    - nsis
+  icon: build/icon.ico
+  artifactName: "MBS-user Setup ${version}.${ext}"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: MBS-user

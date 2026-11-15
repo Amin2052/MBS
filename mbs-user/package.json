@@ -1,0 +1,11 @@
+{
+  "name": "mbs-user",
+  "productName": "MBS-user",
+  "version": "0.1.0",
+  "description": "MBS-user — employee client for Mooral Business Suite",
+  "main": "out/main/index.js",
+  "author": "Mooral Business Suite",
+  "license": "Proprietary",
+  "private": true,
+  "dependencies": {}
+}

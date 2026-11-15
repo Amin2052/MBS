@@ -43,3 +43,6 @@ desktop.ini
 
 # Electron builder cache
 .electron-builder-cache/
+
+dist-user/
+mbs-user/out/

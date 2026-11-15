@@ -18,7 +18,10 @@
     "verify:online": "node scripts/verify-online-architecture.mjs",
     "verify:release": "node scripts/verify-release.mjs",
     "cloudflare:deploy": "npx wrangler deploy --config cloudflare/wrangler.toml",
-    "cloudflare:types": "npx wrangler types --config cloudflare/wrangler.toml"
+    "cloudflare:types": "npx wrangler types --config cloudflare/wrangler.toml",
+    "build:user": "electron-vite build --config mbs-user/electron.vite.config.ts",
+    "typecheck:user": "tsc --noEmit -p mbs-user/tsconfig.json",
+    "dist:user": "npm run build:user && electron-builder --projectDir mbs-user --config electron-builder.yml --win"
   },
   "dependencies": {
     "better-sqlite3": "^12.11.1",
