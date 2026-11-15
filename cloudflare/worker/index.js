@@ -187,6 +187,61 @@ function verifyPassword(password, stored) {
   });
 }
 
+// ===================================================================
+// Cloud reset (see 0006_workspace_reset_epoch.sql for why an epoch exists)
+// ===================================================================
+//
+// BUSINESS_RESET_TABLES is deliberately NOT "every tenant table". A central
+// business-data reset preserves:
+//   - users / permission_profiles / profile_permissions / user_permissions
+//     (who may log in, and what they may do -- otherwise every employee
+//     would have to be re-invited to work after a data reset),
+//   - employees (staff records are configuration, not ledger; the LOCAL
+//     factory reset is the operation that removes them),
+//   - company_settings (company identity, numbering, tax setup),
+//   - audit_log / workspace_resets (the record of what happened).
+// Each excluded table is a deliberate policy decision, not an oversight.
+const BUSINESS_RESET_TABLES = [
+  "notifications", "inventory_transactions", "transactions", "ledger_entries",
+  "journal_entries", "certificates", "invoices", "orders", "mbs_messages",
+  "customers", "products", "accounts"
+];
+
+async function readResetEpoch(env, workspace) {
+  if (!workspace) return 0;
+  try {
+    const row = await env.DB.prepare("SELECT reset_epoch FROM workspaces WHERE workspace_id=?").bind(workspace).first();
+    return Number(row && row.reset_epoch) || 0;
+  } catch {
+    // Before 0006 is applied the column does not exist; "never reset" is the
+    // correct and safe reading of that state.
+    return 0;
+  }
+}
+
+// Refuses a write from a client whose last-known epoch is stale. A client
+// that has never reset may omit the header entirely (backwards compatible);
+// once a workspace HAS been reset, every write must state which epoch it is
+// writing against, so an old installation cannot push pre-reset rows back.
+// Reads are never blocked, so a stale client can always discover the new
+// epoch and re-baseline itself.
+async function resetEpochMismatch(request, env, workspace) {
+  const header = request.headers.get("x-reset-epoch");
+  const current = await readResetEpoch(env, workspace);
+  if (header === null || header === "") {
+    if (current === 0) return null;
+    return json({ error: "reset_epoch_required", reset_epoch: current, message: "This workspace has been reset; send x-reset-epoch before writing." }, 409, request, env);
+  }
+  const claimed = Number(header);
+  if (!Number.isSafeInteger(claimed) || claimed < 0) return json({ error: "invalid_reset_epoch" }, 400, request, env);
+  if (claimed === current) return null;
+  return json({
+    error: "reset_epoch_mismatch",
+    reset_epoch: current,
+    message: "The central business data was reset since this device last synced. Re-baseline before writing."
+  }, 409, request, env);
+}
+
 async function readJson(request) {
   const length = Number(request.headers.get("content-length") || 0);
   if (length > MAX_BODY) throw new Error("Request body is too large.");
@@ -334,6 +389,10 @@ async function handleUsers(request, env, user, apiKeyOk, workspace) {
   }
   if (request.method === "POST") {
     if (!apiKeyOk && (!user || user.user_type !== "owner")) return text("Forbidden.", 403, request, env);
+    if (apiKeyOk) {
+      const epochResponse = await resetEpochMismatch(request, env, workspace);
+      if (epochResponse) return epochResponse;
+    }
     const d = await readJson(request);
     const username = String(d.username || "").trim();
     const passwordHash = String(d.password_hash || "");
@@ -391,6 +450,8 @@ async function handleUsers(request, env, user, apiKeyOk, workspace) {
 
 async function handlePermissionSync(request, env, apiKeyOk, workspace) {
   if (!apiKeyOk || !workspace || request.method !== "POST") return text("Forbidden.", 403, request, env);
+  const epochResponse = await resetEpochMismatch(request, env, workspace);
+  if (epochResponse) return epochResponse;
   const d = await readJson(request);
   const profiles = Array.isArray(d.profiles) ? d.profiles : [];
   const profilePermissions = Array.isArray(d.profilePermissions) ? d.profilePermissions : [];
@@ -576,6 +637,12 @@ async function handleData(request, env, user, apiKeyOk, collection, id, workspac
   const action = request.method === "GET" ? "read" : request.method === "POST" ? "create" : request.method === "PATCH" ? "edit" : request.method === "DELETE" ? "delete" : null;
   if (!action) return text("Method not allowed.", 405, request, env);
   if (!apiKeyOk && !(await can(user, env, collection, action))) return text("Forbidden.", 403, request, env);
+  // Stale-device guard for writes only (see 0006). Reads stay open so a
+  // client can always discover the current epoch and re-baseline.
+  if (request.method !== "GET") {
+    const epochResponse = await resetEpochMismatch(request, env, workspace);
+    if (epochResponse) return epochResponse;
+  }
 
   if (collection === "company_settings") return handleCompanySettings(request, env, workspace);
 
@@ -786,6 +853,66 @@ async function handleAdminCreateWorkspace(request, env) {
   return json({ success: true, workspaceId, apiKey }, 201, request, env);
 }
 
+// The employee client (MBS-user) has no local database and no copy of the
+// permission catalog: it reads its effective grants from here, and the
+// Worker re-evaluates them on every request via can(). This endpoint is
+// therefore a UI hint -- hiding a module because the list says so is a
+// usability measure, never the security boundary. Verified by
+// tests/main/entry-mbs-user.ts, which calls a forbidden endpoint directly
+// with a valid employee session and expects 403 from the Worker.
+async function handleMyPermissions(request, env, user) {
+  if (!user) return text("Unauthorized.", 401, request, env);
+  const keys = await permissionKeys(env, user);
+  return json({
+    success: true,
+    user: safeUser(user),
+    unrestricted: keys === null,
+    permissions: keys === null ? [] : Array.from(keys).sort(),
+    resetEpoch: await readResetEpoch(env, user.workspace_id)
+  }, 200, request, env);
+}
+
+// Owner-only central reset. apiKeyOk is the gate -- the workspace key only
+// exists on the owner's installation, so an employee (or administrator)
+// Bearer session can never reach this even if the client is modified.
+async function handleAdminReset(request, env, apiKeyOk, workspace) {
+  if (!workspace) return text("Unauthorized.", 401, request, env);
+  if (!apiKeyOk) return text("Forbidden: the workspace API key is required to reset central data.", 403, request, env);
+  const d = await readJson(request);
+  // The confirmation is the workspace id itself, typed by the owner. A
+  // mistyped or replayed request with a different id changes nothing.
+  if (String(d.confirm || "") !== workspace) return text("Confirmation does not match the workspace.", 400, request, env);
+  if (String(d.scope || "business") !== "business") return text("Unsupported reset scope.", 400, request, env);
+
+  // Order matters: bump the epoch FIRST. If the process dies half-way
+  // through the deletes below, every synced device is already barred from
+  // writing its stale copy back, and the reset can simply be retried --
+  // the alternative order would leave a window in which a device could
+  // recreate pre-reset rows while the deletion was still running.
+  let resetEpoch = 0;
+  try {
+    await env.DB.prepare("UPDATE workspaces SET reset_epoch=reset_epoch+1 WHERE workspace_id=?").bind(workspace).run();
+    resetEpoch = await readResetEpoch(env, workspace);
+  } catch (error) {
+    // 0006 not applied: refuse rather than delete data without the guard
+    // that makes the reset stick.
+    return text(`Cloud reset requires migration 0006_workspace_reset_epoch.sql (${error instanceof Error ? error.message : String(error)}).`, 409, request, env);
+  }
+
+  const deleted = {};
+  for (const table of BUSINESS_RESET_TABLES) {
+    const result = await env.DB.prepare(`DELETE FROM ${table} WHERE workspace_id=?`).bind(workspace).run();
+    deleted[table] = Number(result && result.meta && result.meta.changes) || 0;
+  }
+
+  // workspace_resets is the support-facing record and intentionally lives
+  // outside the tenant tables a reset clears (see the migration header).
+  await env.DB.prepare("INSERT INTO workspace_resets(workspace_id,scope,reset_epoch,requested_by,deleted_counts) VALUES(?,?,?,?,?)")
+    .bind(workspace, "business", resetEpoch, "workspace-api-key", JSON.stringify(deleted)).run();
+
+  return json({ success: true, scope: "business", workspaceId: workspace, resetEpoch, deleted }, 200, request, env);
+}
+
 async function handle(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -810,6 +937,12 @@ async function handle(request, env) {
     const workspace = user ? user.workspace_id : apiKeyWorkspace;
     if (!user && !apiKeyOk) return text("Unauthorized.", 401, request, env);
     if (path === "/v1/me" && request.method === "GET") return json({ success: true, user: safeUser(user) }, 200, request, env);
+    if (path === "/v1/me/permissions" && request.method === "GET") return await handleMyPermissions(request, env, user);
+    // Lets any authenticated client (desktop sync engine, MBS-user) discover
+    // the current reset epoch. Deliberately readable with either credential
+    // and never blocked by a stale epoch -- this is how a client recovers.
+    if (path === "/v1/workspace" && request.method === "GET") return json({ success: true, workspaceId: workspace, resetEpoch: await readResetEpoch(env, workspace) }, 200, request, env);
+    if (path === "/v1/admin/reset" && request.method === "POST") return await handleAdminReset(request, env, apiKeyOk, workspace);
     // NOTE: these are all `await`ed rather than `return`ed directly, even
     // though the effect on the successful path is identical. Returning an
     // async function's promise straight out of this try block WITHOUT

@@ -249,6 +249,14 @@ import {
 } from "./reset-service";
 
 import {
+  getResetPreview,
+  performCloudBusinessReset,
+  performCompleteReset
+} from "./cloud/cloud-reset-service";
+
+import { verifyActiveUserPassword } from "./auth/auth-manager";
+
+import {
   requirePermission,
   requireUserType,
   requireUserTypeAllowUnlicensed
@@ -1068,6 +1076,79 @@ ipcMain.handle(
 
   }
 );
+
+
+
+// ===============================
+// CLOUD-AWARE RESET (local / central / complete)
+// ===============================
+//
+// These are separate from erp:reset and erp:factoryReset above on purpose:
+// those two only ever touched this device's SQLite file, while these can also
+// delete the company's CENTRAL records. They therefore add two gates the
+// legacy handlers never had:
+//
+//   1. the owner's password, re-entered in the dialog and verified against
+//      the current session's real hash (verifyActiveUserPassword) -- an
+//      unlocked, logged-in PC is not by itself enough to wipe the company's
+//      central data;
+//   2. an exact typed confirmation (workspace id for a central reset,
+//      "RESET" for a complete one), enforced here, not only in the UI.
+//
+// Nothing is deleted until a real SQLite backup has been written; see
+// cloud-reset-service.ts. All three relaunch on success for the same reason
+// the legacy handlers do: every open window holds stale in-memory state.
+
+function relaunchAfterReset(): void {
+  setTimeout(() => {
+    app.relaunch();
+    app.exit(0);
+  }, 500);
+}
+
+ipcMain.handle("reset:preview", async () => {
+  requireUserType("owner");
+  return getResetPreview();
+});
+
+ipcMain.handle("reset:local", async (_event, data) => {
+  requireUserType("owner");
+  if (!(await verifyActiveUserPassword(String(data?.password || "")))) {
+    return { success: false, error: "Password is incorrect. Nothing was reset." };
+  }
+  const result = performErpReset();
+  if (result.success) {
+    logAudit("settings", "delete", null, "Local ERP reset (this device only)");
+    relaunchAfterReset();
+  }
+  return result;
+});
+
+ipcMain.handle("reset:cloud", async (_event, data) => {
+  requireUserType("owner");
+  if (!(await verifyActiveUserPassword(String(data?.password || "")))) {
+    return { success: false, error: "Password is incorrect. Nothing was reset." };
+  }
+  const result = await performCloudBusinessReset({ confirmWorkspace: String(data?.confirmWorkspace || "") });
+  if (result.success) {
+    logAudit("settings", "delete", null, `Central business data reset (epoch ${result.resetEpoch ?? 0})`, null, { backupPath: result.backupPath, deleted: result.deleted });
+    relaunchAfterReset();
+  }
+  return result;
+});
+
+ipcMain.handle("reset:complete", async (_event, data) => {
+  requireUserType("owner");
+  if (!(await verifyActiveUserPassword(String(data?.password || "")))) {
+    return { success: false, error: "Password is incorrect. Nothing was reset." };
+  }
+  const result = await performCompleteReset({ confirmation: String(data?.confirmation || "") });
+  if (result.success) {
+    logAudit("settings", "delete", null, `Complete reset (local + central, epoch ${result.resetEpoch ?? 0})`, null, { backupPath: result.backupPath });
+    relaunchAfterReset();
+  }
+  return result;
+});
 
 
 

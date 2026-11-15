@@ -74,6 +74,56 @@ export interface ResetResult {
   error?: string;
 }
 
+/** Table names a reset clears. Exported so the cloud-reset service and the
+ *  reset preview report exactly the same set the local reset deletes --
+ *  one list, not two that can drift apart. */
+export const RESET_BUSINESS_TABLES = BUSINESS_DATA_TABLES;
+
+/** Row counts for the reset preview (local side). */
+export function countLocalBusinessRows(): Record<string, number> {
+  const db = getDatabase();
+  const counts: Record<string, number> = {};
+  for (const table of BUSINESS_DATA_TABLES) {
+    const row = db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number } | undefined;
+    counts[table] = Number(row?.n || 0);
+  }
+  return counts;
+}
+
+/** Wipes this device's business records without touching logins,
+ *  permissions, company settings or the license. This is what a CENTRAL
+ *  reset leaves behind on the owner's machine, and what a second device
+ *  does when it discovers the central epoch moved: the cloud is now the
+ *  source of truth, so holding on to local copies would be exactly the
+ *  stale data the epoch exists to prevent from returning. */
+export function clearLocalBusinessData(): ResetResult {
+  const db = getDatabase();
+  try {
+    const transaction = db.transaction(() => {
+      for (const table of BUSINESS_DATA_TABLES) {
+        db.prepare(`DELETE FROM ${table}`).run();
+      }
+      clearSyncStateFor(db, SYNC_TABLE_NAMES_TO_CLEAR);
+    });
+    transaction();
+    return { success: true };
+  } catch (error) {
+    console.error("LOCAL BUSINESS CLEAR FAILED", error);
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error clearing local business data." };
+  }
+}
+
+/** Clears ALL sync bookkeeping, not just the business tables' entries.
+ *  Used when re-baselining after a central reset: any mapping, cursor or
+ *  queued operation from before the reset describes a world that no longer
+ *  exists, and replaying the queue would recreate deleted records. */
+export function clearAllSyncBookkeeping(): void {
+  const db = getDatabase();
+  db.prepare("DELETE FROM cloud_sync_map").run();
+  db.prepare("DELETE FROM sync_cursor").run();
+  db.prepare("DELETE FROM sync_offline_queue").run();
+}
+
 export function performErpReset(): ResetResult {
 
   const db = getDatabase();

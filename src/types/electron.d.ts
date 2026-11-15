@@ -947,6 +947,43 @@ declare global {
 
   }
 
+  /** What the reset panel shows before anything is deleted: the real local
+   *  row counts, whether cloud sync is configured/reachable, and the current
+   *  central reset epoch. */
+  interface ResetPreview {
+
+    cloudEnabled: boolean;
+
+    workspaceId: string;
+
+    resetEpoch: number;
+
+    cloudReachable: boolean;
+
+    cloudError?: string;
+
+    localCounts: Record<string, number>;
+
+    tables: string[];
+
+    note: string;
+
+  }
+
+  interface ResetOutcome {
+
+    success: boolean;
+
+    error?: string;
+
+    backupPath?: string;
+
+    resetEpoch?: number;
+
+    deleted?: Record<string, number>;
+
+  }
+
 
 
   interface Window {
@@ -1529,6 +1566,14 @@ erpControl: {
     reset(): Promise<ResetResult>;
 
     factoryReset(): Promise<ResetResult>;
+
+    preview(): Promise<ResetPreview>;
+
+    local(data: { password: string }): Promise<ResetResult>;
+
+    cloud(data: { password: string; confirmWorkspace: string }): Promise<ResetOutcome>;
+
+    complete(data: { password: string; confirmation: string }): Promise<ResetOutcome>;
 
 };
 

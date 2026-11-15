@@ -1,4 +1,5 @@
 import { getCloudConfig } from "./cloud-config-service";
+import { getStoredResetEpoch } from "./sync-epoch";
 
 function baseUrl(): string {
   const url = getCloudConfig().apiUrl.trim().replace(/\/+$/, "");
@@ -8,7 +9,10 @@ function baseUrl(): string {
 function headers(extra: Record<string,string> = {}): Record<string,string> {
   const c = getCloudConfig();
   if (!c.workspaceId || !c.apiKey) throw new Error("Cloud workspace and API key are not configured.");
-  return { "x-workspace-id": c.workspaceId, "x-api-key": c.apiKey, ...extra };
+  // Every request states the reset epoch this device believes it is syncing
+  // against. The Worker refuses WRITES from a stale epoch (409) and never
+  // blocks reads -- see cloudflare/worker/index.js resetEpochMismatch().
+  return { "x-workspace-id": c.workspaceId, "x-api-key": c.apiKey, "x-reset-epoch": String(getStoredResetEpoch()), ...extra };
 }
 
 export async function cloudHealth() {
@@ -108,6 +112,7 @@ export async function createCloudRecord(table: string, record: CloudRecord) {
   });
   if (!r.ok) {
     const bodyText = await r.text();
+    throwIfResetEpochConflict(r.status, bodyText);
     if (r.status === 409) {
       try {
         const parsed = JSON.parse(bodyText);
@@ -129,6 +134,7 @@ export async function updateCloudRecord(table: string, id: string | number, patc
   });
   if (!r.ok) {
     const bodyText = await r.text();
+    throwIfResetEpochConflict(r.status, bodyText);
     if (r.status === 409) {
       try {
         const parsed = JSON.parse(bodyText);
@@ -146,6 +152,57 @@ export async function deleteCloudRecord(table: string, id: string | number) {
   const r = await fetch(`${baseUrl()}/v1/data/${encodeURIComponent(table)}/${encodeURIComponent(String(id))}`, {
     method: "DELETE", headers: headers()
   });
-  if (!r.ok) throw new Error(await r.text() || `Cloud ${table} delete failed (${r.status}).`);
+  if (!r.ok) {
+    const bodyText = await r.text();
+    throwIfResetEpochConflict(r.status, bodyText);
+    throw new Error(bodyText || `Cloud ${table} delete failed (${r.status}).`);
+  }
   return await r.json() as { success: boolean };
+}
+
+// ===================================================================
+// Cloud reset
+// ===================================================================
+
+export class CloudResetRequiredError extends Error {
+  currentEpoch: number;
+  constructor(currentEpoch: number) {
+    super("The central business data was reset. This device must re-baseline before it can write again.");
+    this.name = "CloudResetRequiredError";
+    this.currentEpoch = currentEpoch;
+  }
+}
+
+// Recognises the Worker's two epoch rejections without rethrowing a JSON
+// parse error for every other 409 (business-key and revision conflicts have
+// their own handling in the callers below).
+function throwIfResetEpochConflict(status: number, bodyText: string): void {
+  if (status !== 409) return;
+  let parsed: any;
+  try { parsed = JSON.parse(bodyText); } catch { return; }
+  if (parsed && (parsed.error === "reset_epoch_mismatch" || parsed.error === "reset_epoch_required")) {
+    throw new CloudResetRequiredError(Number(parsed.reset_epoch) || 0);
+  }
+}
+
+export async function getCloudWorkspaceInfo(): Promise<{ workspaceId: string; resetEpoch: number }> {
+  const r = await fetch(`${baseUrl()}/v1/workspace`, { headers: headers() });
+  if (!r.ok) throw new Error(await r.text() || `Cloud workspace lookup failed (${r.status}).`);
+  const body = await r.json() as { workspaceId?: string; resetEpoch?: number };
+  return { workspaceId: String(body.workspaceId || ""), resetEpoch: Number(body.resetEpoch) || 0 };
+}
+
+export async function resetCloudWorkspace(scope: "business", confirmWorkspace: string): Promise<{ success: boolean; resetEpoch: number; deleted: Record<string, number> }> {
+  const r = await fetch(`${baseUrl()}/v1/admin/reset`, {
+    method: "POST",
+    headers: headers({ "content-type": "application/json" }),
+    body: JSON.stringify({ scope, confirm: confirmWorkspace })
+  });
+  const bodyText = await r.text();
+  if (!r.ok) {
+    throwIfResetEpochConflict(r.status, bodyText);
+    throw new Error(bodyText || `Cloud reset failed (${r.status}).`);
+  }
+  const parsed = JSON.parse(bodyText) as { resetEpoch?: number; deleted?: Record<string, number> };
+  return { success: true, resetEpoch: Number(parsed.resetEpoch) || 0, deleted: parsed.deleted || {} };
 }

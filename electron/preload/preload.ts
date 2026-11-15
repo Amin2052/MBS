@@ -1241,6 +1241,37 @@ erpControl: {
   factoryReset: () =>
     ipcRenderer.invoke(
       "erp:factoryReset"
+    ),
+
+
+  // Cloud-aware reset surfaces. All four are Owner-only AND require the
+  // owner's password again inside the main process (see main.ts reset:local /
+  // reset:cloud / reset:complete), so the renderer can hide the buttons but
+  // cannot skip either gate.
+  preview: () =>
+    ipcRenderer.invoke(
+      "reset:preview"
+    ),
+
+
+  local: (data: { password: string }) =>
+    ipcRenderer.invoke(
+      "reset:local",
+      data
+    ),
+
+
+  cloud: (data: { password: string; confirmWorkspace: string }) =>
+    ipcRenderer.invoke(
+      "reset:cloud",
+      data
+    ),
+
+
+  complete: (data: { password: string; confirmation: string }) =>
+    ipcRenderer.invoke(
+      "reset:complete",
+      data
     )
 
 

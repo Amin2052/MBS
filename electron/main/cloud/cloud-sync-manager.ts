@@ -6,8 +6,10 @@ import { getDatabase } from "../../../src/database/database";
 import { getCloudConfig, getDeviceId } from "./cloud-config-service";
 import {
   createCloudRecord, updateCloudRecord, deleteCloudRecord, listCloudRecords,
-  upsertCloudUser, syncCloudPermissions, CloudSyncConflictError, CloudSyncRevisionConflictError
+  upsertCloudUser, syncCloudPermissions, CloudSyncConflictError, CloudSyncRevisionConflictError,
+  CloudResetRequiredError
 } from "./cloud-client";
+import { rebaselineToResetEpoch } from "./cloud-reset-service";
 import {
   getMappingByCloudId, getMappingByLocalRow, upsertMapping, markMappingConflicted, deleteMappingByLocalRow,
   getSyncCursor, setSyncCursor, enqueueOfflineOperation, listOfflineQueue, removeOfflineQueueItem, recordOfflineQueueFailure
@@ -87,6 +89,10 @@ function isPullable(table: string): table is PullableTable { return (PULLABLE_TA
 let timer: NodeJS.Timeout | null = null;
 let running = false;
 let syncInFlight = false;
+// Set when the Worker refuses a write because this device's reset epoch is
+// stale. The cycle finishes its current table, then re-baselines once (see
+// the end of syncOnce) instead of retrying the same doomed write forever.
+let resetPendingEpoch: number | null = null;
 
 function statePath(): string { return path.join(app.getPath("userData"), "cloud-sync-state.json"); }
 
@@ -392,6 +398,13 @@ async function syncTable(table: string): Promise<SyncTableResult> {
         markMappingConflicted(table, mapping!.cloud_local_id);
         result.conflicts.push({ table, type: "revision", localId: mapping!.cloud_local_id, message: error.message });
         console.warn(`MBS Cloud sync revision conflict [${table}] ${mapping!.cloud_local_id}: local mapping thought revision=${mapping!.revision}, server says expected=${error.expectedRevision} actual=${error.currentRevision}`);
+      } else if (error instanceof CloudResetRequiredError) {
+        // A central reset happened while this device still held pre-reset
+        // records. Do not queue, do not retry: re-baseline after this cycle
+        // (see syncOnce).
+        resetPendingEpoch = error.currentEpoch;
+        console.warn(`MBS Cloud sync stopped [${table}]: central data was reset (epoch ${error.currentEpoch}); re-baselining.`);
+        break;
       } else if (isNetworkError(error)) {
         enqueueOfflineOperation({
           id: `${mapping ? "update" : "create"}:${compositeId}`,
@@ -659,6 +672,22 @@ async function syncOnce(): Promise<void> {
         deletedLocally += pullResult.deletedLocally;
         errors += pullResult.errors;
       }
+    }
+    if (resetPendingEpoch !== null) {
+      const epoch = resetPendingEpoch;
+      resetPendingEpoch = null;
+      // Cloud is authoritative after a reset: drop this device's pre-reset
+      // business rows, every mapping/cursor and any queued offline write
+      // (replaying one would recreate a deleted record), then adopt the new
+      // epoch so the next cycle is a clean first sync.
+      await rebaselineToResetEpoch(epoch);
+      await saveState({
+        users: 0, userErrors: [], permissionsSynced: false, permissionsError: null,
+        records: 0, pulled: 0, deletedPushed: 0, deletedLocally: 0, errors: 0, queued: 0,
+        offlineDrained: 0, conflicts: [], resetEpoch: epoch, resetRebaselined: true
+      });
+      console.warn(`MBS Cloud: central business data was reset (epoch ${epoch}). Cleared this device's pre-reset copies and re-baselined.`);
+      return;
     }
     await saveState({
       users: userResult.users, userErrors: userResult.userErrors,

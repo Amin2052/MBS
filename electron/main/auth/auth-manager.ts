@@ -328,6 +328,31 @@ export function getActiveSessionUserType(): "owner" | "administrator" | "employe
 
 }
 
+/**
+ * Re-authenticates the CURRENT session's user against a password typed into
+ * a destructive-operation dialog. Deliberately not a new login: it never
+ * creates a session, never changes the active user, and returns a boolean.
+ * The only thing a caller may do with it is gate an already-authorized
+ * action (the cloud/complete reset handlers in main.ts) -- changePassword()
+ * would be wrong here because it mutates the password, and the recovery-key
+ * flow is a different threat model entirely.
+ */
+export async function verifyActiveUserPassword(password: string): Promise<boolean> {
+
+  if (!activeSession || typeof password !== "string" || !password) {
+    return false;
+  }
+
+  const user = getUserById(activeSession.userId);
+
+  if (!user) {
+    return false;
+  }
+
+  return verifyPassword(password, user.password_hash);
+
+}
+
 export async function changePassword(
   currentPassword: string,
   newPassword: string
