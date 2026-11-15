@@ -125,7 +125,9 @@ says otherwise.
 | F27 | **Saving an empty Add Customer / Add Product dialog did nothing at all.** Both handlers opened with a bare `if(!form.name) return;` — no message, no border, no toast, dialog simply stayed open. This is the worst kind of validation failure: the click appears ignored. | High | Fixed — inline `.form-error` with `role="alert"`, cleared on open/submit, 3-locale messages | `customers-page.tsx`, `products-page.tsx`, `atelier.css`, `i18n/*` |
 | F28 | **Escape did not close any create/edit dialog.** All 7 dialogs (customers, products, orders, invoices ×2, accounting, employees, certificates) were mouse-only, so a keyboard user had to tab to the × button. | High (accessibility) | Fixed — shared `useEscapeKey` hook wired into all 7 | `src/hooks/use-escape-key.ts` + 6 pages |
 | F29 | The Employees dialog heading was hardcoded English (`{editId ? "Edit" : "New"} Employee`) inside an otherwise fully translated dialog. | Medium | Fixed — `common.new` / `common.edit` + `employees.employee` | `employees-page.tsx`, `i18n/*` |
-| F30 | Orders validates with native `window.alert("Select Customer.")` — unlocalised and inconsistent with the new inline pattern (Products mixes both). | Medium | **Open — recommended follow-up**: functional, but it is a blocking OS dialog with hardcoded English; converting it needs i18n keys plus inline markup inside the order form. | `orders-page.tsx`, `products-page.tsx` |
+| F30 | Orders validated with native `window.alert()` calls carrying hardcoded English ("Select Customer.", "Select a product for every line.", …), and its submit button read "Saving..." / "Save Order" as literals. | Medium | Fixed — 4 alerts became inline `role="alert"` messages + `orders.customerRequired/productRequired/duplicateProduct/quantityInvalid` (and the dialog now reports a save failure inline instead of blocking the window). Same treatment for Employees' save validation. | `orders-page.tsx`, `employees-page.tsx`, `i18n/*` |
+| F33 | The New/Edit Employee dialog reported its validation by native `alert()` even though `validateForm()` already returned a translated string. | Medium | Fixed — inline message; the button's "Saving..." literal now uses `common.saving` | `employees-page.tsx`, `i18n/*` |
+| F34 | Five secondary dialogs in Employees (profile-photo picker failure, contract extension date checks, extension reason) still use native `alert()` for errors and date validation. | Low | **Open — recommended follow-up**: these are error paths inside the contract-management dialogs rather than create-form validation; converting them is mechanical but was outside this pass. | `employees-page.tsx` |
 | F31 | Certificates dialog heading and category filter derive their wording from the English literals `"Employee"` / `"Product"`, which are used as both data and label, so they cannot be translated without mapping the category through i18n. | Medium | **Open — recommended follow-up** | `certificates-page.tsx` |
 | F32 | The Invoices and Certificates create dialogs could not be opened by the interaction harness's button matcher, so their submit paths were not exercised interactively. | Low (coverage) | **Open — coverage gap, not a known defect** | — |
 
@@ -149,6 +151,7 @@ Non-findings worth recording:
 | `scripts/qa/smoke-electron.mjs` | App boots, renders, **0 console errors, 0 page errors** |
 | `scripts/qa/capture-shell.mjs` | 24 screenshots: 4 window sizes × 3 languages × 2 themes, 0 renderer errors |
 | `scripts/qa/capture-routes.mjs` | Authenticated walk: trial activated and Owner created through the real IPC handlers, then **all 30 routes** captured at 1366×768/en/dark plus a 7-route × 2-sizes × 3-languages × 2-themes matrix — **0 renderer errors, 0 empty renders** |
+| `scripts/qa/happy-path.mjs` | Write path verified end to end: a filled Add Customer and Add Product dialog saves, the row appears in the list, and it is still there after a full reload (proves it reached SQLite over IPC). Empty submits create nothing. Theme choice persists across reload. **0 failed assertions, 0 renderer errors.** |
 | `scripts/qa/interact-routes.mjs` | Interaction pass: 6 create dialogs opened, submitted empty, dismissed; shell controls exercised. **0 renderer errors.** Result: 2 silent-validation defects found and fixed, Escape found broken everywhere and fixed, theme toggle / Ctrl+K / notification popover / profile menu verified working |
 
 Captures are in `qa-screenshots/<WxH>/<lang>/<theme>/shell.png` and
@@ -170,10 +173,10 @@ These parts of the brief were **not** executed and must not be reported as compl
 1. ~~Route-by-route authenticated walk~~ — **now done** (`capture-routes.mjs`): every route
    was reached and captured. ~~Interaction~~ — **partially done** (`interact-routes.mjs`):
    the Customers, Products, Orders, Employees, Accounting and Invoices dialogs were opened,
-   submitted empty and dismissed with Escape, and the shell controls were exercised. Still
-   uncovered: full happy-path creation (filling a form and asserting the record appears),
-   editing, deletion and the delete-confirmation dialogs, and the Invoices/Certificates
-   create dialogs (F32).
+   submitted empty and dismissed with Escape, and the shell controls were exercised.   Still
+   uncovered: editing, deletion and the delete-confirmation dialogs, and the
+   Invoices/Certificates create dialogs (F32). Happy-path creation for Customers and
+   Products — including persistence across a reload — is now covered by `happy-path.mjs`.
 2. **Hand-redesign of all 11 modules and 19 settings subpages.** They inherit the new tokens
    automatically and were verified to render, but their individual layouts were not
    re-authored page by page.

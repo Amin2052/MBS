@@ -159,6 +159,11 @@ function OrderModal({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Validation used to fire native window.alert() calls with hardcoded English
+  // text, which blocked the whole window and ignored the app's language. The
+  // dialog now reports problems inline, like the other data-entry forms.
+  const [orderError, setOrderError] = useState<string | null>(null);
+
   const orderTotal = useMemo(() => form.lines.reduce((sum, line) => {
     return sum + Number(line.quantity || 0) * Number(line.unit_price || 0);
   }, 0), [form.lines]);
@@ -205,8 +210,10 @@ function OrderModal({
   }
 
   async function saveOrder() {
+    setOrderError(null);
+
     if (!form.customer_id) {
-      alert("Select Customer.");
+      setOrderError(t("orders.customerRequired"));
       return;
     }
     if (isSubmitting) return;
@@ -220,15 +227,15 @@ function OrderModal({
     }));
 
     if (items.some(item => !item.product_id || !item.product_name)) {
-      alert("Select a product for every line.");
+      setOrderError(t("orders.productRequired"));
       return;
     }
     if (new Set(items.map(item => item.product_id)).size !== items.length) {
-      alert("A product can only be added once to the same order.");
+      setOrderError(t("orders.duplicateProduct"));
       return;
     }
     if (items.some(item => !Number.isFinite(item.quantity) || item.quantity <= 0)) {
-      alert("Quantity must be a positive number.");
+      setOrderError(t("orders.quantityInvalid"));
       return;
     }
 
@@ -244,7 +251,7 @@ function OrderModal({
       });
     } catch (error) {
       console.error("Failed to save order:", error);
-      window.alert(error instanceof Error ? error.message : t("orders.saveFailed"));
+      setOrderError(error instanceof Error ? error.message : t("orders.saveFailed"));
       return;
     } finally {
       setIsSubmitting(false);
@@ -332,12 +339,16 @@ function OrderModal({
             </select>
           </div>
 
+          {orderError && (
+            <p className="form-error" role="alert">{orderError}</p>
+          )}
+
           <button
             className="save-order"
             onClick={saveOrder}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Saving..." : "Save Order"}
+            {isSubmitting ? t("orders.saving") : t("orders.saveOrder")}
           </button>
 
         </div>

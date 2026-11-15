@@ -336,6 +336,8 @@ export default function EmployeesPage(): JSX.Element {
   const [showModal, setShowModal] = useState(false);
 
   useEscapeKey(showModal, () => setShowModal(false));
+
+  const [formError, setFormError] = useState<string | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<EmployeeForm>(emptyForm());
 
@@ -485,6 +487,7 @@ export default function EmployeesPage(): JSX.Element {
     setPendingPhotoDataUrl(undefined);
     setCurrentContract(null);
     setContractHistory([]);
+    setFormError(null);
     setShowModal(true);
 
   }
@@ -573,6 +576,7 @@ export default function EmployeesPage(): JSX.Element {
       await loadContracts(emp.id);
     }
 
+    setFormError(null);
     setShowModal(true);
 
   }
@@ -700,9 +704,13 @@ export default function EmployeesPage(): JSX.Element {
     const validationError = validateForm();
 
     if (validationError) {
-      window.alert(validationError);
+      // Was window.alert(); the dialog now reports it inline, like every other
+      // data-entry form in the app.
+      setFormError(validationError);
       return;
     }
+
+    setFormError(null);
 
     // Prevent a fast double-click (or a slow IPC round trip) from
     // submitting the same employee twice.
@@ -1403,8 +1411,12 @@ export default function EmployeesPage(): JSX.Element {
                 <X size={16} />
                 {t("common.cancel")}
               </button>
+              {formError && (
+                <p className="form-error" role="alert">{formError}</p>
+              )}
+
               <button className="save-btn" onClick={saveEmployee} disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : t("employees.saveEmployee")}
+                {isSubmitting ? t("common.saving") : t("employees.saveEmployee")}
               </button>
             </div>
 

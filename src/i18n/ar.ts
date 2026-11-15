@@ -13,6 +13,7 @@ const ar: TranslationDictionary = {
     new: "جديد",
     delete: "حذف",
     save: "حفظ",
+    saving: "جارٍ الحفظ…",
     cancel: "إلغاء",
     view: "عرض",
     print: "طباعة",
@@ -284,7 +285,13 @@ const ar: TranslationDictionary = {
     loadingOrders: "جارٍ تحميل الطلبات...",
     confirmDelete: "هل تريد حذف هذا الطلب؟",
     saveFailed: "تعذر حفظ هذا الطلب. يرجى المحاولة مرة أخرى.",
-    deleteFailed: "تعذر حذف هذا الطلب. يرجى المحاولة مرة أخرى."
+    deleteFailed: "تعذر حذف هذا الطلب. يرجى المحاولة مرة أخرى.",
+    customerRequired: "اختر عميلًا قبل حفظ الطلب.",
+    productRequired: "اختر منتجًا لكل سطر.",
+    duplicateProduct: "لا يمكن إضافة المنتج نفسه أكثر من مرة في الطلب.",
+    quantityInvalid: "يجب أن تكون الكمية رقمًا موجبًا.",
+    saveOrder: "حفظ الطلب",
+    saving: "جارٍ الحفظ…",
   },
 
   inventory: {

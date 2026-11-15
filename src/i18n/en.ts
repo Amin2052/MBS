@@ -11,6 +11,7 @@ const en = {
     new: "New",
     delete: "Delete",
     save: "Save",
+    saving: "Saving…",
     cancel: "Cancel",
     view: "View",
     print: "Print",
@@ -285,7 +286,13 @@ const en = {
     loadingOrders: "Loading orders...",
     confirmDelete: "Delete this order?",
     saveFailed: "Could not save this order. Please try again.",
-    deleteFailed: "Could not delete this order. Please try again."
+    deleteFailed: "Could not delete this order. Please try again.",
+    customerRequired: "Select a customer before saving the order.",
+    productRequired: "Select a product for every line.",
+    duplicateProduct: "A product can only appear once in the same order.",
+    quantityInvalid: "Quantity must be a positive number.",
+    saveOrder: "Save Order",
+    saving: "Saving…",
   },
 
   inventory: {

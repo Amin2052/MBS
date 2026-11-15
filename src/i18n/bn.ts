@@ -13,6 +13,7 @@ const bn: TranslationDictionary = {
     new: "নতুন",
     delete: "মুছুন",
     save: "সংরক্ষণ",
+    saving: "সংরক্ষণ করা হচ্ছে…",
     cancel: "বাতিল",
     view: "দেখুন",
     print: "প্রিন্ট",
@@ -284,7 +285,13 @@ const bn: TranslationDictionary = {
     loadingOrders: "অর্ডার লোড হচ্ছে...",
     confirmDelete: "এই অর্ডারটি মুছে ফেলবেন?",
     saveFailed: "এই অর্ডার সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
-    deleteFailed: "এই অর্ডার মুছে ফেলা যায়নি। আবার চেষ্টা করুন।"
+    deleteFailed: "এই অর্ডার মুছে ফেলা যায়নি। আবার চেষ্টা করুন।",
+    customerRequired: "অর্ডার সংরক্ষণের আগে গ্রাহক নির্বাচন করুন।",
+    productRequired: "প্রতিটি সারিতে একটি পণ্য নির্বাচন করুন।",
+    duplicateProduct: "একই অর্ডারে একটি পণ্য একবারই রাখা যাবে।",
+    quantityInvalid: "পরিমাণ অবশ্যই শূন্যের বেশি হতে হবে।",
+    saveOrder: "অর্ডার সংরক্ষণ করুন",
+    saving: "সংরক্ষণ করা হচ্ছে…",
   },
 
   inventory: {
