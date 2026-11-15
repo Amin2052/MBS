@@ -130,6 +130,53 @@ function workspaceForRequest(request, env) {
   return requested;
 }
 
+// ===================================================================
+// F47: API-key verification cache (per isolate)
+// ===================================================================
+// resolveWorkspaceForApiKey() runs on EVERY request and used to pay one
+// scrypt (N=16384) each time -- measured ~800 ms per request under load,
+// against Workers' CPU budget. The expensive part is deriving the key from
+// the stored salt; that derivation is deterministic, so the RESULT cannot
+// change for the same supplied key and the same stored hash. The outcome is
+// therefore memoised per isolate, indexed by SHA-256(workspace + key) (never
+// the raw key), invalidated automatically when the stored hash changes (a
+// key rotation) as well as by the TTL, and bounded in size.
+//
+// Deliberately NOT cached: password login and change-password. Those verify a
+// human's password, where the per-request cost is a feature and the input is
+// not a long-lived installation secret. Only the installation API key is.
+const API_KEY_CACHE_TTL_MS_DEFAULT = 5 * 60 * 1000;
+const API_KEY_CACHE_MAX_ENTRIES = 200;
+const apiKeyVerificationCache = new Map();
+
+function apiKeyCacheTtlMs(env) {
+  const configured = Number(env && env.MBS_API_KEY_CACHE_TTL_MS);
+  return Number.isFinite(configured) && configured >= 0 ? configured : API_KEY_CACHE_TTL_MS_DEFAULT;
+}
+
+// True when the supplied key is proven to belong to `workspace`. `storedHash`
+// is part of the cache identity, so rotating a workspace key takes effect on
+// the very next request rather than after the TTL expires.
+async function apiKeyMatchesCached(env, workspace, suppliedKey, storedHash) {
+  const index = await sha256(`${workspace}\u0000${suppliedKey}`);
+  const ttl = apiKeyCacheTtlMs(env);
+  if (ttl > 0) {
+    const cached = apiKeyVerificationCache.get(index);
+    if (cached && cached.expiresAt > Date.now() && cached.storedHash === storedHash && cached.workspaceId === workspace) {
+      return true;
+    }
+  }
+  const valid = await verifyPassword(suppliedKey, storedHash);
+  if (!valid || ttl <= 0) return valid;
+  apiKeyVerificationCache.set(index, { workspaceId: workspace, storedHash, expiresAt: Date.now() + ttl });
+  while (apiKeyVerificationCache.size > API_KEY_CACHE_MAX_ENTRIES) {
+    const oldest = apiKeyVerificationCache.keys().next().value;
+    if (oldest === undefined) break;
+    apiKeyVerificationCache.delete(oldest);
+  }
+  return true;
+}
+
 // Verifies the supplied x-api-key ACTUALLY belongs to the workspace named
 // by x-workspace-id, by comparing against that workspace's own stored key
 // hash -- not a single Worker-wide secret. Returns the verified
@@ -145,7 +192,7 @@ async function resolveWorkspaceForApiKey(request, env) {
   const row = await env.DB.prepare("SELECT workspace_id, api_key_hash, status FROM workspaces WHERE workspace_id=?").bind(requestedWorkspace).first();
   if (!row || row.status !== "active") return null;
   if (row.api_key_hash) {
-    return (await verifyPassword(suppliedKey, row.api_key_hash)) ? row.workspace_id : null;
+    return (await apiKeyMatchesCached(env, row.workspace_id, suppliedKey, row.api_key_hash)) ? row.workspace_id : null;
   }
   // Legacy bridge, temporary: the one pre-multi-tenant customer
   // ("mooral-main") was provisioned before per-workspace keys existed, and

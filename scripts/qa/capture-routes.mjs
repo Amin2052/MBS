@@ -85,6 +85,15 @@ const wanted = sizeArg ? sizeArg.slice("--sizes=".length).split(",") : null;
 const SIZES = wanted ? ALL_SIZES.filter(s => wanted.includes(`${s.w}x${s.h}`)) : ALL_SIZES;
 const FULL_ONLY = args.includes("--full-only");
 const MATRIX_ONLY = args.includes("--matrix-only");
+// --routes=name,name captures a subset (used to re-shoot one changed screen
+// without re-running the whole 199-image sweep and consuming a fresh trial).
+const routeArg = args.find(a => a.startsWith("--routes="));
+const WANTED_ROUTES = routeArg
+  ? routeArg.slice("--routes=".length).split(",").map(s => s.trim()).filter(Boolean)
+  : null;
+const ROUTES = WANTED_ROUTES
+  ? ALL_ROUTES.filter(r => WANTED_ROUTES.includes(r.name) || WANTED_ROUTES.includes(r.path))
+  : ALL_ROUTES;
 
 const OWNER = {
   username: "qa.owner",
@@ -210,7 +219,9 @@ async function shoot(file) {
   mkdirSync(join(file, ".."), { recursive: true });
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      await page.screenshot({ path: file, timeout: 15000 });
+      // --fullpage captures the whole scrollable route, which is the only way
+      // to see panels below the fold (e.g. the reset panel on Database).
+      await page.screenshot({ path: file, timeout: 15000, fullPage: args.includes("--fullpage") });
       return true;
     } catch {
       await page.waitForTimeout(600);
@@ -259,7 +270,7 @@ try {
     });
     await reload();
 
-    for (const route of ALL_ROUTES) {
+    for (const route of ROUTES) {
       await gotoRoute(route.path);
       const bodyText = await page.evaluate(() => (document.body.innerText || "").trim());
       const empty = bodyText.length < 40;
@@ -276,7 +287,7 @@ try {
 
   // ---------- Pass 2: key routes across sizes / languages / themes ----------
   if (!FULL_ONLY) {
-    const keys = ALL_ROUTES.filter(r => KEY_ROUTE_PATHS.includes(r.path));
+    const keys = ROUTES.filter(r => KEY_ROUTE_PATHS.includes(r.path));
 
     for (const size of SIZES) {
       await app.evaluate(({ BrowserWindow }, dims) => {

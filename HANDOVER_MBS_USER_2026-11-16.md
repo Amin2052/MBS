@@ -272,6 +272,24 @@ See `MBS_USER_INSTALL.md` for the full procedure. Short version:
 **Local reset audited and rebuilt; central reset implemented with a real stale-device guard; the
 employee application exists, is separately installable, and enforces permissions server-side.**
 
-Ready for supervised pilot use. Not ready for unmanaged production rollout until F47 is addressed,
-the installers are signed, and a central reset has been rehearsed against a staging D1 copy with a
-verified backup/restore.
+---
+
+## Addendum (same day): F47 fixed, reset rehearsed, UI captured
+
+- **F47 fixed** in `cloudflare/worker/index.js`: API-key verification results are cached per
+  isolate (SHA-256(workspace + key) index, 5-minute TTL, 200-entry bound, invalidated when the
+  stored hash changes). Measured on the real handler: **55.0 ms → 0.5 ms** warm. Invalid keys,
+  cross-workspace keys and rotated keys remain refused; the cache can be disabled with
+  `MBS_API_KEY_CACHE_TTL_MS=0`. Login/change-password scrypt costs are deliberately unchanged.
+- **Reset + restore rehearsed** (`entry-reset-rehearsal`): 189 rows backed up, central reset run,
+  local copy cleared, backup restored to the **exact same per-table counts**, integrity clean,
+  stale epoch still refused while a re-baselined client repopulates. Temp database only.
+- **UI evidence**: `qa-screenshots/mbs-user/{login,login-error}.png` from the real built app, with
+  the unreachable-server error proven to round-trip through IPC (0 renderer errors); the Database
+  settings route hosting the reset panel re-captured with 0 renderer errors.
+- Not obtained: a full-page image of the reset panel's lower confirmation section (the route
+  scrolls in an inner container), and two-physical-PC MBS-user testing.
+
+Ready for supervised pilot use. Still not ready for unmanaged production rollout: the installers
+are unsigned, no central reset has been run against live production D1 (only a rehearsal on the
+real schema), and F47's mitigation should be re-measured under real Cloudflare traffic.
