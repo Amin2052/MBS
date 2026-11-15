@@ -54,7 +54,20 @@ export async function startRealWorkerServer(env: Record<string, unknown>): Promi
     server.listen(0, "127.0.0.1", () => {
       const addr = server.address();
       const port = typeof addr === "object" && addr ? addr.port : 0;
-      resolve({ url: `http://127.0.0.1:${port}`, close: () => new Promise((r) => server.close(() => r())) });
+      resolve({
+        url: `http://127.0.0.1:${port}`,
+        // keepAliveTimeout = 0 above means idle sockets are never reaped by
+        // the server, so server.close() alone would wait forever for the
+        // client's pooled keep-alive sockets (observed as an entry that logs
+        // every PASS and then hangs until the runner's bound). Close them
+        // explicitly, with a short fallback so a stuck socket can never turn
+        // a finished test into a TIMEOUT.
+        close: () => new Promise<void>((resolve) => {
+          server.closeAllConnections?.();
+          const fallback = setTimeout(resolve, 2000);
+          server.close(() => { clearTimeout(fallback); resolve(); });
+        })
+      });
     });
   });
 }
