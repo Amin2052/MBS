@@ -360,6 +360,8 @@ const en = {
     title: "Employees",
     addEmployee: "Add Employee",
     saveEmployee: "Save Employee",
+    newEmployeeTitle: "New Employee",
+    editEmployeeTitle: "Edit Employee",
     noEmployeesFound: "No employees found.",
     basicInformation: "Basic Information",
     name: "Name",

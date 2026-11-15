@@ -359,6 +359,8 @@ const bn: TranslationDictionary = {
     title: "কর্মচারী",
     addEmployee: "কর্মচারী যোগ করুন",
     saveEmployee: "কর্মচারী সংরক্ষণ করুন",
+    newEmployeeTitle: "নতুন কর্মচারী",
+    editEmployeeTitle: "কর্মচারী সম্পাদনা",
     noEmployeesFound: "কোনো কর্মচারী পাওয়া যায়নি।",
     basicInformation: "মৌলিক তথ্য",
     name: "নাম",

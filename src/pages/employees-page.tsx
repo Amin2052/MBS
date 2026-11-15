@@ -1059,7 +1059,7 @@ export default function EmployeesPage(): JSX.Element {
         <div className="employee-modal-overlay">
           <div className="employee-modal" onClick={(e) => e.stopPropagation()}>
 
-            <h2>{editId ? t("common.edit") : t("common.new")} {t("employees.employee")}</h2>
+            <h2>{editId ? t("employees.editEmployeeTitle") : t("employees.newEmployeeTitle")}</h2>
 
             <div className="employee-photo-section">
 

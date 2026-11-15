@@ -52,6 +52,8 @@
   font-size: var(--text-sm);
   font-weight: 600;
   line-height: 1.35;
+  unicode-bidi: plaintext;
+  text-align: start;
 }
 
 .toast-message {
@@ -61,6 +63,12 @@
   /* Long paths and error strings must wrap rather than widen the stack. */
   overflow-wrap: anywhere;
   color: var(--foreground);
+  /* Messages are written in the UI language, but an English error string can
+     still appear inside an Arabic shell. `plaintext` gives each message the
+     direction of its own first strong character, so an English sentence keeps
+     its full stop at the end instead of flipping it to the visual left. */
+  unicode-bidi: plaintext;
+  text-align: start;
 }
 
 /* A message that is only a sentence keeps the full width for reading. */

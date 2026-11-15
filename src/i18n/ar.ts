@@ -359,6 +359,8 @@ const ar: TranslationDictionary = {
     title: "الموظفون",
     addEmployee: "إضافة موظف",
     saveEmployee: "حفظ الموظف",
+    newEmployeeTitle: "موظف جديد",
+    editEmployeeTitle: "تعديل الموظف",
     noEmployeesFound: "لم يتم العثور على موظفين.",
     basicInformation: "المعلومات الأساسية",
     name: "الاسم",

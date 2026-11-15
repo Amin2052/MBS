@@ -389,6 +389,13 @@ export default function ReportsPage(): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  // Until the first load resolves every total is still its 0 initial value, so
+  // the cards used to read "Total Sales 0.00" for a second and look like an
+  // empty business rather than a page that is still fetching. Show a dash
+  // instead, and only on that first load: a later refresh keeps the previous
+  // numbers on screen rather than blanking them.
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const pendingFirstLoad = loading && !hasLoadedOnce;
 
   // Company profile (name + logo) for the printable/on-screen-print report
   // header (see the .printable-report block below). This is the same data
@@ -501,6 +508,8 @@ export default function ReportsPage(): JSX.Element {
       });
 
       setLastUpdated(new Date());
+      setHasLoadedOnce(true);
+
     } catch (err) {
       console.error("REPORT ERROR:", err);
       setError(t("reports.loadFailed"));
@@ -1381,11 +1390,11 @@ export default function ReportsPage(): JSX.Element {
 
       {/* EXECUTIVE DASHBOARD */}
       {showSection("executive") && (
-        <div className="reports-summary-grid">
+        <div className="reports-summary-grid" aria-busy={pendingFirstLoad}>
           {filteredExecutiveCards.map(card => (
             <div className="reports-card" key={card.title}>
               <span>{card.title}</span>
-              <strong>{card.value}</strong>
+              <strong>{pendingFirstLoad ? "—" : card.value}</strong>
             </div>
           ))}
 
@@ -1404,7 +1413,7 @@ export default function ReportsPage(): JSX.Element {
           {filteredSalesAnalyticsCards.map(card => (
             <div className="reports-sales-card" key={card.title}>
               <span>{card.title}</span>
-              <strong>{card.value}</strong>
+              <strong>{pendingFirstLoad ? "—" : card.value}</strong>
             </div>
           ))}
 
@@ -1518,7 +1527,7 @@ export default function ReportsPage(): JSX.Element {
           {filteredInventoryCards.map(card => (
             <div className="reports-sales-card" key={card.title}>
               <span>{card.title}</span>
-              <strong>{card.value}</strong>
+              <strong>{pendingFirstLoad ? "—" : card.value}</strong>
             </div>
           ))}
 
@@ -1538,7 +1547,7 @@ export default function ReportsPage(): JSX.Element {
           {filteredAccountingCards.map(card => (
             <div className="reports-sales-card" key={card.title}>
               <span>{card.title}</span>
-              <strong>{card.value}</strong>
+              <strong>{pendingFirstLoad ? "—" : card.value}</strong>
             </div>
           ))}
 
@@ -1595,7 +1604,7 @@ export default function ReportsPage(): JSX.Element {
           {reportOverviewCards.map(card => (
             <div className="reports-overview-card" key={card.title}>
               <span>{card.title}</span>
-              <strong>{card.value}</strong>
+              <strong>{pendingFirstLoad ? "—" : card.value}</strong>
             </div>
           ))}
         </div>
@@ -1638,7 +1647,7 @@ export default function ReportsPage(): JSX.Element {
               {executiveCards.map(card => (
                 <tr key={card.title}>
                   <td>{card.title}</td>
-                  <td className="print-align-right">{card.value}</td>
+                  <td className="print-align-right">{pendingFirstLoad ? "—" : card.value}</td>
                 </tr>
               ))}
             </tbody>
@@ -1652,7 +1661,7 @@ export default function ReportsPage(): JSX.Element {
               {salesAnalyticsCards.map(card => (
                 <tr key={card.title}>
                   <td>{card.title}</td>
-                  <td className="print-align-right">{card.value}</td>
+                  <td className="print-align-right">{pendingFirstLoad ? "—" : card.value}</td>
                 </tr>
               ))}
             </tbody>
@@ -1666,7 +1675,7 @@ export default function ReportsPage(): JSX.Element {
               {inventoryCards.map(card => (
                 <tr key={card.title}>
                   <td>{card.title}</td>
-                  <td className="print-align-right">{card.value}</td>
+                  <td className="print-align-right">{pendingFirstLoad ? "—" : card.value}</td>
                 </tr>
               ))}
             </tbody>
@@ -1680,7 +1689,7 @@ export default function ReportsPage(): JSX.Element {
               {accountingCards.map(card => (
                 <tr key={card.title}>
                   <td>{card.title}</td>
-                  <td className="print-align-right">{card.value}</td>
+                  <td className="print-align-right">{pendingFirstLoad ? "—" : card.value}</td>
                 </tr>
               ))}
             </tbody>
