@@ -12,6 +12,14 @@
  * Everything runs against a disposable --user-data-dir, so no real workspace is
  * touched.
  *
+ * Prerequisite: an unpackaged Electron run loads http://localhost:5173
+ * (`isDev = !app.isPackaged`), so the QA renderer server must already be up:
+ *
+ *   npx vite --config scripts/qa/vite.qa.config.mjs
+ *
+ * Without it the app opens no window and this script fails with
+ * "No renderer window appeared".
+ *
  * Usage: node scripts/qa/happy-path.mjs
  */
 import { _electron as electron } from "@playwright/test";

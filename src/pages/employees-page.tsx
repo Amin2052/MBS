@@ -355,10 +355,12 @@ export default function EmployeesPage(): JSX.Element {
   // openAdd), never derived from the employees list itself.
   const [currentContract, setCurrentContract] = useState<EmployeeContract | null>(null);
   const [contractHistory, setContractHistory] = useState<EmployeeContract[]>([]);
-  const [isLoadingContracts, setIsLoadingContracts] = useState(false);
+  const [isLoadingContracts, setIsLoadingContracts] = useState(false);  const [showExtendDialog, setShowExtendDialog] = useState(false);
 
-  const [showExtendDialog, setShowExtendDialog] = useState(false);
+  const [extendError, setExtendError] = useState<string | null>(null);
+
   const [extendEndDate, setExtendEndDate] = useState("");
+
   const [extendReason, setExtendReason] = useState("");
   const [isExtending, setIsExtending] = useState(false);
 
@@ -624,7 +626,7 @@ export default function EmployeesPage(): JSX.Element {
     catch (error) {
 
       console.error("Failed to pick employee photo:", error);
-      window.alert(t("employees.photoPickerFailed"));
+      setFormError(t("employees.photoPickerFailed"));
 
     }
     finally {
@@ -814,7 +816,7 @@ export default function EmployeesPage(): JSX.Element {
 
       console.error("Failed to save employee:", error);
 
-      window.alert(
+      setFormError(
         error instanceof Error
           ? error.message
           : t("employees.saveFailed")
@@ -863,6 +865,7 @@ export default function EmployeesPage(): JSX.Element {
 
     setExtendEndDate(currentContract?.contract_end_date ? currentContract.contract_end_date.slice(0, 10) : "");
     setExtendReason("");
+    setExtendError(null);
     setShowExtendDialog(true);
 
   }
@@ -873,18 +876,20 @@ export default function EmployeesPage(): JSX.Element {
 
     if (!contract || !contract.id) return;
 
+    setExtendError(null);
+
     if (!extendEndDate) {
-      window.alert(t("employees.contractEndDateRequired"));
+      setExtendError(t("employees.contractEndDateRequired"));
       return;
     }
 
     if (new Date(extendEndDate).getTime() < new Date(contract.contract_start_date).getTime()) {
-      window.alert(t("employees.contractEndDateBeforeStart"));
+      setExtendError(t("employees.contractEndDateBeforeStart"));
       return;
     }
 
     if (!extendReason.trim()) {
-      window.alert(t("employees.extensionReasonRequired"));
+      setExtendError(t("employees.extensionReasonRequired"));
       return;
     }
 
@@ -910,7 +915,7 @@ export default function EmployeesPage(): JSX.Element {
 
       console.error("Failed to extend contract:", error);
 
-      window.alert(
+      setExtendError(
         error instanceof Error
           ? error.message
           : t("employees.extendContractFailed")
@@ -1516,6 +1521,10 @@ export default function EmployeesPage(): JSX.Element {
                 onChange={(e) => setExtendReason(e.target.value)}
               />
             </div>
+
+            {extendError && (
+              <p className="form-error" role="alert">{extendError}</p>
+            )}
 
             <div className="employee-modal-actions">
               <button className="cancel-btn" onClick={() => setShowExtendDialog(false)} disabled={isExtending}>
