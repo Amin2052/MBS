@@ -304,6 +304,12 @@ export default function InvoicesPage(): JSX.Element {
     useState(false);
 
 
+  // Inline validation/save message for the edit dialog, matching the other
+  // data-entry dialogs -- no native alert() boxes.
+  const [formError,setFormError] =
+    useState<string|null>(null);
+
+
 
 
   const [form,setForm] = useState({
@@ -674,6 +680,9 @@ export default function InvoicesPage(): JSX.Element {
 
 
 
+    setFormError(null);
+
+
     setShowModal(true);
 
   }
@@ -688,9 +697,12 @@ export default function InvoicesPage(): JSX.Element {
   async function saveInvoice(){
 
 
+    setFormError(null);
+
+
     if(!form.customer_name.trim()){
 
-      alert(t("invoices.validationCustomer"));
+      setFormError(t("invoices.validationCustomer"));
 
       return;
 
@@ -797,7 +809,7 @@ export default function InvoicesPage(): JSX.Element {
     if(validItems.length === 0){
 
 
-      alert(
+      setFormError(
         t("invoices.validationItems")
       );
 
@@ -914,7 +926,7 @@ export default function InvoicesPage(): JSX.Element {
 
       console.error("Failed to save invoice:", error);
 
-      window.alert(
+      setFormError(
         error instanceof Error
           ? error.message
           : t("invoices.saveFailed")
@@ -2594,6 +2606,13 @@ export default function InvoicesPage(): JSX.Element {
 
 
 
+
+
+              {formError && (
+
+                <p className="form-error" role="alert">{formError}</p>
+
+              )}
 
 
               <button
