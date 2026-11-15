@@ -47,14 +47,22 @@ const isWindows = process.platform === "win32";
  * on a network call hangs the entire suite with no output and no exit code --
  * which is exactly what happened on this machine while auditing. A timeout
  * now reports TIMEOUT and fails the run instead of stalling it.
+ *
+ * The default is 300s, not 180s: measured on this machine, the two cloud-sync
+ * entries finish in ~170s and ~110s on their own, but the same work under a
+ * full-suite run (other Electron instances still winding down, cold disk
+ * after the previous entry) pushed them past a 180s bound. A bound that trips
+ * on a slow machine is a false failure, not a hang; pass a smaller value when
+ * deliberately probing for a stall.
  */
 const onlyArg = process.argv.find(arg => arg.startsWith("--only="));
 const onlyFilter = onlyArg ? onlyArg.slice("--only=".length) : "";
 
+const DEFAULT_TIMEOUT_MS = 300000;
 const timeoutArg = process.argv.find(arg => arg.startsWith("--timeout="));
 const entryTimeoutMs = timeoutArg
-  ? Number(timeoutArg.slice("--timeout=".length)) || 180000
-  : 180000;
+  ? Number(timeoutArg.slice("--timeout=".length)) || DEFAULT_TIMEOUT_MS
+  : DEFAULT_TIMEOUT_MS;
 
 const entries = fs
   .readdirSync(entriesDir)
