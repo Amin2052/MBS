@@ -59,6 +59,25 @@ async function main() {
   const env: any = { DB: shim.DB, MBS_CORS_ORIGIN: "http://localhost", MBS_ADMIN_KEY: ADMIN_KEY };
   const worker = await startRealWorkerServer(env);
 
+  // Reads the Worker's own `/v1/data/<collection>` endpoint to check what
+  // actually landed in the cloud, rather than trusting the app's push didn't
+  // throw. These are harness sanity checks, not assertions about app
+  // behaviour, so a transient loopback TCP reset (observed once when the whole
+  // 12-entry suite was running and every entry's Electron instance competed
+  // for the machine) gets one retry instead of aborting the run with an
+  // unhandled `fetch failed`. HTTP-level failures are NOT retried: a 500 or a
+  // missing row still fails the assertion that follows.
+  async function workerData(path: string): Promise<Response> {
+    const headers = { "x-workspace-id": WORKSPACE, "x-api-key": API_KEY };
+    try {
+      return await fetch(`${worker.url}${path}`, { headers });
+    } catch (err) {
+      console.log(`harness: retrying ${path} after ${(err as Error).message}`);
+      await new Promise(resolve => setTimeout(resolve, 250));
+      return await fetch(`${worker.url}${path}`, { headers });
+    }
+  }
+
   async function adminCreateWorkspace(workspaceId: string): Promise<string> {
     const response = await fetch(`${worker.url}/v1/admin/workspaces`, {
       method: "POST", headers: { "content-type": "application/json", "x-admin-key": ADMIN_KEY }, body: JSON.stringify({ workspaceId, name: workspaceId })
@@ -131,7 +150,7 @@ async function main() {
   assertTrue(!!mappingAfterPush, "PC A: cloud_sync_map recorded a mapping for the pushed product");
   assertEqual(mappingAfterPush!.revision, 1, "PC A: pushed product starts at cloud revision 1");
 
-  const cloudCheck = await fetch(`${worker.url}/v1/data/products`, { headers: { "x-workspace-id": WORKSPACE, "x-api-key": API_KEY } });
+  const cloudCheck = await workerData("/v1/data/products");
   const cloudCheckBody = await cloudCheck.json() as { rows: any[] };
   const cloudWidget = cloudCheckBody.rows.find((r: any) => r.sku === "WID-1");
   assertTrue(!!cloudWidget, "Cloud actually received PC A's product (verified directly against the Worker, not just trusting the push didn't throw)");
@@ -241,7 +260,7 @@ async function main() {
   const mappingBAfterConflict = getMappingByLocalRow("products", localIdOnB);
   assertEqual(mappingBAfterConflict!.revision, 2, "PC B: mapping revision deliberately NOT bumped on a rejected push");
 
-  const cloudAfterConflict = await fetch(`${worker.url}/v1/data/products`, { headers: { "x-workspace-id": WORKSPACE, "x-api-key": API_KEY } });
+  const cloudAfterConflict = await workerData("/v1/data/products");
   const cloudAfterConflictBody = await cloudAfterConflict.json() as { rows: any[] };
   const cloudWidgetAfterConflict = cloudAfterConflictBody.rows.find((r: any) => r.local_id === mappingAfterPush!.cloud_local_id);
   assertEqual(cloudWidgetAfterConflict?.name, "Widget Pro (A's price)", "CORRECTNESS: cloud still holds A's successfully-pushed version");
@@ -263,7 +282,7 @@ async function main() {
   const queueAfterOfflineWrite = listOfflineQueue();
   assertTrue(queueAfterOfflineWrite.some(q => q.collection === "products" && q.operation === "create"), "PC A: offline local write entered sync_offline_queue instead of being lost or throwing");
 
-  const cloudDuringOutage = await fetch(`${worker.url}/v1/data/products`, { headers: { "x-workspace-id": WORKSPACE, "x-api-key": API_KEY } });
+  const cloudDuringOutage = await workerData("/v1/data/products");
   const cloudDuringOutageBody = await cloudDuringOutage.json() as { rows: any[] };
   assertTrue(!cloudDuringOutageBody.rows.some((r: any) => r.name === "Offline Gadget"), "sanity: the offline product genuinely did not reach the cloud yet");
 
@@ -272,7 +291,7 @@ async function main() {
   const queueAfterDrain = listOfflineQueue();
   assertEqual(queueAfterDrain.length, 0, "PC A: offline queue fully drained once the cloud was reachable again");
 
-  const cloudAfterDrain = await fetch(`${worker.url}/v1/data/products`, { headers: { "x-workspace-id": WORKSPACE, "x-api-key": API_KEY } });
+  const cloudAfterDrain = await workerData("/v1/data/products");
   const cloudAfterDrainBody = await cloudAfterDrain.json() as { rows: any[] };
   const offlineGadgetRows = cloudAfterDrainBody.rows.filter((r: any) => r.name === "Offline Gadget");
   assertEqual(offlineGadgetRows.length, 1, "Cloud has EXACTLY ONE copy of the queued record -- no duplicate from the queue drain");

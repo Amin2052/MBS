@@ -624,8 +624,17 @@ async function syncOnce(): Promise<void> {
   if (!config.enabled || !config.apiUrl || !config.workspaceId || !config.apiKey || syncInFlight) return;
   syncInFlight = true;
   try {
+    // Opt-in per-phase timing (`MBS_SYNC_TRACE=1`). Added while investigating
+    // why the cloud-sync entries are slow: the answer was the Worker's scrypt
+    // API-key verification costing ~800 ms per request under load, which is
+    // only visible if you can see where a cycle spends its time.
+    const trace = process.env.MBS_SYNC_TRACE === "1";
+    const t0 = Date.now();
+    const mark = (label: string) => { if (trace) console.log(`[sync-trace] ${label} ${Date.now() - t0}ms`); };
     const queueResult = await drainOfflineQueue();
+    mark("offline-queue drained");
     const userResult = await syncUsersAndPermissions();
+    mark("users+permissions");
     let records = 0;
     let pulled = 0;
     let deletedLocally = 0;
@@ -634,14 +643,18 @@ async function syncOnce(): Promise<void> {
     let queued = queueResult.stillQueued;
     const conflicts: SyncTableResult["conflicts"] = [];
     for (const table of CORE_TABLES) {
+      mark(`push ${table} start`);
       const pushResult = await syncTable(table);
+      mark(`push ${table} done (${pushResult.synced})`);
       records += pushResult.synced;
       errors += pushResult.errors;
       queued += pushResult.queued;
       deletedPushed += pushResult.deletedPushed;
       conflicts.push(...pushResult.conflicts);
       if (isPullable(table)) {
+        mark(`pull ${table} start`);
         const pullResult = await pullTable(table);
+        mark(`pull ${table} done (${pullResult.pulled})`);
         pulled += pullResult.pulled;
         deletedLocally += pullResult.deletedLocally;
         errors += pullResult.errors;

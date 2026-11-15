@@ -48,17 +48,20 @@ const isWindows = process.platform === "win32";
  * which is exactly what happened on this machine while auditing. A timeout
  * now reports TIMEOUT and fails the run instead of stalling it.
  *
- * The default is 300s, not 180s: measured on this machine, the two cloud-sync
- * entries finish in ~170s and ~110s on their own, but the same work under a
- * full-suite run (other Electron instances still winding down, cold disk
- * after the previous entry) pushed them past a 180s bound. A bound that trips
- * on a slow machine is a false failure, not a hang; pass a smaller value when
- * deliberately probing for a stall.
+ * The default is 600s, not 180s. The two cloud-sync entries are CPU-bound, not
+ * I/O-bound: the Worker verifies the x-api-key on EVERY request with scrypt
+ * (N=16384) inside the test process, so a first sync of the demo data costs
+ * ~200 requests x one scrypt each. Measured on this machine they finish in
+ * 108-170s when nothing else is running and cross 300s while other
+ * Electron/Playwright work competes for the CPU (verified: a loopback HTTP
+ * control takes 3ms/request, while the same sync spends ~800ms/request). A
+ * bound that trips on a busy machine is a false failure, not a hang; pass
+ * --timeout=<ms> to probe for a genuine stall deliberately.
  */
 const onlyArg = process.argv.find(arg => arg.startsWith("--only="));
 const onlyFilter = onlyArg ? onlyArg.slice("--only=".length) : "";
 
-const DEFAULT_TIMEOUT_MS = 300000;
+const DEFAULT_TIMEOUT_MS = 600000;
 const timeoutArg = process.argv.find(arg => arg.startsWith("--timeout="));
 const entryTimeoutMs = timeoutArg
   ? Number(timeoutArg.slice("--timeout=".length)) || DEFAULT_TIMEOUT_MS
