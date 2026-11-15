@@ -44,6 +44,20 @@ async function main() {
   const { requireUserType } = await import("../../electron/main/auth/authorization");
   const { createUser } = await import("../../src/repositories/user-repository");
   const { hashPassword } = await import("../../electron/main/auth/security/password");
+  const { licenseManagerV2 } = await import("../../electron/main/license-v2/license-manager");
+
+  // F14: requireActiveUser() also enforces the licence, and the trial anchor
+  // lives outside userData (deliberately -- see trial-storage.ts), so this
+  // suite used to depend on whatever licence state the machine happened to
+  // be in: on a fresh machine the positive assertions below failed with the
+  // licence error instead of exercising RBAC. Pin the licence state instead.
+  // Licensing itself has its own entries (entry-license-verification.ts,
+  // entry-license-mode-switch.ts); this entry is about who may call what.
+  let licensed = false;
+  licenseManagerV2.getStatus = () =>
+    licensed
+      ? { activated: true, status: "trial" as const }
+      : { activated: false, status: "not_activated" as const };
 
   getDatabase();
   const ownerSetup = await setupOwnerAccount("owner1", "OwnerPassw0rd1!");
@@ -55,6 +69,27 @@ async function main() {
   assertTrue(!!employee, "setup: employee account created");
 
   logout();
+
+  // Unlicensed first: the licence gate must reject an otherwise valid
+  // Owner session, with the licence message rather than a bare permission
+  // error (that difference is what tells a user to activate the app).
+  licensed = false;
+  await login("owner1", "OwnerPassw0rd1!", false);
+  let unlicensedMessage = "";
+  try {
+    requireUserType("owner");
+  } catch (error) {
+    unlicensedMessage = error instanceof Error ? error.message : String(error);
+  }
+  assertTrue(
+    unlicensedMessage.includes("not licensed") || unlicensedMessage.includes("trial"),
+    `SECURITY: an unlicensed installation rejects an Owner session at the IPC boundary (got: ${unlicensedMessage || "no error"})`
+  );
+  logout();
+
+  // From here on the licence is pinned active so the RBAC matrix below is
+  // deterministic on any machine.
+  licensed = true;
 
   // No session at all -- this is the exact "reachable pre-login" gap
   // every one of this audit's fixes closes.

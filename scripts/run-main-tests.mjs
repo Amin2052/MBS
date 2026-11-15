@@ -40,18 +40,42 @@ const electronBin = require("electron"); // module export is the binary path
 
 const isWindows = process.platform === "win32";
 
+/*
+ * `--only=<substring>` runs a subset (e.g. --only=ipc-security) so a single
+ * entry can be reproduced without waiting for the whole suite.
+ * `--timeout=<ms>` bounds each entry. Without a bound, one entry that blocks
+ * on a network call hangs the entire suite with no output and no exit code --
+ * which is exactly what happened on this machine while auditing. A timeout
+ * now reports TIMEOUT and fails the run instead of stalling it.
+ */
+const onlyArg = process.argv.find(arg => arg.startsWith("--only="));
+const onlyFilter = onlyArg ? onlyArg.slice("--only=".length) : "";
+
+const timeoutArg = process.argv.find(arg => arg.startsWith("--timeout="));
+const entryTimeoutMs = timeoutArg
+  ? Number(timeoutArg.slice("--timeout=".length)) || 180000
+  : 180000;
+
 const entries = fs
   .readdirSync(entriesDir)
-  .filter(f => f.startsWith("entry-") && f.endsWith(".ts"));
+  .filter(f => f.startsWith("entry-") && f.endsWith(".ts"))
+  .filter(f => !onlyFilter || f.includes(onlyFilter))
+  .sort();
 
 if (entries.length === 0) {
-  console.log("No tests/main/entry-*.ts files found -- nothing to run.");
+  console.log(
+    onlyFilter
+      ? `No tests/main/entry-*.ts file matches --only=${onlyFilter}.`
+      : "No tests/main/entry-*.ts files found -- nothing to run."
+  );
   process.exit(0);
 }
 
-let hadFailure = false;
+const results = [];
 
 for (const entry of entries) {
+  const startedAt = Date.now();
+  const record = { entry, status: "pass", ms: 0 };
   const entryPath = path.join(entriesDir, entry);
   const bundlePath = path.join(bundleDir, entry.replace(/\.ts$/, ".bundle.cjs"));
   const runnerPath = path.join(bundleDir, entry.replace(/\.ts$/, ".run.js"));
@@ -97,12 +121,42 @@ app.whenReady().then(() => {
       ? ["-a", electronBin, runnerPath, "--no-sandbox"]
       : [runnerPath, "--no-sandbox"];
 
-    execFileSync(command, args, { cwd: root, stdio: "inherit" });
+    execFileSync(command, args, {
+      cwd: root,
+      stdio: "inherit",
+      timeout: entryTimeoutMs,
+      killSignal: "SIGKILL"
+    });
   } catch (e) {
-    hadFailure = true;
-    console.error(`--- ${entry} FAILED ---`);
+    // A killed child surfaces as a signal, not an exit code, so distinguish
+    // "took too long" from "asserted a failure" in the report.
+    const timedOut = e && (e.signal === "SIGKILL" || e.code === "ETIMEDOUT");
+    record.status = timedOut ? "timeout" : "fail";
+    console.error(
+      timedOut
+        ? `--- ${entry} TIMED OUT after ${entryTimeoutMs} ms ---`
+        : `--- ${entry} FAILED ---`
+    );
     if (isWindows && e && e.message) console.error(e.message);
   }
+
+  record.ms = Date.now() - startedAt;
+  results.push(record);
 }
 
-process.exit(hadFailure ? 1 : 0);
+/* Summary table: the last thing on screen is what a release check reads. */
+const pad = (value, width) => String(value).padEnd(width, " ");
+console.log("\n=== main-process test summary ===");
+for (const r of results) {
+  console.log(
+    `${pad(r.status.toUpperCase(), 8)}${pad(r.entry, 42)}${(r.ms / 1000).toFixed(1)}s`
+  );
+}
+
+const failed = results.filter(r => r.status !== "pass");
+console.log(
+  `\n${results.length - failed.length}/${results.length} entries passed` +
+    (failed.length ? `, ${failed.length} failed` : "")
+);
+
+process.exit(failed.length ? 1 : 0);
