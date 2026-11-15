@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 - Fresh-install demo-data seeding crashed on the 11th of 15 seeded orders (wrong tuple index for `customerIndex` in `seedDemoData()`, `src/database/database.ts`).
 - **Critical**: the standalone Change Password page (`src/pages/change-password-page.tsx`) never actually changed the password — it logged the current and new password to the console and did nothing else. Rewired to the real `changePassword()` auth flow.
 - `formatCurrency` (`src/utils/currency.ts`) produced inconsistent output per currency (BDT/SAR fell back to ISO codes). Rewritten to use the app's own currency symbol map with Western-digit formatting.
-- 12 pages hardcoded the ৳ (BDT) symbol instead of respecting the selected currency; rewired to `useCurrency()`.
+- 12 pages hardcoded the BDT symbol instead of respecting the selected currency; rewired to `useCurrency()`.
 - Reports "Print" button showed a placeholder logo/company name instead of the real company profile.
 - Reports `.xlsx` export was a fake HTML-table-as-`.xls` file; replaced with a real SheetJS-generated workbook.
 - Inventory stock in/out was gated on `products.edit` instead of a dedicated `inventory.edit` permission.
@@ -161,7 +161,7 @@ All notable changes to this project will be documented in this file.
   thousands-separated amount) and `formatAmount()` (no symbol).
 - New `CurrencyProvider` + `useCurrency()` hook, following the same
   persisted-context pattern as theme/language.
-- Supported currencies: BDT (৳, default), USD ($), EUR (€), SAR (﷼).
+- Supported currencies: BDT (shown as `BDT`, default), USD ($), EUR (€), SAR (﷼). The taka sign is not used in the product.
 - Invoice Module now uses this formatter everywhere money is displayed.
   Orders/Reports/Accounting/Dashboard can adopt the same `useCurrency()`
   hook or `formatCurrency()` utility when those modules are next touched.

@@ -1,6 +1,6 @@
 import { CURRENCIES, DEFAULT_CURRENCY } from "@/constants/currency";
 
-// Amounts are formatted as "<symbol> <western-digit-number>" (e.g. "৳ 1,234.50",
+// Amounts are formatted as "<symbol> <western-digit-number>" (e.g. "BDT 1,234.50",
 // "$ 1,234.50") rather than via Intl.NumberFormat's `style: "currency"`.
 // That built-in style is inconsistent across our supported currencies when
 // paired with a fixed "en-US" locale: BDT and SAR fall back to printing the

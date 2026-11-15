@@ -4,7 +4,9 @@ export const CURRENCIES: Record<CurrencyCode, CurrencyDefinition> = {
 
   BDT: {
     code: "BDT",
-    symbol: "৳",
+    // The taka sign is intentionally not used anywhere in the product; the
+    // ISO code is shown in its place so amounts stay unambiguous.
+    symbol: "BDT",
     label: "Bangladeshi Taka",
     locale: "bn-BD"
   },

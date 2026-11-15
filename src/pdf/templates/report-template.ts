@@ -137,12 +137,12 @@ const MUTED = "#667085";
 const BORDER = "#D9E2EC";
 const LIGHT = "#EEF3F8";
 
-// Normalizes the single space between a currency symbol and its amount
-// (e.g. collapses "৳  1,234" -> "৳ 1,234"). Handles every symbol in
+// Normalizes the single space between a currency marker and its amount
+// (e.g. collapses "BDT  1,234" -> "BDT 1,234"). Handles every symbol in
 // src/constants/currency.ts so the PDF stays correct regardless of which
-// currency the user has selected, not just BDT.
+// currency the user has selected, BDT's code included.
 function money(value: string): string {
-  return value.replace(/([৳$€﷼])\s*/g, "$1 ");
+  return value.replace(/(BDT|[$€﷼])\s*/g, "$1 ");
 }
 
 function esc(value: unknown): string { return escapeHtml(String(value ?? "")); }

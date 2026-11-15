@@ -987,7 +987,7 @@ export default function ReportsPage(): JSX.Element {
       }
 
       // Leading BOM so Excel/Sheets correctly detect UTF-8 (needed for
-      // non-Latin currency symbols such as ৳/﷼ and other non-Latin text
+      // non-Latin currency symbols such as ﷼ and other non-Latin text
       // in card titles/values).
       downloadBlob("\ufeff" + lines.join("\n"), buildExportFileName("csv"), "text/csv;charset=utf-8;");
     } finally {
