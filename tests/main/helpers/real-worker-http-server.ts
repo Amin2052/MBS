@@ -40,6 +40,16 @@ export async function startRealWorkerServer(env: Record<string, unknown>): Promi
     });
   });
 
+  // Node's http server closes idle keep-alive sockets after 5s by default. In
+  // these entries the client (undici inside the Electron main process) keeps
+  // sockets alive between sync cycles, and a cycle on a CPU-bound run can
+  // easily go quiet for longer than that, so the client would pick a socket
+  // the server has just dropped and the request fails with ECONNRESET /
+  // "fetch failed" -- an artifact of the test server, not of the app or the
+  // Worker. Keep sockets open for the life of the entry instead.
+  server.keepAliveTimeout = 0;
+  server.headersTimeout = 0;
+
   return new Promise((resolve) => {
     server.listen(0, "127.0.0.1", () => {
       const addr = server.address();
