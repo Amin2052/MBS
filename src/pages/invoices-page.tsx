@@ -1129,17 +1129,20 @@ export default function InvoicesPage(): JSX.Element {
     const customerAddress = customer?.address || "";
     const customerEmail = customer?.email || "";
     const customerPhone = customer?.phone || "";
-    const status = String(invoice.status || "Unpaid").toUpperCase();
+    // Template identity: the crest carries the company's initial, the line
+    // under the name carries the company's own descriptor when one is set.
+    const crestLetter = (companyName.trim().charAt(0) || "M").toUpperCase();
+    const companySubtitle = (company as { businessType?: string }).businessType || "Business Suite";
+    const statusLabel = String(invoice.status || "Unpaid");
     const dueDate = invoice.due_date
   ? formatDateShort(invoice.due_date)
   : "-";
 
     const itemsRows = (invoice.items || []).map(item => `
       <tr>
-        <td>${escapeHtml(item.product_name)}</td>
-        <td>${escapeHtml(String(item.quantity))}</td>
+        <td>${escapeHtml(item.product_name)}<span class="unit">Item</span></td>
+        <td>${escapeHtml(String(item.quantity))} pcs</td>
         <td>${escapeHtml(formatFullAmount(item.price))}</td>
-        <td>Pcs</td>
         <td>${escapeHtml(formatFullAmount(item.total))}</td>
       </tr>
     `).join("");
@@ -1149,118 +1152,225 @@ export default function InvoicesPage(): JSX.Element {
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8"/>
-<title>${escapeHtml(invoice.invoice_id)}</title>
+<title>${escapeHtml(companyName)} — ${escapeHtml(invoice.invoice_id)}</title>
 <style>
   ${includeFooter ? '@page { size:A4 portrait; margin:0; }' : '@page { size:A4 portrait; }'}
+  :root {
+    --ink:#262521; --muted:#77746d; --line:#d8d4ca; --paper:#fff;
+  }
   * { box-sizing:border-box; }
   html,body { margin:0; padding:0; width:210mm; ${includeFooter ? 'min-height:297mm;' : ''} background:#fff; }
-  body { font-family:Arial,Helvetica,sans-serif; color:#17233a; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .page { width:210mm; ${includeFooter ? 'min-height:297mm;' : ''} padding:6mm 6mm 7mm; position:relative; break-inside:auto; page-break-inside:auto; }
-  .sheet { width:198mm; margin:0 auto; }
-  .header { display:flex; align-items:center; gap:1.75mm; padding-bottom:4.2mm; border-bottom:.35mm solid #e4e7ec; }
-  .logo { width:27mm; height:27mm; object-fit:contain; flex:0 0 auto; }
-  .brand { min-width:0; }
-  .brand h1 { margin:0 0 1.2mm; font-size:16.2pt; line-height:1.05; font-weight:700; color:#17294f; }
-  .brand p { margin:.7mm 0 0; font-size:8pt; line-height:1.1; color:#75819a; }
-  .cards { display:grid; grid-template-columns:1fr 1fr; gap:6mm; margin-top:6.2mm; }
-  .card { border:.35mm solid #e0e5eb; border-radius:1.3mm; overflow:hidden; min-height:36mm; }
-  .card-title { height:8.3mm; padding:2.8mm 3.5mm; background:#edf2f7; font-size:8.1pt; font-weight:700; color:#18233a; }
-  .card-body { padding:3.3mm 3.5mm 3.7mm; }
-  .bill-name { font-size:10.2pt; font-weight:700; margin-bottom:4.2mm; }
-  .kv { display:grid; grid-template-columns:18mm 1fr; gap:1.7mm; margin-bottom:3mm; font-size:8pt; line-height:1.12; }
-  .kv .label { color:#9aa6bb; }
-  .kv .value { color:#17233a; font-weight:700; text-align:right; }
-  .invoice-info .kv { grid-template-columns:24mm 1fr; }
-  .status-text { font-weight:700; color:#17233a; }
-  .items-head { display:flex; justify-content:space-between; align-items:center; margin-top:6mm; margin-bottom:3mm; font-size:8.4pt; font-weight:700; }
-  .items { width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; }
-  .items th { background:#edf2f7; color:#17233a; padding:2.7mm 2mm; font-size:7.7pt; font-weight:700; text-align:center; }
-  .items th:nth-child(1) { width:40%; }
-  .items th:nth-child(2) { width:12%; }
-  .items th:nth-child(3) { width:18%; }
-  .items th:nth-child(4) { width:10%; }
-  .items th:nth-child(5) { width:20%; }
-  .items td { padding:3.2mm 2mm; font-size:7.7pt; text-align:center; color:#25324a; vertical-align:middle; }
-  .items td:first-child { text-align:center; }
-  .items tr:nth-child(even) td { background:#f7f8fa; }
+  body {
+    font-family:'Times New Roman', Times, serif;
+    color:var(--ink);
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  .page {
+    width:210mm;
+    ${includeFooter ? 'min-height:297mm;' : ''}
+    margin:0 auto;
+    padding:10mm 12mm;
+    display:flex;
+    ${includeFooter ? 'flex-direction:column;' : ''}
+  }
+  .sheet {
+    background:var(--paper);
+    border:1px solid #e3dfd5;
+    padding:44px 50px 34px;
+    display:flex;
+    flex-direction:column;
+    ${includeFooter ? 'flex:1;' : ''}
+    min-width:0;
+  }
+  .masthead { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+  .identity { display:flex; align-items:center; gap:13px; }
+  .crest {
+    width:46px; height:46px; flex:0 0 auto;
+    border:1px solid #393832;
+    display:grid; place-items:center;
+    font:700 20px 'Times New Roman', Times, serif;
+    color:#34332d;
+  }
+  .company-name { font:700 16px 'Times New Roman', Times, serif; letter-spacing:.01em; }
+  .company-sub { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#77736b; margin-top:5px; }
+  .contact { font-size:11px; color:#757168; line-height:1.65; margin-top:14px; }
+  .title-block { text-align:right; flex:0 0 auto; }
+  .title-block h1 { font:400 32px 'Times New Roman', Times, serif; letter-spacing:.04em; margin:0; color:#292822; }
+  .title-block p { font:10px 'Times New Roman', Times, serif; color:#706d65; margin:8px 0 0; }
+  .ornament {
+    display:flex; align-items:center; gap:14px;
+    margin:30px 0 24px;
+    color:#8b877e; font:10px 'Times New Roman', Times, serif; letter-spacing:.16em;
+  }
+  .ornament:before, .ornament:after { content:""; height:1px; background:#bcb7ac; flex:1; }
+  .status-line { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:22px; }
+  .status {
+    font:700 10px 'Times New Roman', Times, serif; letter-spacing:.15em;
+    color:#466146; border:1px solid #87937c; padding:5px 10px; text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .invoice-number { font:11px 'Times New Roman', Times, serif; color:#4e4b44; }
+  .metadata {
+    display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:14px 0; margin-bottom:24px;
+  }
+  .meta-cell { padding:0 12px; border-left:1px solid #e5e1d8; min-width:0; }
+  .meta-cell:first-child { border:0; padding-left:0; }
+  .meta-label { display:block; font:9px 'Times New Roman', Times, serif; text-transform:uppercase; letter-spacing:.08em; color:#827e75; margin-bottom:6px; }
+  .meta-value { font-size:12px; font-weight:600; word-break:break-word; }
+  .bill { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin:0 0 26px; }
+  .section-title {
+    font:700 10px 'Times New Roman', Times, serif; text-transform:uppercase; letter-spacing:.11em;
+    border-bottom:1px solid #aaa59a; padding-bottom:7px; margin-bottom:10px; color:#5c5951;
+  }
+  .bill-name { font:700 14px 'Times New Roman', Times, serif; margin-bottom:7px; }
+  .bill-address { font-size:11px; line-height:1.7; color:#6e6b63; word-break:break-word; }
+  .items { width:100%; border-collapse:collapse; margin-top:2px; }
   .items thead { display:table-header-group; }
-  .items tbody tr { page-break-inside:avoid; break-inside:avoid; }
-  .lower { display:grid; grid-template-columns:45mm minmax(0,1fr); column-gap:5mm; align-items:center; margin-top:6.6mm; }
-  .qr-wrap { text-align:center; align-self:center; transform:translateX(13mm); }
-  .qr { width:21mm; height:21mm; display:block; margin:0 auto 2mm; image-rendering:auto; }
-  .qr-caption { font-size:6.8pt; color:#a4aec0; letter-spacing:.2px; }
-  .summary { width:62mm; max-width:100%; justify-self:end; margin-left:0; border:.35mm solid #dfe5eb; border-radius:.7mm; overflow:hidden; }
-  .sum-row { display:grid; grid-template-columns:1fr auto; padding:2.9mm 3.2mm; border-bottom:.25mm solid #e5e8ed; font-size:8pt; }
-  .sum-row:last-child { border-bottom:0; }
-  .sum-label { color:#66738a; }
-  .sum-value { color:#17233a; text-align:right; }
-  .sum-row.total { font-weight:700; font-size:9.2pt; }
-  /* See the "footer positioning" comment above buildInvoiceHtml() for
-     why this is a plain in-flow block rather than position:fixed. */
-  .footer { margin-top:6mm; width:198mm; padding-top:3.6mm; border-top:.35mm solid #e4e7ec; text-align:center; color:#a8b2c3; font-size:6.8pt; }
+  .items th {
+    font:700 9px 'Times New Roman', Times, serif; text-transform:uppercase; letter-spacing:.08em;
+    color:#6d695f; padding:10px 8px; border-top:1px solid #9f9a8e; border-bottom:1px solid #9f9a8e;
+    text-align:left;
+  }
+  .items td { padding:13px 8px; border-bottom:1px solid #e5e1d8; font-size:12px; vertical-align:top; }
+  .items tr { break-inside:avoid; page-break-inside:avoid; }
+  .items td:first-child { font:400 13px 'Times New Roman', Times, serif; }
+  .items td:nth-child(2), .items th:nth-child(2) { text-align:center; }
+  .items td:nth-child(3), .items th:nth-child(3),
+  .items td:nth-child(4), .items th:nth-child(4) { text-align:right; }
+  .unit { display:block; font:10px 'Times New Roman', Times, serif; color:#837f76; margin-top:3px; }
+  .closing { display:grid; grid-template-columns:1fr 240px; gap:30px; margin-top:26px; align-items:center; }
+  .qr-block { display:flex; align-items:center; justify-content:center; }
+  .qr-img { width:96px; height:96px; display:block; }
+  .totals { font-size:11px; }
+  .total-row { display:flex; justify-content:space-between; gap:16px; padding:6px 0; color:#66635b; }
+  .total-row b { font-weight:600; color:#33322d; }
+  .total-final {
+    display:flex; justify-content:space-between; align-items:center;
+    border-top:1px solid #8f8a7f; border-bottom:3px double #8f8a7f;
+    margin-top:8px; padding:11px 0; font-weight:700;
+  }
+  .total-final span { font:700 10px 'Times New Roman', Times, serif; text-transform:uppercase; letter-spacing:.1em; }
+  .total-final strong { font:700 17px 'Times New Roman', Times, serif; }
+  .paid-row { display:flex; justify-content:space-between; padding:9px 0; color:#52654d; font-weight:600; }
+  .footer {
+    margin-top:auto; padding-top:12px; border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; gap:16px;
+    font:9px 'Times New Roman', Times, serif; color:#969187;
+  }
+  @media print { .sheet { border:0; padding:40px 44px 28px; } }
 </style>
 </head>
 <body>
-<div class="page"><div class="sheet">
-  <header class="header">
-    <img class="logo" src="${logoDataUrl}" alt="Company logo"/>
-    <div class="brand">
-      <h1>${escapeHtml(companyName)}</h1>
-      <p>${escapeHtml(companyAddress)}</p>
-      <p>${escapeHtml(companyPhone)} &nbsp;|&nbsp; ${escapeHtml(companyEmail)}</p>
+<main class="page">
+<article class="sheet" aria-label="Invoice ${escapeHtml(invoice.invoice_id)}">
+
+  <header class="masthead">
+    <div>
+      <div class="identity">
+        <div class="crest">${escapeHtml(crestLetter)}</div>
+        <div>
+          <div class="company-name">${escapeHtml(companyName)}</div>
+          <div class="company-sub">${escapeHtml(companySubtitle)}</div>
+        </div>
+      </div>
+      <div class="contact">
+        ${escapeHtml(companyAddress)}<br>
+        ${escapeHtml(companyEmail)} · ${escapeHtml(companyPhone)}
+      </div>
+    </div>
+    <div class="title-block">
+      <h1>INVOICE</h1>
+      <p>ORIGINAL · CUSTOMER COPY</p>
     </div>
   </header>
 
-  <section class="cards">
-    <div class="card bill-to">
-      <div class="card-title">BILL TO</div>
-      <div class="card-body">
-        <div class="bill-name">${escapeHtml(invoice.customer_name)}</div>
-        <div class="kv"><div class="label">Address</div><div class="value">${escapeHtml(customerAddress)}</div></div>
-        <div class="kv"><div class="label">Email</div><div class="value">${escapeHtml(customerEmail)}</div></div>
-        <div class="kv"><div class="label">Phone</div><div class="value">${escapeHtml(customerPhone)}</div></div>
+  <div class="ornament">INVOICE RECORD</div>
+
+  <div class="status-line">
+    <span class="status">${escapeHtml(statusLabel)}</span>
+    <span class="invoice-number">NO. ${escapeHtml(invoice.invoice_id)}</span>
+  </div>
+
+  <section class="metadata" aria-label="Invoice details">
+    <div class="meta-cell">
+      <span class="meta-label">Invoice no.</span>
+      <span class="meta-value">${escapeHtml(invoice.invoice_id)}</span>
+    </div>
+    <div class="meta-cell">
+      <span class="meta-label">Date issued</span>
+      <span class="meta-value">${escapeHtml(formatDateShort(invoice.invoice_date))}</span>
+    </div>
+    <div class="meta-cell">
+      <span class="meta-label">Payment due</span>
+      <span class="meta-value">${escapeHtml(dueDate)}</span>
+    </div>
+    <div class="meta-cell">
+      <span class="meta-label">Method</span>
+      <span class="meta-value">${escapeHtml(invoice.payment_method || "Cash")}</span>
+    </div>
+  </section>
+
+  <section class="bill">
+    <div>
+      <div class="section-title">Billed to</div>
+      <div class="bill-name">${escapeHtml(invoice.customer_name)}</div>
+      <div class="bill-address">
+        ${customerAddress ? `${escapeHtml(customerAddress)}<br>` : ""}
+        ${customerEmail ? `${escapeHtml(customerEmail)}<br>` : ""}
+        ${customerPhone ? escapeHtml(customerPhone) : ""}
+        ${!customerAddress && !customerEmail && !customerPhone ? "—" : ""}
       </div>
     </div>
-    <div class="card invoice-info">
-      <div class="card-title">INVOICE INFO</div>
-      <div class="card-body">
-        <div class="kv"><div class="label">Invoice No.</div><div class="value">${escapeHtml(invoice.invoice_id)}</div></div>
-        <div class="kv"><div class="label">Invoice Date</div><div class="value">${escapeHtml(formatDateShort(invoice.invoice_date))}</div></div>
-        <div class="kv"><div class="label">Due Date</div><div class="value">${escapeHtml(dueDate)}</div></div>
-        <div class="kv"><div class="label">Payment Method</div><div class="value">${escapeHtml(invoice.payment_method || "Bank Transfer")}</div></div>
-        <div class="kv"><div class="label">Status</div><div class="value status-text">${escapeHtml(status)}</div></div>
+    <div>
+      <div class="section-title">Customer contact</div>
+      <div class="bill-name">${escapeHtml(invoice.customer_name)}</div>
+      <div class="bill-address">
+        ${customerPhone ? `${escapeHtml(customerPhone)}<br>` : ""}
+        ${customerEmail ? `${escapeHtml(customerEmail)}<br>` : ""}
+        ${customerAddress ? escapeHtml(customerAddress) : ""}
+        ${!customerPhone && !customerEmail && !customerAddress ? "—" : ""}
       </div>
     </div>
   </section>
 
-  <div class="items-head"><span>Invoice Items</span><span>${(invoice.items || []).length} items</span></div>
-  <table class="items"><thead><tr>
-    <th>Item &amp; Description</th><th>Qty</th><th>Rate</th><th>Per</th><th>Amount</th>
-  </tr></thead><tbody>${itemsRows}</tbody></table>
+  <table class="items">
+    <thead>
+      <tr>
+        <th>Item &amp; description</th>
+        <th>Quantity</th>
+        <th>Rate</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>${itemsRows}</tbody>
+  </table>
 
-  <section class="lower">
-    <div class="qr-wrap"><img class="qr" src="${qrDataUrl}" alt="Verification QR"/><div class="qr-caption">SCAN TO VERIFY</div></div>
-    <div class="summary">
-      <div class="sum-row"><div class="sum-label">Subtotal</div><div class="sum-value">${escapeHtml(formatFullAmount(invoice.subtotal))}</div></div>
-      <div class="sum-row">
-  <div class="sum-label">Discount</div>
-  <div class="sum-value">
-    ${escapeHtml(formatFullAmount(invoice.discount))}
-  </div>
-</div>
-      <div class="sum-row">
-  <div class="sum-label">Tax</div>
-  <div class="sum-value">
-    ${escapeHtml(formatFullAmount(invoice.tax))}
-  </div>
-</div>
-      <div class="sum-row"><div class="sum-label">Paid</div><div class="sum-value">${escapeHtml(formatFullAmount(invoice.paid))}</div></div>
-      <div class="sum-row"><div class="sum-label">Due</div><div class="sum-value">${escapeHtml(formatFullAmount(invoice.due))}</div></div>
-      <div class="sum-row total"><div>Total</div><div class="sum-value">${escapeHtml(formatFullAmount(invoice.total))}</div></div>
+  <section class="closing">
+    <div class="qr-block">
+      <img class="qr-img" src="${qrDataUrl}" alt="Invoice verification QR code"/>
+    </div>
+    <div class="totals">
+      <div class="total-row"><span>Subtotal</span><b>${escapeHtml(formatFullAmount(invoice.subtotal))}</b></div>
+      <div class="total-row"><span>Discount</span><b>${escapeHtml(formatFullAmount(invoice.discount))}</b></div>
+      <div class="total-row"><span>Tax</span><b>${escapeHtml(formatFullAmount(invoice.tax))}</b></div>
+      <div class="total-final"><span>Total</span><strong>${escapeHtml(formatFullAmount(invoice.total))}</strong></div>
+      <div class="paid-row"><span>Paid</span><span>${escapeHtml(formatFullAmount(invoice.paid))}</span></div>
+      <div class="total-row"><span>Balance due</span><b>${escapeHtml(formatFullAmount(invoice.due))}</b></div>
     </div>
   </section>
-</div>${includeFooter ? '<div class="footer">This document is automatically system generated.</div>' : ''}</div>
-</body></html>`;
+
+  ${includeFooter ? `<footer class="footer">
+    <span>${escapeHtml(companyName)} · ${escapeHtml(companySubtitle)}</span>
+    <span>${escapeHtml(invoice.invoice_id)} · PAGE 1 OF 1</span>
+  </footer>` : ""}
+
+</article>
+</main>
+</body>
+</html>`;
   }
 
 
