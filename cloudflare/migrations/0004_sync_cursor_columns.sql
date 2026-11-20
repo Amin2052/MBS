@@ -61,15 +61,31 @@ ALTER TABLE invoices ADD COLUMN sync_revision INTEGER NOT NULL DEFAULT 1;
 ALTER TABLE certificates ADD COLUMN sync_revision INTEGER NOT NULL DEFAULT 1;
 
 -- Tables that genuinely lacked updated_at in 0001 -- add both columns.
-ALTER TABLE inventory_transactions ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+-- FIX (found while rehearsing this migration against an export of the
+-- production D1 on 2026-11-17): these five statements originally used
+-- `NOT NULL DEFAULT CURRENT_TIMESTAMP`, which SQLite rejects outright --
+-- "Cannot add a column with non-constant default" -- because ALTER TABLE
+-- ADD COLUMN may only use a constant default. The whole migration therefore
+-- aborted after the sync_revision columns above it, leaving a
+-- half-migrated database and no updated_at on these five tables. The same
+-- trap is why this migration had never reached production: the dry run
+-- fails, and the failure looks unrelated to the reset feature.
+--
+-- The constant below is the app's own sentinel (see sync_cursor's default in
+-- electron/main and 0001): existing rows backfill to 1970, which is exactly
+-- the intent stated in the header -- every pre-existing row must appear
+-- "changed" to the first incremental pull so devices do their one full pull.
+-- The Worker still stamps CURRENT_TIMESTAMP on every write, so no row keeps
+-- the sentinel after it is touched.
+ALTER TABLE inventory_transactions ADD COLUMN updated_at DATETIME NOT NULL DEFAULT '1970-01-01T00:00:00.000Z';
 ALTER TABLE inventory_transactions ADD COLUMN sync_revision INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE accounts ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE accounts ADD COLUMN updated_at DATETIME NOT NULL DEFAULT '1970-01-01T00:00:00.000Z';
 ALTER TABLE accounts ADD COLUMN sync_revision INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE journal_entries ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE journal_entries ADD COLUMN updated_at DATETIME NOT NULL DEFAULT '1970-01-01T00:00:00.000Z';
 ALTER TABLE journal_entries ADD COLUMN sync_revision INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE ledger_entries ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE ledger_entries ADD COLUMN updated_at DATETIME NOT NULL DEFAULT '1970-01-01T00:00:00.000Z';
 ALTER TABLE ledger_entries ADD COLUMN sync_revision INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE notifications ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE notifications ADD COLUMN updated_at DATETIME NOT NULL DEFAULT '1970-01-01T00:00:00.000Z';
 ALTER TABLE notifications ADD COLUMN sync_revision INTEGER NOT NULL DEFAULT 1;
 
 CREATE INDEX IF NOT EXISTS idx_products_workspace_updated ON products(workspace_id, updated_at);

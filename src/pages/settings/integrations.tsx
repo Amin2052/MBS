@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Activity, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
 
 import { DEFAULT_COMPANY_SETTINGS } from "@/constants/company-settings";
 
 import type { CompanySettings } from "@/types/company-settings";
 import { useLanguage } from "@/hooks/use-language";
+import { formatDateTime } from "@/utils/date-format";
 
 import SettingsShell from "./settings-shell";
+
+type CloudStatusSnapshot = Awaited<ReturnType<typeof window.mooral.cloud.getStatus>>;
 
 export default function IntegrationsSettingsPage(): JSX.Element {
 
@@ -21,6 +25,9 @@ export default function IntegrationsSettingsPage(): JSX.Element {
   }>({ enabled: false, licensed: false, mode: "developer_managed", apiUrl: "", workspaceId: "", apiKey: "", apiKeyMasked: "" });
   const [cloudStatus, setCloudStatus] = useState<string>("");
   const [cloudBusy, setCloudBusy] = useState(false);
+  const [statusSnapshot, setStatusSnapshot] = useState<CloudStatusSnapshot | null>(null);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [showCustomerApiKey, setShowCustomerApiKey] = useState(false);
   const [customerCloudSaving, setCustomerCloudSaving] = useState(false);
   // Editable draft for the customer_managed fields -- kept separate from
@@ -68,11 +75,32 @@ export default function IntegrationsSettingsPage(): JSX.Element {
 
   }
 
+  // Read-only snapshot of what the sync engine last recorded on this computer.
+  // Kept separate from loadSettings() so the panel can be refreshed on its own
+  // (and after "Sync Now") without re-reading company settings.
+  const loadStatus = useCallback(async () => {
+
+    setStatusLoading(true);
+    setStatusError(null);
+
+    try {
+      setStatusSnapshot(await window.mooral.cloud.getStatus());
+    }
+    catch (error) {
+      setStatusError(error instanceof Error ? error.message : String(error));
+    }
+    finally {
+      setStatusLoading(false);
+    }
+
+  }, []);
+
   useEffect(() => {
 
     loadSettings();
+    void loadStatus();
 
-  }, []);
+  }, [loadStatus]);
 
   function updateField<K extends keyof CompanySettings>(key: K, value: CompanySettings[K]) {
 
@@ -353,6 +381,8 @@ export default function IntegrationsSettingsPage(): JSX.Element {
                   await window.mooral.cloud.saveConfig({ enabled: cloud.enabled });
                   const result = await window.mooral.cloud.syncNow();
                   setCloudStatus(result.success ? "Central cloud sync completed." : (result.error ?? "Cloud sync failed."));
+                  // The cycle just rewrote the state file this panel reads.
+                  void loadStatus();
                 } catch (error) {
                   setCloudStatus(error instanceof Error ? error.message : String(error));
                 } finally {
@@ -365,6 +395,92 @@ export default function IntegrationsSettingsPage(): JSX.Element {
           </div>
         )}
         {cloudStatus && <div className="settings-save-confirmation">{cloudStatus}</div>}
+      </div>
+
+      <div className="settings-section">
+
+        <h3>
+          <Activity size={16} style={{ verticalAlign: "-3px", marginRight: 6 }} />
+          Cloud Sync Status
+        </h3>
+        <p className="settings-section-description">
+          What the last completed sync cycle recorded on this computer. This block is read from local
+          state only — it never contacts the server, so it still shows the last known result while you
+          are offline (use Test Connection above to check reachability).
+        </p>
+
+        <div className="settings-actions">
+          <button className="save-settings" onClick={() => void loadStatus()} disabled={statusLoading}>
+            <RefreshCw size={14} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+            {statusLoading ? "Refreshing…" : "Refresh Status"}
+          </button>
+        </div>
+
+        {statusError && (
+          <div className="settings-error-message" role="alert">
+            <AlertTriangle size={14} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+            {statusError}
+          </div>
+        )}
+
+        {!statusError && (
+          <div className="db-info-grid">
+
+            <div className="db-info-card">
+              <div className="db-info-card-label">Last successful sync</div>
+              <div className="db-info-card-value">
+                {statusSnapshot?.lastSyncAt ? formatDateTime(statusSnapshot.lastSyncAt) : "Never synced"}
+              </div>
+            </div>
+
+            <div className="db-info-card">
+              <div className="db-info-card-label">Permissions sync</div>
+              <div className="db-info-card-value">
+                {statusSnapshot === null || statusSnapshot.permissionsSynced === null ? (
+                  "Not reported yet"
+                ) : statusSnapshot.permissionsSynced ? (
+                  <span style={{ color: "var(--success, #15803d)" }}>
+                    <CheckCircle2 size={13} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+                    Up to date
+                  </span>
+                ) : (
+                  <span style={{ color: "var(--danger, #b91c1c)" }}>
+                    <AlertTriangle size={13} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+                    Failed
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="db-info-card">
+              <div className="db-info-card-label">Reset epoch</div>
+              <div className="db-info-card-value">
+                {statusSnapshot ? statusSnapshot.resetEpoch : "—"}
+              </div>
+            </div>
+
+            <div className="db-info-card">
+              <div className="db-info-card-label">Workspace</div>
+              <div className="db-info-card-value">{statusSnapshot?.workspaceId || "—"}</div>
+            </div>
+
+          </div>
+        )}
+
+        {statusSnapshot?.permissionsError && (
+          <div className="settings-error-message" role="alert">
+            <AlertTriangle size={14} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+            Permissions sync failed: {statusSnapshot.permissionsError}
+          </div>
+        )}
+
+        {statusSnapshot && !statusSnapshot.enabled && (
+          <p className="settings-section-description">
+            Cloud sync is currently switched off on this installation, so the values above are from an
+            earlier cycle.
+          </p>
+        )}
+
       </div>
 
       <div className="settings-actions">

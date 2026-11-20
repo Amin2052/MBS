@@ -34,8 +34,18 @@ await page.screenshot({ path: join(outDir, "login.png") });
 if (!(await page.locator(".server-panel").count())) {
   await page.getByRole("button", { name: /server settings/i }).click();
 }
-await page.fill('input[placeholder^="https://"]', "http://127.0.0.1:9");
-await page.fill('input[placeholder="acme-trading"]', "qa-workspace");
+
+const serverInputs = page.locator(".server-panel input");
+const serverAddress = serverInputs.nth(0);
+const workspaceIdInput = serverInputs.nth(1);
+
+if (await serverAddress.isDisabled()) {
+  console.log("server settings already locked");
+} else {
+  await serverAddress.fill("http://127.0.0.1:9");
+  await workspaceIdInput.fill("qa-workspace");
+}
+
 await page.fill('input[autocomplete="username"]', "qa.employee");
 await page.fill('input[autocomplete="current-password"]', "WrongPass!1");
 await page.getByRole("button", { name: "Sign in" }).click();

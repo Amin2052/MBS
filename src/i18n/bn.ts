@@ -1429,6 +1429,7 @@ const bn: TranslationDictionary = {
     previewCloud: "কেন্দ্রীয় ওয়ার্কস্পেস",
     previewEpoch: "রিসেট প্রজন্ম",
     previewUnreachable: "ক্লাউডে পৌঁছানো যায়নি",
+    previewServerOutdated: "সার্ভার পুরোনো — রিসেট এন্ডপয়েন্ট নেই",
     backupNotice: "কিছু মুছে ফেলার আগে আপনার অ্যাপ ডেটা ফোল্ডারে একটি ব্যাকআপ তৈরি হয়; সফল হলে এর পাথ দেখানো হয়।",
     confirmPassword: "আপনার পাসওয়ার্ড",
     phraseCloud: "নিশ্চিত করতে ওয়ার্কস্পেস আইডি লিখুন",

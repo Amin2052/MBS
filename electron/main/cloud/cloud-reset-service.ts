@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import { getCloudConfig } from "./cloud-config-service";
-import { getCloudWorkspaceInfo, resetCloudWorkspace } from "./cloud-client";
+import { CloudHttpError, getCloudWorkspaceInfo, resetCloudWorkspace } from "./cloud-client";
 import { getStoredResetEpoch, setStoredResetEpoch } from "./sync-epoch";
 import {
   RESET_BUSINESS_TABLES, countLocalBusinessRows, clearLocalBusinessData,
@@ -46,12 +46,45 @@ import { createBackup } from "../backup-service";
 
 const OWNER_ONLY_NOTE = "Only the Owner can reset business data.";
 
+/** Turns a failed central call into the sentence the owner actually needs.
+ *
+ * The important case is a 404 on /v1/admin/reset: the Worker deployed at the
+ * licensed apiUrl predates the reset endpoint (or /v1/workspace), so retrying
+ * can never work and no amount of re-entering the password will help. That is
+ * a deployment problem, and it must say so -- the previous behaviour surfaced
+ * the Worker's bare "Not found." body, which reads like a bug in the app and
+ * sent us chasing the reset code for two days.
+ */
+function describeCloudFailure(error: unknown): { message: string; serverOutdated: boolean } {
+  const detail = error instanceof Error ? error.message.trim() : String(error);
+  const status = error instanceof CloudHttpError ? error.status : 0;
+  const serverOutdated = status === 404 || /^not found\.?$/i.test(detail);
+  if (serverOutdated) {
+    return {
+      serverOutdated: true,
+      message:
+        "The cloud server at this workspace's address is running an older build that has no reset endpoint (it answered 404), so nothing was deleted here or online. Deploy the current Worker (npm run cloudflare:deploy) and retry the reset."
+    };
+  }
+  if (status === 401) {
+    return { serverOutdated: false, message: "The cloud server rejected this workspace's API key (401). The license's cloud credentials do not match the deployment." };
+  }
+  if (status === 403) {
+    return { serverOutdated: false, message: "The cloud server refused the reset for this API key (403)." };
+  }
+  return { serverOutdated: false, message: detail || "The central reset request failed." };
+}
+
 export interface ResetPreview {
   cloudEnabled: boolean;
   workspaceId: string;
   resetEpoch: number;
   cloudReachable: boolean;
   cloudError?: string;
+  /** The Worker answered, but with 404: the deployment predates the reset/
+   *  workspace endpoints. Distinct from "offline" so the UI can say
+   *  "update the deployment" instead of "cloud unreachable". */
+  serverOutdated?: boolean;
   localCounts: Record<string, number>;
   tables: string[];
   note: string;
@@ -87,7 +120,9 @@ export async function getResetPreview(): Promise<ResetPreview> {
     preview.resetEpoch = info.resetEpoch;
     setStoredResetEpoch(info.resetEpoch);
   } catch (error) {
-    preview.cloudError = error instanceof Error ? error.message : String(error);
+    const failure = describeCloudFailure(error);
+    preview.cloudError = failure.message;
+    preview.serverOutdated = failure.serverOutdated;
   }
   return preview;
 }
@@ -137,7 +172,7 @@ export async function performCloudBusinessReset(input: { confirmWorkspace: strin
     return {
       success: false,
       backupPath,
-      error: `Central reset failed. Nothing was deleted on this device. ${error instanceof Error ? error.message : String(error)}`
+      error: `Central reset failed. Nothing was deleted on this device. ${describeCloudFailure(error).message}`
     };
   }
 
@@ -176,7 +211,7 @@ export async function performCompleteReset(input: { confirmation: string }): Pro
       return {
         success: false,
         backupPath,
-        error: `Central reset failed, so the local factory reset was not run. ${error instanceof Error ? error.message : String(error)}`
+        error: `Central reset failed, so the local factory reset was not run. ${describeCloudFailure(error).message}`
       };
     }
   }

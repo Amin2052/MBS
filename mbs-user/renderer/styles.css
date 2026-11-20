@@ -67,6 +67,13 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
   border-right: 1px solid var(--border);
 }
 
+.login-brand h1 span,
+.brand-name span {
+  color: var(--text);
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
 .brand-mark {
   width: 46px;
   height: 46px;
@@ -78,10 +85,18 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
   box-shadow: 0 10px 30px rgba(56, 189, 248, 0.35);
 }
 
-.brand-mark.small { width: 34px; height: 34px; border-radius: 10px; }
 
-.login-brand h1 { font-size: 40px; letter-spacing: -0.03em; }
-.login-brand h1 span, .brand-name span { color: var(--accent); font-weight: 700; }
+.login-brand h1 {
+  font-size: 40px;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+.login-brand h1 span, .brand-name span {
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
 
 .login-tagline { max-width: 46ch; color: var(--muted); line-height: 1.6; margin: 0; }
 
@@ -117,23 +132,6 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
 
 .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16); }
 
-.link-button {
-  background: none;
-  border: 0;
-  color: var(--accent);
-  padding: 0;
-  margin: 2px 0 12px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.server-panel {
-  border: 1px dashed var(--border);
-  border-radius: 12px;
-  padding: 14px 14px 2px;
-  margin-bottom: 14px;
-}
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -161,6 +159,21 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
 .btn-ghost { background: transparent; }
 
 .login-hint { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 18px 0 0; }
+
+/* Shown on the sign-in card when this PC has no company server configured.
+   Server settings themselves are not editable in the app at all. */
+.server-locked-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 8px 0 14px;
+}
+
+.server-locked-note::before {
+  content: "\26A0";
+  margin-right: 6px;
+  color: var(--warn);
+}
 
 /* ---------------- shell ---------------- */
 
@@ -413,3 +426,7 @@ tr.has-error { background: rgba(248, 113, 113, 0.06); }
   .sidebar-foot { margin: 0 0 0 auto; flex-direction: row; }
   .user-chip { display: none; }
 }
+
+/* Server settings on the sign-in page */
+.server-settings { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.server-settings-body { flex-basis: 100%; display: grid; gap: 10px; }

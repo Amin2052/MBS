@@ -41,6 +41,14 @@
     border-radius: 12px;
     color: var(--muted);
     transition: border-color .2s ease, box-shadow .2s ease;
+    
+    /* Reset any inner content that might have its own border/background
+       to prevent a 'double box' effect. */
+    > * {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+    }
 }
 
 .search-box:focus-within {
@@ -66,6 +74,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    /* Prevent the global :where(input) styles from applying a border,
+       background, or focus ring inside the search box. The .search-box
+       container provides its own border and focus-within styling, so any
+       inner input styling would create a 'double box' effect. */
+    box-shadow: none;
+    background-color: transparent;
 }
 
 .search-box input::placeholder {

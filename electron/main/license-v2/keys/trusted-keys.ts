@@ -72,6 +72,20 @@ export const TRUSTED_KEYS: TrustedKey[] = [
       "installation -- no license could have been validly signed with it, so it was safe " +
       "to remove outright rather than mark retired."
   }
+,
+
+  {
+    keyId: "prod-2026-11",
+    algorithm: "ed25519",
+    publicKeyBase64: "oJoo9TjC6RekTVR7/qHfgTL+dtHgnxahkkRMsl0CSWI=",
+    status: "active",
+    environment: "production",
+    note: "Production signing key provisioned 2026-11 by the Generator's production " +
+      "profile (MBS_GENERATOR_ENV=production). Its private half lives only in that " +
+      "profile's encrypted vault, never in this repository. This is the key the currently " +
+      "issued Enterprise licences are signed with; a rotation must add the new public key " +
+      "here and mark this one retired, not delete it."
+  }
 ];
 
 /**

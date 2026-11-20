@@ -130,7 +130,13 @@ export default function App(): JSX.Element {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loggingIn, setLoggingIn] = useState(false);
+
+  // Server settings (sign-in page). Locked behind the administrator password so
+  // an employee cannot point the app at another server.
   const [showServer, setShowServer] = useState(false);
+  const [serverLocked, setServerLocked] = useState(true);
+  const [unlockPassword, setUnlockPassword] = useState("");
+  const [serverMessage, setServerMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   const orders = useCollection("orders", Boolean(session) && hasPermission(session, "orders.view"));
   const customers = useCollection("customers", Boolean(session) && hasPermission(session, "customers.view"));
@@ -141,7 +147,7 @@ export default function App(): JSX.Element {
     void (async () => {
       const stored = await window.mbsUser.config.get();
       setConfig({ apiUrl: stored.apiUrl, workspaceId: stored.workspaceId });
-      setShowServer(!stored.apiUrl || !stored.workspaceId);
+      setServerLocked(stored.settingsLocked && !stored.settingsUnlocked);
       const state = await window.mbsUser.connection.check();
       setConnection({ online: state.online, detail: state.detail });
     })();
@@ -185,7 +191,6 @@ export default function App(): JSX.Element {
     event.preventDefault();
     setLoginError(null);
     if (!config.apiUrl || !config.workspaceId) {
-      setShowServer(true);
       setLoginError("Enter the server address and workspace id provided by your administrator.");
       return;
     }
@@ -197,7 +202,6 @@ export default function App(): JSX.Element {
     try {
       const saved = await window.mbsUser.config.set(config);
       if (!saved.success) {
-        setShowServer(true);
         setLoginError(saved.error ?? "Could not save the connection settings.");
         return;
       }
@@ -214,6 +218,34 @@ export default function App(): JSX.Element {
     } finally {
       setLoggingIn(false);
     }
+  }
+
+  async function handleUnlockServer(): Promise<void> {
+    setServerMessage(null);
+    const result = await window.mbsUser.config.unlock(unlockPassword);
+    if (!result.success) {
+      setServerMessage({ ok: false, text: result.error ?? "Incorrect administrator password." });
+      return;
+    }
+    setUnlockPassword("");
+    setServerLocked(false);
+  }
+
+  async function handleSaveServer(): Promise<void> {
+    setServerMessage(null);
+    const saved = await window.mbsUser.config.set(config);
+    if (!saved.success) {
+      setServerMessage({ ok: false, text: saved.error ?? "Could not save the server settings." });
+      return;
+    }
+    await window.mbsUser.config.relock();
+    setServerLocked(true);
+    const state = await window.mbsUser.connection.check();
+    setConnection({ online: state.online, detail: state.detail });
+    setServerMessage({
+      ok: state.online,
+      text: state.online ? "Saved. Connected to the central server." : `Saved, but the server is not reachable: ${state.detail}`
+    });
   }
 
   async function handleLogout(): Promise<void> {
@@ -311,33 +343,11 @@ export default function App(): JSX.Element {
               />
             </label>
 
-            <button type="button" className="link-button" onClick={() => setShowServer(value => !value)}>
-              {showServer ? "Hide server settings" : "Server settings"}
-            </button>
-
-            {showServer && (
-              <div className="server-panel">
-                <label className="field">
-                  <span>Server address</span>
-                  <input
-                    value={config.apiUrl}
-                    onChange={event => setConfig(current => ({ ...current, apiUrl: event.target.value }))}
-                    placeholder="https://mbs-cloud.example.workers.dev"
-                    autoComplete="off"
-                    spellCheck={false}
-                  />
-                </label>
-                <label className="field">
-                  <span>Workspace ID</span>
-                  <input
-                    value={config.workspaceId}
-                    onChange={event => setConfig(current => ({ ...current, workspaceId: event.target.value }))}
-                    placeholder="acme-trading"
-                    autoComplete="off"
-                    spellCheck={false}
-                  />
-                </label>
-              </div>
+            {(!config.apiUrl || !config.workspaceId) && (
+              <p className="server-locked-note" role="status">
+                This computer is not connected to a company server yet. Open Server settings below
+                (administrator password) to enter the server address and workspace id.
+              </p>
             )}
 
             {loginError && (
@@ -349,8 +359,58 @@ export default function App(): JSX.Element {
             </button>
           </form>
 
+          <div className="server-settings">
+            <button type="button" className="btn btn-ghost" onClick={() => setShowServer(open => !open)}>
+              {showServer ? "Hide server settings" : "Server settings"}
+            </button>
+            <span className={`connection ${connection.online ? "online" : "offline"}`} title={connection.detail}>
+              {connection.online ? <Wifi size={14} /> : <WifiOff size={14} />}
+              {connection.online ? "Server reachable" : "Server unreachable"}
+            </span>
+
+            {showServer && (
+              <div className="server-settings-body">
+                {serverLocked ? (
+                  <>
+                    <label className="field">
+                      <span>Administrator password</span>
+                      <input
+                        type="password"
+                        value={unlockPassword}
+                        onChange={event => setUnlockPassword(event.target.value)}
+                        onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); void handleUnlockServer(); } }}
+                      />
+                    </label>
+                    <button type="button" className="btn btn-primary" onClick={() => void handleUnlockServer()}>Unlock</button>
+                  </>
+                ) : (
+                  <>
+                    <label className="field">
+                      <span>Server address</span>
+                      <input value={config.apiUrl} onChange={event => setConfig({ ...config, apiUrl: event.target.value })} placeholder="https://your-worker.workers.dev" />
+                    </label>
+                    <label className="field">
+                      <span>Workspace id</span>
+                      <input value={config.workspaceId} onChange={event => setConfig({ ...config, workspaceId: event.target.value })} />
+                    </label>
+                    <button type="button" className="btn btn-primary" onClick={() => void handleSaveServer()}>Save and test</button>
+                  </>
+                )}
+                {serverMessage && (
+                  <div className={`banner ${serverMessage.ok ? "banner-ok" : "banner-error"}`} role="status">{serverMessage.text}</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <p className="login-hint" data-testid="server-target">
+            Connecting to <strong>{(() => { try { return new URL(config.apiUrl).host; } catch { return config.apiUrl || "no server"; } })()}</strong>
+            {" "}· workspace <strong>{config.workspaceId || "none"}</strong>
+          </p>
+
           <p className="login-hint">
-            Ask your administrator for the employee ID, password, server address and workspace ID.
+            Ask your administrator for your employee ID and password. The company server is
+            preset on this computer; changing it needs the administrator password.
             Access can be revoked at any time from the main MBS application.
           </p>
         </section>
@@ -369,7 +429,6 @@ export default function App(): JSX.Element {
 
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark small"><Building2 size={16} /></div>
           <div>
             <div className="brand-name">MBS<span>user</span></div>
             <div className="brand-sub">Employee workspace</div>

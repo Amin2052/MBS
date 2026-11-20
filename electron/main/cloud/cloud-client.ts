@@ -185,9 +185,27 @@ function throwIfResetEpochConflict(status: number, bodyText: string): void {
   }
 }
 
+/**
+ * An HTTP failure from the deployed Worker, carrying the status code so
+ * callers can tell "the server is unreachable" apart from "the server is
+ * running an older build that has no such route" (404). The reset paths
+ * need that distinction: a 404 on /v1/admin/reset means the deployment
+ * predates the reset endpoint, which is fixed by deploying, not by
+ * retrying -- and the owner must be told exactly that instead of being
+ * shown a bare "Not found."
+ */
+export class CloudHttpError extends Error {
+  readonly status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "CloudHttpError";
+    this.status = status;
+  }
+}
+
 export async function getCloudWorkspaceInfo(): Promise<{ workspaceId: string; resetEpoch: number }> {
   const r = await fetch(`${baseUrl()}/v1/workspace`, { headers: headers() });
-  if (!r.ok) throw new Error(await r.text() || `Cloud workspace lookup failed (${r.status}).`);
+  if (!r.ok) throw new CloudHttpError(r.status, await r.text() || `Cloud workspace lookup failed (${r.status}).`);
   const body = await r.json() as { workspaceId?: string; resetEpoch?: number };
   return { workspaceId: String(body.workspaceId || ""), resetEpoch: Number(body.resetEpoch) || 0 };
 }
@@ -201,7 +219,7 @@ export async function resetCloudWorkspace(scope: "business", confirmWorkspace: s
   const bodyText = await r.text();
   if (!r.ok) {
     throwIfResetEpochConflict(r.status, bodyText);
-    throw new Error(bodyText || `Cloud reset failed (${r.status}).`);
+    throw new CloudHttpError(r.status, bodyText || `Cloud reset failed (${r.status}).`);
   }
   const parsed = JSON.parse(bodyText) as { resetEpoch?: number; deleted?: Record<string, number> };
   return { success: true, resetEpoch: Number(parsed.resetEpoch) || 0, deleted: parsed.deleted || {} };

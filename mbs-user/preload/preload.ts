@@ -11,8 +11,21 @@ function subscribe(channel: string, callback: (payload: unknown) => void): () =>
 
 contextBridge.exposeInMainWorld("mbsUser", {
   config: {
-    get: () => ipcRenderer.invoke("config:get"),
-    set: (config: { apiUrl: string; workspaceId: string }) => ipcRenderer.invoke("config:set", config)
+    get: () => ipcRenderer.invoke("config:get") as Promise<{
+      apiUrl: string;
+      workspaceId: string;
+      signedIn: boolean;
+      settingsLocked: boolean;
+      settingsUnlocked: boolean;
+    }>,
+    set: (config: { apiUrl?: string; workspaceId?: string }) =>
+      ipcRenderer.invoke("config:set", config) as Promise<{ success: boolean; error?: string }>,
+    unlock: (password: string) =>
+      ipcRenderer.invoke("config:unlock", { password }) as Promise<{ success: boolean; error?: string }>,
+    setLock: (password: string | null) =>
+      ipcRenderer.invoke("config:setLock", { password }) as Promise<{ success: boolean; error?: string }>,
+    relock: () =>
+      ipcRenderer.invoke("config:relock") as Promise<{ success: boolean; error?: string }>
   },
   auth: {
     login: (input: { username: string; password: string }) => ipcRenderer.invoke("auth:login", input),

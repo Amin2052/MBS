@@ -10,7 +10,7 @@ import { renderPdf } from "./pdf-engine";
 import { getCloudConfig, getCloudConfigView, setCloudEnabledPreference, setCustomerManagedConfig } from "./cloud/cloud-config-service";
 import { licenseManagerV2 } from "./license-v2/license-manager";
 import { cloudHealth } from "./cloud/cloud-client";
-import { startCloudSync, stopCloudSync, syncCloudNow, getLastSyncState } from "./cloud/cloud-sync-manager";
+import { startCloudSync, stopCloudSync, syncCloudNow, pushUsersToCloudNow, getLastSyncState, getCloudSyncStatus } from "./cloud/cloud-sync-manager";
 import { getDatabaseFilePath, closeDatabase } from "../../src/database/database";
 
 
@@ -1191,6 +1191,9 @@ ipcMain.handle(
 
     logAudit("permissions", "create", (result as { user?: { id?: number } })?.user?.id, "Administrator account created");
 
+    // Make the new login usable in the cloud immediately (see pushUsersToCloudNow).
+    await pushUsersToCloudNow();
+
     return result;
 
   }
@@ -1209,6 +1212,9 @@ ipcMain.handle(
     const result = await createEmployeeLogin(data.employeeId, data.permissionProfileId);
 
     logAudit("permissions", "create", (result as { user?: { id?: number } })?.user?.id, "Employee login created", null, { employeeId: data.employeeId, permissionProfileId: data.permissionProfileId });
+
+    // Make the new login usable in MBS-user immediately (see pushUsersToCloudNow).
+    await pushUsersToCloudNow();
 
     return result;
 
@@ -1229,6 +1235,9 @@ ipcMain.handle(
 
     logAudit("permissions", "edit", userId, "User disabled", null, { status: "disabled" });
 
+    // Disabled/archived accounts must stop working in MBS-user right away.
+    void pushUsersToCloudNow();
+
     return result;
 
   }
@@ -1247,6 +1256,9 @@ ipcMain.handle(
     const result = archiveUser(userId);
 
     logAudit("permissions", "edit", userId, "User archived", null, { status: "archived" });
+
+    // Disabled/archived accounts must stop working in MBS-user right away.
+    void pushUsersToCloudNow();
 
     return result;
 
@@ -1267,6 +1279,9 @@ ipcMain.handle(
 
     logAudit("permissions", "edit", userId, "User restored", null, { status: "active" });
 
+    // Disabled/archived accounts must stop working in MBS-user right away.
+    void pushUsersToCloudNow();
+
     return result;
 
   }
@@ -1286,6 +1301,8 @@ ipcMain.handle(
 
     logAudit("permissions", "edit", userId, "Password reset", null, null);
 
+    await pushUsersToCloudNow();
+
     return result;
 
   }
@@ -1303,6 +1320,9 @@ ipcMain.handle(
     const result = changeUserPermissionProfile(data.userId, data.permissionProfileId);
 
     logAudit("permissions", "edit", data.userId, "Permission profile changed", null, { permissionProfileId: data.permissionProfileId });
+
+    // Disabled/archived accounts must stop working in MBS-user right away.
+    void pushUsersToCloudNow();
 
     return result;
 
@@ -1572,6 +1592,21 @@ ipcMain.handle("cloud:syncNow", async () => {
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
+});
+
+// Read-only status for the Settings cloud panel (last sync, permissions
+// sync result, reset epoch). Local file reads only -- no network call, so an
+// unreachable server cannot turn the status block into an error; "Test
+// Connection" already covers reachability. Owner/Administrator only, matching
+// who can open the integrations settings page at all.
+ipcMain.handle("cloud:getStatus", async () => {
+  requireUserType("owner", "administrator");
+  const config = getCloudConfig();
+  return {
+    ...(await getCloudSyncStatus()),
+    enabled: config.enabled,
+    workspaceId: config.workspaceId
+  };
 });
 
 ipcMain.handle("cloud:health", async () => {

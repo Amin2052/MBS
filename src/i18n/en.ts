@@ -1435,6 +1435,7 @@ const en = {
     previewCloud: "Central workspace",
     previewEpoch: "reset generation",
     previewUnreachable: "cloud unreachable",
+    previewServerOutdated: "server out of date — reset endpoint missing",
     backupNotice: "A backup is written to your app data folder before anything is deleted; its path is shown if the reset succeeds.",
     confirmPassword: "Your password",
     phraseCloud: "Type the workspace id to confirm",

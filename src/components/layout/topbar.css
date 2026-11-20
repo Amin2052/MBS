@@ -24,6 +24,9 @@
   border-radius: var(--radius-md);
   padding: 0 11px;
   gap: 8px;
+
+  /* Inherit all other .search-box styles - only override what's needed
+     for the topbar's smaller search box. */
 }
 
 .topbar .topbar-search input {

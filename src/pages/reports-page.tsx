@@ -35,7 +35,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { toast } from "@/components/toast/toast-store";
 import { formatNumber as formatStockK } from "@/utils/format-number";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { showPrintPreview, buildPrintDocumentLabel } from "@/utils/print-window";
 
 /* ==========================================================================
@@ -996,7 +996,7 @@ export default function ReportsPage(): JSX.Element {
     }
   }
 
-  function exportExcel() {
+  async function exportExcel() {
     if (isExportingRef.current) return;
     isExportingRef.current = true;
     setExportingFormat("excel");
@@ -1004,48 +1004,48 @@ export default function ReportsPage(): JSX.Element {
     try {
       const meta = getReportMetadata();
 
-      const workbook = XLSX.utils.book_new();
+      const workbook = new ExcelJS.Workbook();
 
       // Summary sheet: one row per metric across every report section
       // (Executive Summary, Sales Analytics, Inventory Analytics,
       // Accounting Summary), matching what's shown on screen / in the PDF.
-      const summaryRows: (string | number)[][] = [
-        [`${meta.companyName}${t("reports.csvReportTitleSuffix")}`],
-        [t("reports.csvDateRange"), meta.dateRangeLabel],
-        [t("reports.csvGenerated"), meta.generatedAtLabel],
-        []
+      const summarySheet = workbook.addWorksheet("Summary");
+      summarySheet.columns = [
+        { header: "Metric", width: 28 },
+        { header: "Value", width: 24 }
       ];
 
-      reportExportSections.forEach(section => {
-        summaryRows.push([section.title]);
-        section.rows.forEach(row => {
-          summaryRows.push([row.label, row.value]);
-        });
-        summaryRows.push([]);
-      });
+      summarySheet.addRow([`${meta.companyName}${t("reports.csvReportTitleSuffix")}`]);
+      summarySheet.addRow([t("reports.csvDateRange"), meta.dateRangeLabel]);
+      summarySheet.addRow([t("reports.csvGenerated"), meta.generatedAtLabel]);
+      summarySheet.addRow([]);
 
-      const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
-      summarySheet["!cols"] = [{ wch: 28 }, { wch: 24 }];
-      XLSX.utils.book_append_sheet(workbook, summarySheet, "Summary");
+      reportExportSections.forEach(section => {
+        summarySheet.addRow([section.title]);
+        section.rows.forEach(row => {
+          summarySheet.addRow([row.label, row.value]);
+        });
+        summarySheet.addRow([]);
+      });
 
       // Sales Trend sheet: a real tabular sheet with headers, so the
       // numbers (orders/quantity/sales) stay usable in Excel formulas
       // instead of being locked inside pre-formatted display strings.
       if (showSection("sales")) {
-        const salesRows: (string | number)[][] = [
-          [t("common.date"), t("reports.tableOrdersHeader"), t("orders.quantity"), t("reports.tableSalesHeader")],
-          ...exportSalesTrendRows.map(row => [row.date, row.orders, row.quantity, row.sales])
+        const salesSheet = workbook.addWorksheet("Sales Trend");
+        salesSheet.columns = [
+          { header: t("common.date"), width: 14 },
+          { header: t("reports.tableOrdersHeader"), width: 10 },
+          { header: t("orders.quantity"), width: 10 },
+          { header: t("reports.tableSalesHeader"), width: 16 }
         ];
 
-        const salesSheet = XLSX.utils.aoa_to_sheet(salesRows);
-        salesSheet["!cols"] = [{ wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 16 }];
-        XLSX.utils.book_append_sheet(workbook, salesSheet, "Sales Trend");
+        exportSalesTrendRows.forEach(row => {
+          salesSheet.addRow([row.date, row.orders, row.quantity, row.sales]);
+        });
       }
 
-      const workbookBinary: ArrayBuffer = XLSX.write(workbook, {
-        bookType: "xlsx",
-        type: "array"
-      });
+      const workbookBinary = await workbook.xlsx.writeBuffer();
 
       downloadBinaryBlob(
         workbookBinary,

@@ -70,11 +70,12 @@
 }
 
 
-/* Thin semantic accent rail on the left edge of each KPI card, tinted by
-   the same color as its icon chip (.blue/.green/.purple/.orange), so the
-   card reads as a distinct module rather than a plain white box. */
+/* Thin semantic accent rail on the left edge of each KPI card. Graphite
+   Atelier uses a single gold accent for the whole KPI row -- the old
+   per-module tints (blue/green/purple/orange) made four cards read as four
+   unrelated products, so every rail is now gold and status continues to be
+   carried by the caption text instead. */
 .stat-card::before{
-
     content:"";
     position:absolute;
     top:14px;
@@ -82,14 +83,8 @@
     left:0;
     width:3px;
     border-radius:0 3px 3px 0;
-    background:var(--border-strong);
+    background:var(--primary);
 }
-
-/* Graphite Atelier: one accent for the whole KPI row. The old per-module
-   tints (blue/green/purple/orange) made four cards read as four unrelated
-   products; the palette is single-accent by design, so every rail is gold and
-   status continues to be carried by the caption text instead. */
-.stat-card::before{ background:var(--primary); }
 
 
 

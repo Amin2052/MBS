@@ -122,7 +122,16 @@ export default function DashboardPage(): JSX.Element {
   // lives in main.ts's notifications:delete / notifications:reset
   // handlers (requireUserType("owner", "administrator")) -- this is
   // only the UI-visibility mirror of that same rule.
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
+  // AUDIT FIX: employees without customers/products/orders/invoices view
+  // rights used to still see all four Quick Actions and, because the widget
+  // data was fetched with Promise.all, a single permission rejection from
+  // any of the three getAll() calls blanked the entire dashboard with
+  // "Could not load dashboard data". Both are permission-aware now.
+  const canViewCustomers = hasPermission("customers.view");
+  const canViewProducts = hasPermission("products.view");
+  const canViewOrders = hasPermission("orders.view");
+  const canViewInvoices = hasPermission("invoices.view");
   const canManageNotifications = user?.user_type === "owner" || user?.user_type === "administrator";
   const isOwner = user?.user_type === "owner";
   const isAdministrator = user?.user_type === "administrator";
@@ -188,17 +197,37 @@ export default function DashboardPage(): JSX.Element {
       setLoadError(null);
 
       try {
-        const [customerData, productData, orderData] = await Promise.all([
-          window.mooral.customers.getAll(),
-          window.mooral.products.getAll(),
-          window.mooral.orders.getAll()
-        ]);
+        // allSettled (not all): a role that may see, say, orders but not
+        // customers must still get a populated dashboard instead of an
+        // error banner. Each section only ever renders data the caller was
+        // actually allowed to read, so a rejected leg just stays empty.
+        const [customerResult, productResult, orderResult] =
+          await Promise.allSettled([
+            canViewCustomers ? window.mooral.customers.getAll() : Promise.resolve([]),
+            canViewProducts ? window.mooral.products.getAll() : Promise.resolve([]),
+            canViewOrders ? window.mooral.orders.getAll() : Promise.resolve([])
+          ]);
 
         if (!isMounted) return;
 
-        setCustomers(customerData);
-        setProducts(productData);
-        setOrders(orderData);
+        setCustomers(customerResult.status === "fulfilled" ? customerResult.value : []);
+        setProducts(productResult.status === "fulfilled" ? productResult.value : []);
+        setOrders(orderResult.status === "fulfilled" ? orderResult.value : []);
+
+        const failures = [customerResult, productResult, orderResult].filter(
+          result => result.status === "rejected"
+        );
+        failures.forEach(result => {
+          if (result.status === "rejected") {
+            console.error("Failed to load dashboard data", result.reason);
+          }
+        });
+
+        // Only surface the banner when nothing at all could be read -- i.e.
+        // a real failure, not the normal case of a role with narrower rights.
+        if (failures.length === 3 && isMounted) {
+          setLoadError("Could not load dashboard data. Please try again.");
+        }
       } catch (error) {
         console.error("Failed to load dashboard data", error);
         if (isMounted) {
@@ -291,45 +320,52 @@ export default function DashboardPage(): JSX.Element {
       )}
 
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-top">
-            <div>
-              <span>{t("dashboard.totalSales")}</span>
-              <h2>{isLoading ? "—" : formatCurrency(totalSales)}</h2>
+        {canViewOrders && (
+          <div className="stat-card">
+            <div className="stat-top">
+              <div>
+                <span>{t("dashboard.totalSales")}</span>
+                <h2>{isLoading ? "—" : formatCurrency(totalSales)}</h2>
+              </div>
+              <div className="icon-box blue">
+                <DollarSign size={22} />
+              </div>
             </div>
-            <div className="icon-box blue">
-              <DollarSign size={22} />
-            </div>
+            <p className="success">{t("dashboard.totalSalesSubtitle")}</p>
           </div>
-          <p className="success">{t("dashboard.totalSalesSubtitle")}</p>
-        </div>
+        )}
 
-        <div className="stat-card">
-          <div className="stat-top">
-            <div>
-              <span>{t("dashboard.orders")}</span>
-              <h2>{statValue(totalOrders)}</h2>
+        {canViewOrders && (
+          <div className="stat-card">
+            <div className="stat-top">
+              <div>
+                <span>{t("dashboard.orders")}</span>
+                <h2>{statValue(totalOrders)}</h2>
+              </div>
+              <div className="icon-box green">
+                <ShoppingCart size={22} />
+              </div>
             </div>
-            <div className="icon-box green">
-              <ShoppingCart size={22} />
-            </div>
+            <p>{t("dashboard.ordersSubtitle")}</p>
           </div>
-          <p>{t("dashboard.ordersSubtitle")}</p>
-        </div>
+        )}
 
-        <div className="stat-card">
-          <div className="stat-top">
-            <div>
-              <span>{t("dashboard.customers")}</span>
-              <h2>{statValue(totalCustomers)}</h2>
+        {canViewCustomers && (
+          <div className="stat-card">
+            <div className="stat-top">
+              <div>
+                <span>{t("dashboard.customers")}</span>
+                <h2>{statValue(totalCustomers)}</h2>
+              </div>
+              <div className="icon-box purple">
+                <Users size={22} />
+              </div>
             </div>
-            <div className="icon-box purple">
-              <Users size={22} />
-            </div>
+            <p>{t("dashboard.customersSubtitle")}</p>
           </div>
-          <p>{t("dashboard.customersSubtitle")}</p>
-        </div>
+        )}
 
+        {canViewProducts && (
         <div className="stat-card">
           <div className="stat-top">
             <div>
@@ -348,6 +384,7 @@ export default function DashboardPage(): JSX.Element {
                 : t("dashboard.allStockHealthy")}
           </p>
         </div>
+        )}
       </div>
 
       <div className="dashboard-box">
@@ -357,33 +394,41 @@ export default function DashboardPage(): JSX.Element {
         </div>
 
         <div className="quick-actions">
-          <button onClick={() => navigate("/customers?action=add")}>
-            <span className="qa-icon purple">
-              <UserPlus size={18} />
-            </span>
-            {t("dashboard.quickAddCustomer")}
-          </button>
+          {hasPermission("customers.create") && (
+            <button onClick={() => navigate("/customers?action=add")}>
+              <span className="qa-icon purple">
+                <UserPlus size={18} />
+              </span>
+              {t("dashboard.quickAddCustomer")}
+            </button>
+          )}
 
-          <button onClick={() => navigate("/products?action=add")}>
-            <span className="qa-icon orange">
-              <Package size={18} />
-            </span>
-            {t("dashboard.quickAddProduct")}
-          </button>
+          {hasPermission("products.create") && (
+            <button onClick={() => navigate("/products?action=add")}>
+              <span className="qa-icon orange">
+                <Package size={18} />
+              </span>
+              {t("dashboard.quickAddProduct")}
+            </button>
+          )}
 
-          <button onClick={() => navigate("/orders?action=add")}>
-            <span className="qa-icon green">
-              <Plus size={18} />
-            </span>
-            {t("dashboard.quickCreateOrder")}
-          </button>
+          {hasPermission("orders.create") && (
+            <button onClick={() => navigate("/orders?action=add")}>
+              <span className="qa-icon green">
+                <Plus size={18} />
+              </span>
+              {t("dashboard.quickCreateOrder")}
+            </button>
+          )}
 
-          <button onClick={() => navigate("/invoices")}>
-            <span className="qa-icon blue">
-              <FileText size={18} />
-            </span>
-            {t("dashboard.quickViewInvoices")}
-          </button>
+          {canViewInvoices && (
+            <button onClick={() => navigate("/invoices")}>
+              <span className="qa-icon blue">
+                <FileText size={18} />
+              </span>
+              {t("dashboard.quickViewInvoices")}
+            </button>
+          )}
         </div>
       </div>
 
@@ -571,6 +616,7 @@ export default function DashboardPage(): JSX.Element {
 
       )}
 
+      {canViewOrders && (
       <div className="dashboard-box">
         <div className="box-header">
           <h2>{t("dashboard.recentOrders")}</h2>
@@ -609,7 +655,9 @@ export default function DashboardPage(): JSX.Element {
           </div>
         </div>
       </div>
+      )}
 
+      {canViewOrders && (
       <div className="dashboard-box">
         <div className="box-header">
           <h2>{t("dashboard.salesOverview")}</h2>
@@ -654,6 +702,7 @@ export default function DashboardPage(): JSX.Element {
           </div>
         )}
       </div>
+      )}
 
       {selectedNotification && (
         <div

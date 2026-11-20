@@ -962,6 +962,8 @@ declare global {
 
     cloudError?: string;
 
+    serverOutdated?: boolean;
+
     localCounts: Record<string, number>;
 
     tables: string[];
@@ -1668,6 +1670,17 @@ cloud: {
   saveCustomerConfig(config: { apiUrl: string; workspaceId: string; apiKey: string }): Promise<{ enabled: boolean; licensed: boolean; mode: "developer_managed" | "customer_managed"; apiUrl: string; workspaceId: string; apiKey: string; apiKeyMasked: string }>;
   health(): Promise<{ success: boolean; status?: number; detail?: string }>;
   syncNow(): Promise<{ success: boolean; error?: string }>;
+  /** Read-only snapshot for the Settings status panel: read from the file the
+   *  sync loop writes at the end of every cycle plus the persisted reset epoch,
+   *  so it never performs a network call. `null` = never happened yet. */
+  getStatus(): Promise<{
+    lastSyncAt: string | null;
+    permissionsSynced: boolean | null;
+    permissionsError: string | null;
+    resetEpoch: number;
+    enabled: boolean;
+    workspaceId: string;
+  }>;
 },
 
 

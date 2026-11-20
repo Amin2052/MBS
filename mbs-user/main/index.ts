@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from "electron";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -6,6 +7,7 @@ import {
   EmployeeClient, ApiError, RevisionConflictError, ORDER_STATUSES, hasPermission,
   type EmployeeSession
 } from "../shared/api-client";
+import { DEFAULT_API_URL, DEFAULT_WORKSPACE_ID } from "../shared/default-config";
 
 // ===================================================================
 // MBS-user — employee client, main process
@@ -33,7 +35,14 @@ app.setAppUserModelId("com.mooral.mbsuser");
 interface UserConfig {
   apiUrl: string;
   workspaceId: string;
+  settingsLock?: string;
 }
+
+// Every installation starts locked with this shared default password, so server
+// settings are protected before an administrator has configured anything. There
+// is no UI to change them any more; the lock only exists as a backstop for any
+// future in-app configuration path.
+const DEFAULT_ADMIN_PASSWORD = "1234567890";
 
 interface ConnectionState {
   online: boolean;
@@ -60,15 +69,104 @@ function configPath(): string {
 function readConfig(): UserConfig {
   try {
     const raw = JSON.parse(fs.readFileSync(configPath(), "utf8")) as Partial<UserConfig>;
-    return { apiUrl: String(raw.apiUrl || ""), workspaceId: String(raw.workspaceId || "") };
+    return {
+      // Fall back to the built-in deployment so a fresh install can sign in.
+      apiUrl: String(raw.apiUrl || DEFAULT_API_URL),
+      workspaceId: String(raw.workspaceId || DEFAULT_WORKSPACE_ID),
+      // "" is an explicit "no lock" written by Remove lock; a missing key means
+      // the installation is still on the default password.
+      settingsLock: typeof raw.settingsLock === "string" ? raw.settingsLock : undefined
+    };
   } catch {
-    return { apiUrl: "", workspaceId: "" };
+    return { apiUrl: DEFAULT_API_URL, workspaceId: DEFAULT_WORKSPACE_ID };
   }
 }
 
-function writeConfig(next: UserConfig): { success: boolean; error?: string } {
-  const apiUrl = String(next.apiUrl || "").trim().replace(/\/+$/, "");
-  const workspaceId = String(next.workspaceId || "").trim();
+// The administrator password is stored as a salted scrypt hash. It never
+// leaves the main process: config:get reports only whether a lock exists.
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `scrypt:${salt}:${hash}`;
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
+function verifyPassword(password: string, stored: string): boolean {
+  // Older installs stored the password in plain text; still accept it so an
+  // existing lock can be unlocked and then migrated to a hash.
+  if (!stored.startsWith("scrypt:")) return safeEqual(password, stored);
+  const [, salt, hash] = stored.split(":");
+  if (!salt || !hash) return false;
+  const expected = Buffer.from(hash, "hex");
+  const actual = crypto.scryptSync(password, salt, 64);
+  return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+}
+
+// The verifier currently protecting server settings: a stored lock, the
+// default password when nothing has been stored yet, or null when an
+// administrator has removed the lock entirely.
+function activeLock(config: UserConfig): string | null {
+  if (config.settingsLock === "") return null;
+  return config.settingsLock ?? DEFAULT_ADMIN_PASSWORD;
+}
+
+// Set only after the administrator verified the lock password in this run, so
+// the lock re-applies the next time the app starts.
+let settingsUnlocked = false;
+
+// The server address and workspace can no longer be typed into the app (the
+// sign-in page shows no server settings at all), so an administrator provisions
+// a PC either by writing mbs-user-config.json or by passing the two values on
+// the command line, e.g. from a deployment shortcut:
+//   MBS-user.exe --api-url=https://mbs-cloud.example.workers.dev --workspace=acme-trading
+// Command-line provisioning counts as an administrator action, so it is allowed
+// even while the settings lock is in force.
+function applyProvisioningArgs(): void {
+  const flags = new Map<string, string>();
+  for (const arg of process.argv.slice(1)) {
+    const match = /^--(api-url|workspace|workspace-id)=(.*)$/.exec(arg);
+    if (!match) continue;
+    const value = match[2].trim();
+    if (value) flags.set(match[1], value);
+  }
+
+  const apiUrl = flags.get("api-url");
+  const workspaceId = flags.get("workspace") ?? flags.get("workspace-id");
+  if (!apiUrl && !workspaceId) return;
+
+  const current = readConfig();
+  const sameUrl = !apiUrl || apiUrl === current.apiUrl;
+  const sameWorkspace = !workspaceId || workspaceId === current.workspaceId;
+  if (sameUrl && sameWorkspace) return;
+
+  settingsUnlocked = true;
+  try {
+    const result = writeConfig({ apiUrl, workspaceId });
+    if (!result.success) console.error("[MBS-user] Could not apply provisioning flags:", result.error);
+  } finally {
+    settingsUnlocked = false;
+  }
+}
+
+function writeConfig(patch: {
+  apiUrl?: string;
+  workspaceId?: string;
+  settingsLock?: string | null;
+}): { success: boolean; error?: string } {
+
+  const current = readConfig();
+  const apiUrl = patch.apiUrl !== undefined
+    ? String(patch.apiUrl).trim().replace(/\/+$/, "")
+    : current.apiUrl;
+  const workspaceId = patch.workspaceId !== undefined
+    ? String(patch.workspaceId).trim()
+    : current.workspaceId;
+
   if (apiUrl) {
     try {
       const parsed = new URL(apiUrl);
@@ -80,8 +178,21 @@ function writeConfig(next: UserConfig): { success: boolean; error?: string } {
   if (workspaceId && !/^[A-Za-z0-9_-]{3,80}$/.test(workspaceId)) {
     return { success: false, error: "Workspace id must be 3-80 letters, digits, '-' or '_'." };
   }
+
+  // A lock points employees at one server. Writing a different address has to
+  // be refused here, not only hidden in the UI.
+  if (activeLock(current) !== null && !settingsUnlocked && (apiUrl !== current.apiUrl || workspaceId !== current.workspaceId)) {
+    return { success: false, error: "Server settings are locked. Unlock them with the administrator password first." };
+  }
+
+  // undefined keeps whatever is stored, null removes the lock (stored as ""),
+  // a string replaces it.
+  const settingsLock = patch.settingsLock === undefined
+    ? current.settingsLock
+    : (patch.settingsLock === null ? "" : String(patch.settingsLock));
+
   fs.mkdirSync(path.dirname(configPath()), { recursive: true });
-  fs.writeFileSync(configPath(), JSON.stringify({ apiUrl, workspaceId }, null, 2), { mode: 0o600 });
+  fs.writeFileSync(configPath(), JSON.stringify({ apiUrl, workspaceId, ...(settingsLock !== undefined ? { settingsLock } : {}) }, null, 2), { mode: 0o600 });
   return { success: true };
 }
 
@@ -193,14 +304,73 @@ async function checkConnection(): Promise<ConnectionState> {
 
 ipcMain.handle("config:get", () => {
   const config = readConfig();
-  return { ...config, signedIn: Boolean(session) };
+  // The hash stays in main: the renderer only learns whether a lock is set.
+  return {
+    apiUrl: config.apiUrl,
+    workspaceId: config.workspaceId,
+    settingsLocked: activeLock(config) !== null,
+    settingsUnlocked,
+    signedIn: Boolean(session)
+  };
 });
 
-ipcMain.handle("config:set", (_event, input: Partial<UserConfig>) => {
+ipcMain.handle("config:set", (_event, input: { apiUrl?: string; workspaceId?: string }) => {
   // Changing where credentials are sent while a session is active would let
   // a later call replay this session against a different server.
   if (session) return { success: false, error: "Sign out before changing the server." };
-  return writeConfig({ apiUrl: String(input?.apiUrl || ""), workspaceId: String(input?.workspaceId || "") });
+  return writeConfig({
+    apiUrl: input?.apiUrl !== undefined ? String(input.apiUrl) : undefined,
+    workspaceId: input?.workspaceId !== undefined ? String(input.workspaceId) : undefined
+  });
+});
+
+// Verifies the administrator password and, on success, unlocks server settings
+// for this run only.
+ipcMain.handle("config:unlock", (_event, input: { password?: string }) => {
+  const config = readConfig();
+  const lock = activeLock(config);
+  if (lock === null) {
+    settingsUnlocked = true;
+    return { success: true };
+  }
+  const password = String(input?.password ?? "");
+  if (!verifyPassword(password, lock)) {
+    return { success: false, error: "Incorrect administrator password." };
+  }
+  settingsUnlocked = true;
+  // Migrate an old plain-text lock to a salted hash. The shipped default is
+  // left as-is so a new installation keeps working with the documented password.
+  if (!lock.startsWith("scrypt:") && lock !== DEFAULT_ADMIN_PASSWORD) {
+    writeConfig({ settingsLock: hashPassword(password) });
+  }
+  return { success: true };
+});
+
+// Re-applies the existing lock after an unlocked session is finished.
+ipcMain.handle("config:relock", () => {
+  settingsUnlocked = false;
+  return { success: true };
+});
+
+// Sets, changes or removes the lock. Changing or removing an existing lock
+// needs it to be unlocked first (i.e. the current password was entered).
+ipcMain.handle("config:setLock", (_event, input: { password?: string | null }) => {
+  const config = readConfig();
+  if (activeLock(config) !== null && !settingsUnlocked) {
+    return { success: false, error: "Enter the current administrator password first." };
+  }
+  if (input?.password === null || input?.password === "") {
+    const removed = writeConfig({ settingsLock: null });
+    if (removed.success) settingsUnlocked = false;
+    return removed;
+  }
+  const password = String(input?.password ?? "");
+  if (password.length < 6) {
+    return { success: false, error: "Use an administrator password of at least 6 characters." };
+  }
+  const result = writeConfig({ settingsLock: hashPassword(password) });
+  if (result.success) settingsUnlocked = false;
+  return result;
 });
 
 ipcMain.handle("auth:login", async (_event, input: { username?: string; password?: string }) => {
@@ -218,7 +388,13 @@ ipcMain.handle("auth:login", async (_event, input: { username?: string; password
     void checkConnection();
     return { success: true, session: publicSession() };
   } catch (error) {
-    return errorPayload(error);
+    const payload = errorPayload(error);
+    // Say WHICH server and workspace were tried. "Incorrect ID or password"
+    // is otherwise indistinguishable from "this PC is pointed at the wrong
+    // workspace/server", which is the usual cause when the credentials are right.
+    let host = config.apiUrl;
+    try { host = new URL(config.apiUrl).host; } catch { /* keep raw value */ }
+    return { ...payload, error: `${payload.error} (server ${host}, workspace ${config.workspaceId})` };
   }
 });
 
@@ -315,6 +491,7 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(() => {
+    applyProvisioningArgs();
     createWindow();
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();

@@ -1497,7 +1497,9 @@ cloud: {
   saveCustomerConfig: (config: { apiUrl: string; workspaceId: string; apiKey: string }) =>
     ipcRenderer.invoke("cloud:saveCustomerConfig", config),
   health: () => ipcRenderer.invoke("cloud:health"),
-  syncNow: () => ipcRenderer.invoke("cloud:syncNow")
+  syncNow: () => ipcRenderer.invoke("cloud:syncNow"),
+  // Read-only status snapshot for the Settings panel (local files only).
+  getStatus: () => ipcRenderer.invoke("cloud:getStatus")
   // SECURITY (IPC audit): listRecords/createRecord/updateRecord/
   // deleteRecord were removed here along with their main-process
   // handlers -- see the comment in electron/main/main.ts at the same

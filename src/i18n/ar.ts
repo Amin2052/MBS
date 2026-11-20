@@ -1429,6 +1429,7 @@ const ar: TranslationDictionary = {
     previewCloud: "مساحة العمل المركزية",
     previewEpoch: "جيل إعادة التعيين",
     previewUnreachable: "تعذّر الوصول إلى السحابة",
+    previewServerOutdated: "الخادم قديم — لا توجد نقطة إعادة التعيين",
     backupNotice: "تُنشأ نسخة احتياطية في مجلد بيانات التطبيق قبل حذف أي شيء؛ ويظهر مسارها عند النجاح.",
     confirmPassword: "كلمة المرور",
     phraseCloud: "اكتب معرّف مساحة العمل للتأكيد",

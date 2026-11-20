@@ -13,8 +13,17 @@ declare global {
   interface Window {
     mbsUser: {
       config: {
-        get(): Promise<{ apiUrl: string; workspaceId: string; signedIn: boolean }>;
-        set(config: { apiUrl: string; workspaceId: string }): Promise<{ success: boolean; error?: string }>;
+        get(): Promise<{
+          apiUrl: string;
+          workspaceId: string;
+          signedIn: boolean;
+          settingsLocked: boolean;
+          settingsUnlocked: boolean;
+        }>;
+        set(config: { apiUrl?: string; workspaceId?: string }): Promise<{ success: boolean; error?: string }>;
+        unlock(password: string): Promise<{ success: boolean; error?: string }>;
+        setLock(password: string | null): Promise<{ success: boolean; error?: string }>;
+        relock(): Promise<{ success: boolean; error?: string }>;
       };
       auth: {
         login(input: { username: string; password: string }): Promise<{ success: boolean; error?: string; session?: SessionView | null }>;

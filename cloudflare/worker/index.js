@@ -66,6 +66,18 @@ const TABLE_SCHEMAS = {
 };
 
 function now() { return new Date().toISOString(); }
+
+// users.employee_id is the employee's id in the OWNER'S LOCAL MBS database
+// (that is what syncUsersAndPermissions() sends). D1's employees.id is a
+// separate autoincrement value, so joining `e.id = u.employee_id` matched the
+// wrong row or none -- employees then showed up as their bare username
+// (no name / email / designation). The D1 employees row that mirrors local
+// employee N is identified by its sync identity, local_id = "<device>:employees:N"
+// (see cloud-sync-manager.ts), so resolve it through that instead.
+const EMPLOYEE_JOIN_ID = `(SELECT e2.id FROM employees e2
+    WHERE e2.workspace_id=u.workspace_id AND e2.deleted_at IS NULL AND u.employee_id IS NOT NULL
+      AND (e2.local_id LIKE '%:employees:' || u.employee_id OR e2.local_id = CAST(u.employee_id AS TEXT))
+    ORDER BY e2.id LIMIT 1)`;
 function b64(bytes) { return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, ""); }
 function randomToken() { const bytes = new Uint8Array(32); crypto.getRandomValues(bytes); return b64(bytes); }
 async function sha256(value) { return b64(new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(value)))); }
@@ -305,6 +317,15 @@ async function issueSession(env, userId, rememberMe = false) {
   const expiresAt = new Date(expires * 1000).toISOString().slice(0, 19).replace("T", " ");
   await env.DB.prepare("INSERT INTO sessions(user_id,token_hash,remember_me,expires_at,created_at,last_used_at) VALUES(?,?,?,?,?,?)")
     .bind(userId, tokenHash, rememberMe ? 1 : 0, expiresAt, now(), now()).run();
+  // Housekeeping: sessions were never deleted, so the table only ever grew
+  // (production already held expired rows). Drop this user's sessions that
+  // expired more than a week ago. Best effort -- a failure here must never
+  // block a sign-in.
+  try {
+    await env.DB.prepare("DELETE FROM sessions WHERE user_id=? AND expires_at < datetime('now','-7 days')").bind(userId).run();
+  } catch (error) {
+    console.warn("session cleanup skipped:", error instanceof Error ? error.message : String(error));
+  }
   return { token, expiresAt: expires };
 }
 
@@ -322,7 +343,7 @@ async function authUser(request, env) {
            s.id AS session_id
     FROM sessions s
     JOIN users u ON u.id=s.user_id
-    LEFT JOIN employees e ON e.id=u.employee_id
+    LEFT JOIN employees e ON e.id=${EMPLOYEE_JOIN_ID}
     WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at > CURRENT_TIMESTAMP
     LIMIT 1`).bind(tokenHash).first();
   if (!row || row.status !== "active") return null;
@@ -390,11 +411,25 @@ async function handleAuth(request, env, path) {
     // workspaceForRequest(). A username that exists in a different
     // workspace is invisible here, which is also what makes the same
     // username reusable across separate companies.
-    const row = await env.DB.prepare("SELECT * FROM users WHERE workspace_id=? AND username=? LIMIT 1").bind(workspace, username).first();
-    if (!row || row.status !== "active") return text("Invalid username or password.", 401, request, env);
+    // Username match is case-insensitive: employees type "emp000001" as often
+    // as "EMP000001", and a case-sensitive lookup reported that as a wrong
+    // password even though the credentials were right. An exact-case match
+    // still wins if two rows differ only by case.
+    const row = await env.DB.prepare("SELECT * FROM users WHERE workspace_id=? AND username=? COLLATE NOCASE ORDER BY (username=?) DESC LIMIT 1").bind(workspace, username, username).first();
+    if (!row || row.status !== "active") {
+      // Logged (visible in `wrangler tail`) so "wrong password" reports can be
+      // told apart from "this user does not exist in this workspace".
+      console.warn(`login refused: ${!row ? "no such user in workspace" : "user not active"} (workspace=${workspace}, username=${username})`);
+      return text("Invalid username or password.", 401, request, env);
+    }
     if (row.locked_until && new Date(row.locked_until).getTime() > Date.now()) return text("Account temporarily locked.", 423, request, env);
-    const valid = await verifyPassword(password, row.password_hash);
+    // Generated passwords never contain whitespace, so a copy/paste that picked
+    // up a leading/trailing space is retried trimmed (only on a first failure,
+    // so the extra scrypt cost is paid only by that case).
+    let valid = await verifyPassword(password, row.password_hash);
+    if (!valid && password !== password.trim() && password.trim()) valid = await verifyPassword(password.trim(), row.password_hash);
     if (!valid) {
+      console.warn(`login refused: wrong password (workspace=${workspace}, username=${row.username})`);
       const attempts = Number(row.failed_login_attempts || 0) + 1;
       const locked = attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null;
       await env.DB.prepare("UPDATE users SET failed_login_attempts=?,locked_until=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(attempts, locked, row.id).run();
@@ -431,7 +466,7 @@ async function handleUsers(request, env, user, apiKeyOk, workspace) {
     if (!apiKeyOk && (!user || (user.user_type !== "owner" && user.user_type !== "administrator"))) return text("Forbidden.", 403, request, env);
     const rows = await env.DB.prepare(`SELECT u.id,u.username,u.user_type,u.status,u.employee_id,u.permission_profile_id,u.must_change_password,u.updated_at,
       COALESCE(TRIM(e.first_name || ' ' || e.last_name), u.username) AS full_name,e.email,e.phone,e.designation
-      FROM users u LEFT JOIN employees e ON e.id=u.employee_id WHERE u.workspace_id=? ORDER BY u.user_type='owner' DESC, u.username`).bind(workspace).all();
+      FROM users u LEFT JOIN employees e ON e.id=${EMPLOYEE_JOIN_ID} WHERE u.workspace_id=? ORDER BY u.user_type='owner' DESC, u.username`).bind(workspace).all();
     return json((rows.results || []).map(safeUser), 200, request, env);
   }
   if (request.method === "POST") {
@@ -503,6 +538,7 @@ async function handlePermissionSync(request, env, apiKeyOk, workspace) {
   const profiles = Array.isArray(d.profiles) ? d.profiles : [];
   const profilePermissions = Array.isArray(d.profilePermissions) ? d.profilePermissions : [];
   const userPermissions = Array.isArray(d.userPermissions) ? d.userPermissions : [];
+  const skippedProfiles = [];
   // profile_id / user_id below are local D1 autoincrement ids scoped to
   // THIS workspace's own users/permission_profiles rows (guaranteed by the
   // ownership checks against `workspace` in each loop) -- a profile_id or
@@ -513,6 +549,40 @@ async function handlePermissionSync(request, env, apiKeyOk, workspace) {
     if (!Number.isInteger(Number(p.id)) || !String(p.name || "")) continue;
     const owns = await env.DB.prepare("SELECT id FROM permission_profiles WHERE id=? AND workspace_id=?").bind(Number(p.id), workspace).first();
     if (!owns) {
+      // IDENTITY RECONCILIATION (found on production 2026-11-17, where the
+      // cloud held profiles 1-5 and the owner's PC held the same five names
+      // as 96-100): permission_profiles.id is a LOCAL autoincrement value,
+      // not a globally agreed key, so two installations that were provisioned
+      // independently assign different ids to the same profile. Inserting the
+      // incoming id unconditionally then crashed the whole permission sync
+      // with `UNIQUE constraint failed: permission_profiles.workspace_id,
+      // permission_profiles.name`, and left cloud users pointing at a
+      // permission_profile_id that did not exist. The profile NAME is the
+      // stable identity here, so it wins: re-key the existing cloud row to
+      // the incoming id and repair every reference to the old one.
+      const sameName = await env.DB.prepare("SELECT id FROM permission_profiles WHERE name=? AND workspace_id=?").bind(String(p.name), workspace).first();
+      if (sameName && Number(sameName.id) !== Number(p.id)) {
+        const idTaken = await env.DB.prepare("SELECT name FROM permission_profiles WHERE id=? AND workspace_id=?").bind(Number(p.id), workspace).first();
+        if (!idTaken) {
+          const oldId = Number(sameName.id);
+          // Delete the old grant rows rather than updating them: their
+          // (profile_id, permission_key) unique key could collide with rows
+          // already stored under the new id. The payload below re-adds this
+          // profile's full grant set immediately afterwards.
+          await env.DB.prepare("DELETE FROM profile_permissions WHERE profile_id=?").bind(oldId).run();
+          await env.DB.prepare("UPDATE users SET permission_profile_id=? WHERE permission_profile_id=? AND workspace_id=?").bind(Number(p.id), oldId, workspace).run();
+          await env.DB.prepare("UPDATE permission_profiles SET id=? WHERE id=? AND workspace_id=?").bind(Number(p.id), oldId, workspace).run();
+          await env.DB.prepare(`UPDATE permission_profiles SET description=?,is_system=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND workspace_id=?`)
+            .bind(String(p.description || ""), Number(p.is_system || 0), Number(p.id), workspace).run();
+          continue;
+        }
+        // The incoming id belongs to a DIFFERENT profile in this workspace:
+        // two incompatible identities for one id. Leave both rows alone and
+        // report it rather than guessing -- overwriting either would hand
+        // somebody else's grants to the wrong profile.
+        skippedProfiles.push({ id: Number(p.id), name: String(p.name), reason: "id_registered_to_other_profile" });
+        continue;
+      }
       await env.DB.prepare(`INSERT INTO permission_profiles(id,name,description,is_system,created_at,updated_at,workspace_id) VALUES(?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?)`)
         .bind(Number(p.id), String(p.name), String(p.description || ""), Number(p.is_system || 0), workspace).run();
       continue;
@@ -536,7 +606,7 @@ async function handlePermissionSync(request, env, apiKeyOk, workspace) {
       ON CONFLICT(user_id,permission_key) DO UPDATE SET allowed=excluded.allowed`)
       .bind(Number(p.user_id), String(p.permission_key), Number(p.allowed ? 1 : 0)).run();
   }
-  return json({ success: true, profiles: profiles.length, profilePermissions: profilePermissions.length, userPermissions: userPermissions.length }, 200, request, env);
+  return json({ success: true, profiles: profiles.length, profilePermissions: profilePermissions.length, userPermissions: userPermissions.length, skippedProfiles }, 200, request, env);
 }
 
 // Uses `mbs_messages`, NOT the legacy `messages` table. Production's
@@ -562,7 +632,7 @@ async function resolveMessageSender(request, env, user, workspace) {
   const row = await env.DB.prepare(`
     SELECT u.id,u.username,u.user_type,u.status,u.workspace_id,
            COALESCE(TRIM(e.first_name || ' ' || e.last_name), u.username) AS full_name
-    FROM users u LEFT JOIN employees e ON e.id=u.employee_id
+    FROM users u LEFT JOIN employees e ON e.id=${EMPLOYEE_JOIN_ID}
     WHERE u.workspace_id=? AND u.username=? LIMIT 1`).bind(workspace, claimedUsername).first();
   if (!row || row.status !== "active") return null;
   return row;

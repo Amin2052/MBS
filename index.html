@@ -7,9 +7,9 @@
     <script>
       (function () {
         try {
-          // Graphite Atelier (dark) is the default appearance. A previously
-          // stored preference of "light" or "system" is still honoured.
-          var theme = localStorage.getItem("mooral.theme") || "dark";
+          // Atelier Daylight (light) is the default appearance. A previously
+          // stored preference of "dark" or "system" is still honoured.
+          var theme = localStorage.getItem("mooral.theme") || "light";
 
           var resolvedTheme = theme;
 
@@ -31,7 +31,7 @@
             rtlLanguages.indexOf(language) !== -1 ? "rtl" : "ltr"
           );
         } catch (error) {
-          document.documentElement.setAttribute("data-theme", "dark");
+          document.documentElement.setAttribute("data-theme", "light");
           document.documentElement.setAttribute("dir", "ltr");
         }
       })();

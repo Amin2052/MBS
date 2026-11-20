@@ -106,7 +106,7 @@ export class EmployeeClient {
     return headers;
   }
 
-  private async request(path: string, init: RequestInit, token?: string): Promise<Response> {
+  private async request(path: string, init: RequestInit, token?: string, mapUnauthorized = true): Promise<Response> {
     if (!this.baseUrl) throw new ApiError("Server address is not configured.", 0, "not_configured");
     if (!this.workspaceId) throw new ApiError("Workspace id is not configured.", 0, "not_configured");
 
@@ -120,7 +120,11 @@ export class EmployeeClient {
       throw new ApiError(`Cannot reach ${this.baseUrl}. ${error instanceof Error ? error.message : ""}`.trim(), 0, "offline");
     }
 
-    if (response.status === 401) throw new SessionExpiredError();
+    // A 401 on an authenticated call means the session ended. On the sign-in
+    // call itself it means "wrong employee ID or password" and must reach
+    // login() unmapped -- otherwise every bad password was reported as
+    // "Your session has ended", which hid the real cause.
+    if (response.status === 401 && mapUnauthorized) throw new SessionExpiredError();
     return response;
   }
 
@@ -144,10 +148,11 @@ export class EmployeeClient {
       method: "POST",
       headers: this.headers(undefined, { "content-type": "application/json" }),
       body: JSON.stringify({ username, password, workspaceId: this.workspaceId })
-    });
+    }, undefined, false);
 
     const bodyText = await response.text();
     if (!response.ok) {
+      if (response.status === 400 && /workspace/i.test(bodyText)) throw new ApiError(`The server rejected workspace '${this.workspaceId}'. Check the workspace id in Server settings.`, 400, "bad_workspace");
       if (response.status === 423) throw new ApiError("Account temporarily locked after repeated failed attempts.", 423, "locked");
       throw new ApiError(response.status === 401 ? "Incorrect employee ID or password." : bodyText || "Sign-in failed.", response.status);
     }

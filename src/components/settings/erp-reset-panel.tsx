@@ -213,9 +213,21 @@ export default function ErpResetPanel(): JSX.Element {
               {cloudReady
                 ? preview.cloudReachable
                   ? `${preview.workspaceId} · ${t("erpReset.previewEpoch")} ${preview.resetEpoch}`
-                  : <span className="reset-cloud-off"><CloudOff size={13} /> {t("erpReset.previewUnreachable")}</span>
+                  : (
+                    <span className="reset-cloud-off">
+                      <CloudOff size={13} />{" "}
+                      {preview.serverOutdated
+                        ? t("erpReset.previewServerOutdated")
+                        : t("erpReset.previewUnreachable")}
+                    </span>
+                  )
                 : t("erpReset.cloudUnavailable")}
             </p>
+            {/* The exact reason, not just a status word: a 404 here means the
+                deployment is older than this app, which the owner can fix. */}
+            {cloudReady && !preview.cloudReachable && preview.cloudError && (
+              <p className="reset-hint">{preview.cloudError}</p>
+            )}
           </>
         )}
 

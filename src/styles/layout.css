@@ -69,37 +69,8 @@ body,
   border-bottom: 1px solid var(--sidebar-border);
 }
 
-/* The supplied brand asset is a full lockup (mark + wordmark) on a white
-   square. At tile size the wordmark is illegible and the white square reads
-   as a dark blob, so the tile is treated as a small "app icon" plate: a warm
-   off-white surface with the artwork scaled to the mark itself. The product
-   name is already set as text immediately beside it. */
-.sidebar-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  padding: 0;
-  border-radius: 9px;
-  border: 1px solid var(--border);
-  background: var(--brand-plate);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-.sidebar-brand-mark img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-  /* Clip to the brand mark's bounding box in the supplied lockup, then scale
-     that region to the plate (see login-screen.css for the same treatment). */
-  clip-path: inset(24% 31% 44% 31%);
-  transform: scale(2.8);
-  transform-origin: 50% 40%;
-}
-
+/* The product name is set as text; a logo mark used to sit on the left here
+   and was removed so the header is text only. */
 .sidebar-brand-text {
   display: flex;
   flex-direction: column;

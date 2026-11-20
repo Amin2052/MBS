@@ -10,6 +10,7 @@ import {
   CloudResetRequiredError
 } from "./cloud-client";
 import { rebaselineToResetEpoch } from "./cloud-reset-service";
+import { getStoredResetEpoch } from "./sync-epoch";
 import {
   getMappingByCloudId, getMappingByLocalRow, upsertMapping, markMappingConflicted, deleteMappingByLocalRow,
   getSyncCursor, setSyncCursor, enqueueOfflineOperation, listOfflineQueue, removeOfflineQueueItem, recordOfflineQueueFailure
@@ -113,6 +114,35 @@ export async function getLastSyncState(): Promise<Record<string, unknown> | null
   } catch {
     return null;
   }
+}
+
+/** Read-only snapshot for the Settings cloud panel. Deliberately built from
+ *  the same two sources the sync loop itself uses -- the state file it writes
+ *  at the end of every cycle and the persisted reset epoch -- so the panel can
+ *  never disagree with what the engine actually did. No network call: showing
+ *  a status block must not fail because the server is unreachable, and the
+ *  panel already has Test Connection for that.
+ *
+ *  `null` means "this has never happened yet" (no sync cycle has completed,
+ *  so there is no permissions result to report), which is different from
+ *  `false` (a cycle ran and permissions were rejected). */
+export interface CloudSyncStatus {
+  lastSyncAt: string | null;
+  permissionsSynced: boolean | null;
+  permissionsError: string | null;
+  resetEpoch: number;
+}
+
+export async function getCloudSyncStatus(): Promise<CloudSyncStatus> {
+  const state = await getLastSyncState();
+  const permissionsSynced = typeof state?.permissionsSynced === "boolean" ? state.permissionsSynced as boolean : null;
+  const permissionsError = typeof state?.permissionsError === "string" && state.permissionsError ? state.permissionsError as string : null;
+  return {
+    lastSyncAt: typeof state?.syncedAt === "string" ? state.syncedAt as string : null,
+    permissionsSynced,
+    permissionsError,
+    resetEpoch: getStoredResetEpoch()
+  };
 }
 
 function primaryKeyFor(table: string): string {
@@ -721,3 +751,25 @@ export function stopCloudSync(): void {
 }
 
 export async function syncCloudNow(): Promise<void> { await syncOnce(); }
+
+/**
+ * Pushes ONLY users + permission profiles to the cloud, right now.
+ *
+ * Called after every user-management action in MBS (create login, reset
+ * password, disable/restore, change profile). Previously a freshly generated
+ * employee login reached the cloud only on the next 15 s full-sync cycle --
+ * and not at all while a cycle was already in flight (syncOnce() returns
+ * early then) -- so an employee who tried the printed credentials straight
+ * away got "Incorrect employee ID or password". This path is independent of
+ * syncInFlight; upserts are idempotent so overlapping with a full cycle is
+ * harmless. Never throws: a failure here is retried by the regular cycle.
+ */
+export async function pushUsersToCloudNow(): Promise<UsersAndPermissionsResult> {
+  try {
+    return await syncUsersAndPermissions();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("MBS Cloud immediate user push failed (will retry on next cycle):", message);
+    return { users: 0, userErrors: [], permissionsSynced: false, permissionsError: message };
+  }
+}

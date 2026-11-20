@@ -20,8 +20,6 @@ import { useLanguage } from "@/hooks/use-language";
 import { useAuth } from "@/hooks/use-auth";
 import type { PermissionKey } from "@/auth/permission-catalog";
 
-import logoUrl from "@/assets/mooral-logo.png";
-
 /**
  * Graphite Atelier sidebar.
  *
@@ -84,9 +82,6 @@ export default function Sidebar(): JSX.Element {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <span className="sidebar-brand-mark" aria-hidden="true">
-          <img src={logoUrl} alt="" />
-        </span>
         <span className="sidebar-brand-text">
           <strong>Mooral</strong>
           <span>Business Suite</span>
